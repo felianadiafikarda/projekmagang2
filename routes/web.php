@@ -14,3 +14,9 @@ Route::get('/reviewer', function () {
 Route::get('/author/kirim-artikel', function () {
     return view('author.KirimArtikel');
 });
+
+Route::get('/regis', function () {
+    return view('author.regis');
+});
+
+
