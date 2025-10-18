@@ -20,3 +20,8 @@ Route::get('/author/kirim-artikel', function () {
 Route::get('/author/kirim-artikel', function () {
     return view('author.KirimArtikel'); // pastikan file-nya ada di resources/views/author/kirim-artikel.blade.php
 });
+
+// Halaman Revi
+Route::get('/conference_manager', function () {
+    return view('conference_manager');
+});
