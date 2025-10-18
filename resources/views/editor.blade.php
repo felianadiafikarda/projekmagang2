@@ -38,12 +38,6 @@
         <li>
           <a href="#" class="block p-2 rounded bg-[#505055] font-medium">Editor</a>
         </li>
-        <li>
-          <a href="#" class="block p-2 rounded hover:bg-[#404045] transition">Reviewer</a>
-        </li>
-        <li>
-          <a href="#" class="block p-2 rounded hover:bg-[#404045] transition">Artikel</a>
-        </li>
       </ul>
     </aside>
 
