@@ -20,20 +20,8 @@
 
       <!-- NAVIGATION -->
       <nav class="mt-6 flex flex-col space-y-1">
-        <a href="#" class="flex items-center gap-3 px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white rounded-r-full transition">
-          <span>Dashboard</span>
-        </a>
-        <a href="#" class="flex items-center gap-3 px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white rounded-r-full transition">
-          <span>Author</span>
-        </a>
         <a href="#" class="flex items-center gap-3 px-6 py-3 bg-gray-700 text-white font-medium rounded-r-full">
           <span>Reviewer</span>
-        </a>
-        <a href="#" class="flex items-center gap-3 px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white rounded-r-full transition">
-          <span>Editor</span>
-        </a>
-        <a href="#" class="flex items-center gap-3 px-6 py-3 text-gray-300 hover:bg-gray-700 hover:text-white rounded-r-full transition">
-          <span>Conference Management</span>
         </a>
       </nav>
     </div>
