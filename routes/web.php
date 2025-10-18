@@ -24,4 +24,11 @@ Route::get('/author/kirim-artikel', function () {
 // Halaman Revi
 Route::get('/conference_manager', function () {
     return view('conference_manager');
+
+Route::get('/login', function () {
+    return view('login');
+});
+
+Route::get('/editor', function () {
+    return view('editor');
 });
