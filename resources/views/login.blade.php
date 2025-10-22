@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,35 +12,46 @@
     }
   </style>
 </head>
+
 <body class="flex items-center justify-center min-h-screen">
 
   <div class="bg-white rounded-lg shadow-md p-8 w-80 text-center">
     <h2 class="text-2xl font-bold mb-6">Login</h2>
 
-    <form action="#" method="POST" class="space-y-4 text-left">
+    {{-- Pesan error --}}
+    @if ($errors->any())
+    <div class="bg-red-100 text-red-600 p-2 rounded mb-4 text-sm">
+      {{ $errors->first() }}
+    </div>
+    @endif
+
+    <form action="{{ url('/login') }}" method="POST" class="space-y-4 text-left">
+      @csrf
+
       <!-- Username -->
       <div>
-        <label for="username" class="block text-sm font-medium mb-1">Username</label>
-        <input 
-          type="text" 
-          id="username" 
-          name="username" 
+        <label for="email" class="block text-sm font-medium mb-1">Email</label>
+        <input
+          type="text"
+          id="email"
+          name="email"
+          value="{{ old('email') }}"
           class="w-full border border-gray-400 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
       </div>
 
       <!-- Password -->
       <div>
         <label for="password" class="block text-sm font-medium mb-1">Password</label>
-        <input 
-          type="password" 
-          id="password" 
-          name="password" 
+        <input
+          type="password"
+          id="password"
+          name="password"
           class="w-full border border-gray-400 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
       </div>
 
       <!-- Tombol Login -->
       <div class="pt-2">
-        <button 
+        <button
           type="submit"
           class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 rounded-md transition-all shadow-sm">
           Login
@@ -54,7 +66,7 @@
 
     <!-- Belum punya akun -->
     <div class="mt-4 text-sm">
-      <p>Belum punya akun? 
+      <p>Belum punya akun?
         <a href="/author/regis" class="text-indigo-500 hover:underline font-medium">Registrasi</a>
       </p>
     </div>
@@ -69,4 +81,5 @@
   </div>
 
 </body>
+
 </html>
