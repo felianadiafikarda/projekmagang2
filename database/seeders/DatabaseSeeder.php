@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Tambahkan role default
-        $roles = ['author', 'reviewer', 'editor', 'conference_manager'];
+        $roles = ['author', 'reviewer', 'editor', 'conference_manager', 'admin'];
         foreach ($roles as $r) {
             Role::firstOrCreate(['name' => $r]);
         }
