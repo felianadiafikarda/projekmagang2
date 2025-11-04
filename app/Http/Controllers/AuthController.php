@@ -36,6 +36,8 @@ class AuthController extends Controller
                     return redirect('/editor');
                 case 'reviewer':
                     return redirect('/reviewer');
+                case 'admin':
+                    return redirect('/admin');
                 default:
                     return redirect('/author');
             }

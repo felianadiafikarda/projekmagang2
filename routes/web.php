@@ -7,6 +7,8 @@ use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\EditorController;
 use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\ConferenceController;
+use App\Http\Controllers\AdminController;
+
 
 Route::get('/', function () {
     if (!Auth::check()) {
@@ -26,6 +28,8 @@ Route::get('/', function () {
                 return redirect()->route('reviewer.index');
             case 'author':
                 return redirect()->route('author.index');
+            case 'admin':
+                return redirect()->route('admin.index');
         }
     }
 
@@ -43,6 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/editor', [EditorController::class, 'index'])->name('editor.index');
     Route::get('/reviewer', [ReviewerController::class, 'index'])->name('reviewer.index');
     Route::get('/author/kirim-artikel', [AuthorController::class, 'index'])->name('author.index');
+    Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
     Route::get('/author/regis', function () {
     return view('author.regis');
 });
