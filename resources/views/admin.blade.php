@@ -33,9 +33,6 @@
   <button id="btn-add-user" class="bg-indigo-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-indigo-700 transition">
     + Add New User
   </button>
-  <button id="btn-bulk-assign" class="bg-gray-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-gray-700 transition">
-    Bulk Role Assignment
-  </button>
 </div>
 
 <!-- FILTERS & SEARCH -->
@@ -235,7 +232,7 @@
       </tbody>
     </table>
   </div>
-  
+
   <!-- Pagination -->
   <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
     <p class="text-sm text-gray-600">Showing 1 to 5 of 89 users</p>
@@ -281,7 +278,7 @@
     <!-- Role Assignment -->
     <div class="space-y-4">
       <h3 class="text-lg font-semibold text-gray-900 mb-4">Assign Roles</h3>
-      
+
       <!-- Conference Manager Role -->
       <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition">
         <div class="flex items-start justify-between">
@@ -347,7 +344,7 @@
                 <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">Submit Reviews</span>
                 <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">View Assignments</span>
               </div>
-              
+
               <!-- Expertise Area (shown when reviewer is checked) -->
               <div class="mt-3 hidden" id="reviewer-expertise">
                 <label class="text-sm font-medium text-gray-700 block mb-2">Expertise Area</label>
@@ -418,7 +415,7 @@
 <div id="modal-add-user" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
   <div class="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
     <h2 class="text-2xl font-bold text-gray-900 mb-6">Add New User with Roles</h2>
-    
+
     <div class="space-y-4">
       <!-- Basic Info -->
       <div class="grid grid-cols-2 gap-4">
@@ -431,22 +428,22 @@
           <input type="text" placeholder="Smith" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
         </div>
       </div>
-      
+
       <div>
         <label class="text-sm font-medium text-gray-700 mb-1 block">Email *</label>
         <input type="email" placeholder="user@university.edu" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
       </div>
-      
+
       <div>
         <label class="text-sm font-medium text-gray-700 mb-1 block">Username *</label>
         <input type="text" placeholder="jsmith" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
       </div>
-      
+
       <div>
         <label class="text-sm font-medium text-gray-700 mb-1 block">Password *</label>
         <input type="password" placeholder="••••••••" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
       </div>
-      
+
       <div>
         <label class="text-sm font-medium text-gray-700 mb-1 block">Affiliation</label>
         <input type="text" placeholder="University Name" class="w-full border border-gray-300 rounded-md px-3 py-2">
@@ -586,7 +583,7 @@
   function showNotification(message) {
     notificationMessage.textContent = message;
     successNotification.classList.remove('hidden');
-    
+
     setTimeout(() => {
       successNotification.classList.add('hidden');
     }, 3000);

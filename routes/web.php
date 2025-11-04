@@ -49,6 +49,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/author/kirim-artikel', [AuthorController::class, 'index'])->name('author.index');
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
     Route::get('/author/regis', function () {
-    return view('author.regis');
-});
+        return view('author.regis');
+    });
 });
