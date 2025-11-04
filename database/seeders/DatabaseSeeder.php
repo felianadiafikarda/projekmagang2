@@ -2,39 +2,48 @@
 
 namespace Database\Seeders;
 
-use App\Models\Role;
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use App\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Seed the application's database.
      */
     public function run(): void
     {
-        // Tambahkan role default
-        $roles = ['author', 'reviewer', 'editor', 'conference_manager', 'admin'];
-        foreach ($roles as $r) {
-            Role::firstOrCreate(['name' => $r]);
+        // === Tambahkan role default (jika belum ada) ===
+        $defaultRoles = [
+            ['name' => 'author', 'display_name' => 'Author', 'level' => 1],
+            ['name' => 'reviewer', 'display_name' => 'Reviewer', 'level' => 2],
+            ['name' => 'editor', 'display_name' => 'Editor', 'level' => 3],
+            ['name' => 'conference_manager', 'display_name' => 'Conference Manager', 'level' => 4],
+        ];
+
+        foreach ($defaultRoles as $role) {
+            Role::firstOrCreate(['name' => $role['name']], $role);
         }
 
-        // Buat akun superadmin contoh
-        $admin = User::firstOrCreate([
-            'email' => 'admin@gmail.com',
-            'name' => 'Super Admin',
-            'password' => bcrypt('password'),
-            'role' => 'conference_manager',
-        ]);
+        // === Buat akun Super Admin ===
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@gmail.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => Hash::make('password'),
+            ]
+        );
 
-        $admin->roles()->attach(Role::where('name', 'conference_manager')->first());
+        // === Pastikan role conference_manager terpasang ===
+        $conferenceManagerRole = Role::where('name', 'conference_manager')->first();
+        if ($conferenceManagerRole && !$admin->roles()->where('role_id', $conferenceManagerRole->id)->exists()) {
+            $admin->roles()->attach($conferenceManagerRole);
+        }
 
-        // Panggil seeder lainnya
-        $this->call([
-            RoleSeeder::class,
-        ]);
+        // === (Opsional) panggil seeder lain ===
+        // $this->call([
+        //     RoleSeeder::class,
+        // ]);
     }
 }

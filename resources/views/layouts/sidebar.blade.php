@@ -6,15 +6,22 @@
         </div>
 
         <nav class="mt-6 flex flex-col space-y-1">
-            @foreach (App\Models\Role::orderByDesc('level')->get() as $role)
-                @if (auth()->user()->canAccessRole($role->name))
-                    <a href="{{ route($role->name . '.index') }}"
-                        class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
-                            {{ Request::is($role->name . '*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
-                        <span>{{ ucfirst($role->display_name) }}</span>
-                    </a>
-                @endif
+            @php
+            $roles = App\Models\Role::orderByDesc('level')->get();
+            @endphp
+
+            @foreach ($roles as $role)
+            <a href="{{ route($role->name . '.index') }}"
+                class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+            {{ Request::is($role->name . '*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
+                <span>{{ ucfirst($role->display_name ?? $role->name) }}</span>
+            </a>
             @endforeach
+            <a href="{{ route('admin.index') }}"
+                class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+            {{ Request::is('admin*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
+                <span>Users</span>
+            </a>
         </nav>
     </div>
 
