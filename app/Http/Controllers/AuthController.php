@@ -19,33 +19,46 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
+            'email' => 'required|email',
+            'password' => 'required'
         ]);
 
-        // cek user berdasarkan email
         $user = User::where('email', $credentials['email'])->first();
 
-        if ($user && Hash::check($credentials['password'], $user->password)) {
-            Auth::login($user);
-            // redirect berdasarkan role
-            switch ($user->role) {
-                case 'conference_manager':
-                    return redirect('/conference-manager');
-                case 'editor':
-                    return redirect('/editor');
-                case 'reviewer':
-                    return redirect('/reviewer');
-                case 'admin':
-                    return redirect('/admin');
-                default:
-                    return redirect('/author');
-            }
+        if (!$user || !\Hash::check($credentials['password'], $user->password)) {
+            return back()->withErrors([
+                'email' => 'Email atau password salah!'
+            ])->onlyInput('email');
         }
 
-        return back()->withErrors([
-            'email' => 'email atau password salah!',
-        ])->onlyInput('email');
+        Auth::login($user);
+
+        // Ambil role pertama (karena user bisa punya banyak role)
+        $role = $user->roles->first()->name ?? null;
+
+        // Jika tidak punya role, tolak
+        if (!$role) {
+            Auth::logout();
+            return back()->withErrors([
+                'email' => 'Akun ini belum memiliki role!'
+            ]);
+        }
+
+        // Redirect berdasarkan role
+        switch ($role) {
+            case 'conference_manager':
+                return redirect()->route('conference_manager.index');
+            case 'editor':
+                return redirect()->route('editor.index');
+            case 'reviewer':
+                return redirect()->route('reviewer.index');
+            case 'author':
+                return redirect()->route('author.index');
+            case 'admin':
+                return redirect()->route('users.index');
+            default:
+                return redirect()->route('author.index');
+        }
     }
 
     // logout

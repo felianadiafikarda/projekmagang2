@@ -41,9 +41,9 @@ class DatabaseSeeder extends Seeder
             $admin->roles()->attach($conferenceManagerRole);
         }
 
-        // === (Opsional) panggil seeder lain ===
-        // $this->call([
-        //     RoleSeeder::class,
-        // ]);
+        $this->call([
+            RoleSeeder::class,
+            UserSeeder::class,
+        ]);
     }
 }
