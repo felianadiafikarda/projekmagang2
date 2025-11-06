@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('page_title', 'Admin Dashboard')
+@section('page_title', 'User Dashboard')
 @section('page_subtitle', 'Kelola roles pengguna untuk sistem jurnal')
 
 @section('content')
@@ -37,7 +37,8 @@
 
 <!-- FILTERS & SEARCH -->
 <div class="bg-white p-4 rounded-lg shadow border border-gray-200 mb-6">
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+
     <select id="filter-role" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
       <option value="">All Roles</option>
       <option value="conference_manager">Conference Manager</option>
@@ -45,12 +46,18 @@
       <option value="reviewer">Reviewer</option>
       <option value="author">Author</option>
     </select>
+
     <select id="filter-status" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
       <option value="">All Status</option>
       <option value="active">Active</option>
       <option value="inactive">Inactive</option>
     </select>
-    <input type="text" id="search-input" placeholder="Search by name, email, or username..." class="border border-gray-300 rounded-md px-3 py-2 text-sm col-span-2">
+    
+    <input type="text" id="search-input" placeholder="Search..." class="border border-gray-300 rounded-md px-3 py-2 text-sm col-span-1">
+
+    <button id="apply-filters" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 transition">
+      Search
+    </button>
   </div>
 </div>
 
@@ -72,164 +79,75 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200">
-        <tr class="hover:bg-gray-50">
+
+        @foreach ($users as $user)
+        <tr class="hover:bg-gray-50"
+          data-role="{{ strtolower($user->roles->pluck('name')->join(' ')) }}"
+          data-status="{{ $user->status ?? 'active' }}"
+          data-text="{{ strtolower($user->name . ' ' . $user->email . ' ' . ($user->affiliation ?? '')) }}">
+
           <td class="px-6 py-4">
             <input type="checkbox" class="rounded">
           </td>
+
           <td class="px-6 py-4">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span class="text-red-600 font-semibold text-sm">JW</span>
+              <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                <span class="text-gray-600 font-semibold text-sm">
+                  {{ strtoupper(substr($user->name, 0, 2)) }}
+                </span>
               </div>
               <div>
-                <p class="text-sm font-medium text-gray-900">Prof. James Wilson</p>
-                <p class="text-xs text-gray-500">@jwilson</p>
+                <p class="text-sm font-medium text-gray-900">{{ $user->name }}</p>
+                <p class="text-xs text-gray-500">{{ '@' . explode('@', $user->email)[0] }}</p>
               </div>
             </div>
           </td>
-          <td class="px-6 py-4 text-sm text-gray-600">james.wilson@journal.edu</td>
+
+          <td class="px-6 py-4 text-sm text-gray-600">{{ $user->email }}</td>
+
+          @php
+          $colors = [
+          'conference_manager' => 'bg-red-100 text-red-800',
+          'editor' => 'bg-orange-100 text-orange-800',
+          'reviewer' => 'bg-purple-100 text-purple-800',
+          'author' => 'bg-blue-100 text-blue-800',
+          ];
+          @endphp
+
           <td class="px-6 py-4">
             <div class="flex flex-wrap gap-1">
-              <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-medium">Conference Manager</span>
-              <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-medium">Editor</span>
+              @foreach($user->roles as $role)
+              <span class="px-2 py-1 rounded text-xs font-medium {{ $colors[$role->name] ?? 'bg-gray-100 text-gray-800' }}">
+                {{ ucfirst($role->display_name ?? $role->name) }}
+              </span>
+              @endforeach
             </div>
           </td>
-          <td class="px-6 py-4 text-sm text-gray-600">University of Tech</td>
+
+          <td class="px-6 py-4 text-sm text-gray-600">{{ $user->affiliation ?? '-' }}</td>
+
           <td class="px-6 py-4">
             <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span>
           </td>
+
           <td class="px-6 py-4">
-            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-role-btn" data-user-id="1">
+            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-role-btn"
+              data-user-id="{{ $user->id }}"
+              data-user-name="{{ $user->name }}"
+              data-user-email="{{ $user->email }}"
+              data-user-affiliation="{{ $user->affiliation }}"
+              data-user-status="{{ $user->status ?? 'active' }}"
+              data-user-roles="{{ $user->roles->pluck('name')->join(',') }}">
               Edit Roles
             </button>
+
           </td>
         </tr>
-        <tr class="hover:bg-gray-50">
-          <td class="px-6 py-4">
-            <input type="checkbox" class="rounded">
-          </td>
-          <td class="px-6 py-4">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span class="text-orange-600 font-semibold text-sm">ET</span>
-              </div>
-              <div>
-                <p class="text-sm font-medium text-gray-900">Dr. Emma Thompson</p>
-                <p class="text-xs text-gray-500">@ethompson</p>
-              </div>
-            </div>
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-600">emma.t@journal.edu</td>
-          <td class="px-6 py-4">
-            <div class="flex flex-wrap gap-1">
-              <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-medium">Editor</span>
-            </div>
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-600">Stanford University</td>
-          <td class="px-6 py-4">
-            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span>
-          </td>
-          <td class="px-6 py-4">
-            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-role-btn" data-user-id="2">
-              Edit Roles
-            </button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50">
-          <td class="px-6 py-4">
-            <input type="checkbox" class="rounded">
-          </td>
-          <td class="px-6 py-4">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span class="text-purple-600 font-semibold text-sm">AJ</span>
-              </div>
-              <div>
-                <p class="text-sm font-medium text-gray-900">Prof. Alice Johnson</p>
-                <p class="text-xs text-gray-500">@ajohnson</p>
-              </div>
-            </div>
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-600">alice.j@university.edu</td>
-          <td class="px-6 py-4">
-            <div class="flex flex-wrap gap-1">
-              <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-medium">Reviewer</span>
-            </div>
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-600">MIT</td>
-          <td class="px-6 py-4">
-            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span>
-          </td>
-          <td class="px-6 py-4">
-            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-role-btn" data-user-id="3">
-              Edit Roles
-            </button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50">
-          <td class="px-6 py-4">
-            <input type="checkbox" class="rounded">
-          </td>
-          <td class="px-6 py-4">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span class="text-blue-600 font-semibold text-sm">JS</span>
-              </div>
-              <div>
-                <p class="text-sm font-medium text-gray-900">Dr. John Smith</p>
-                <p class="text-xs text-gray-500">@jsmith</p>
-              </div>
-            </div>
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-600">john.smith@university.edu</td>
-          <td class="px-6 py-4">
-            <div class="flex flex-wrap gap-1">
-              <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">Author</span>
-            </div>
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-600">Harvard University</td>
-          <td class="px-6 py-4">
-            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span>
-          </td>
-          <td class="px-6 py-4">
-            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-role-btn" data-user-id="4">
-              Edit Roles
-            </button>
-          </td>
-        </tr>
-        <tr class="hover:bg-gray-50">
-          <td class="px-6 py-4">
-            <input type="checkbox" class="rounded">
-          </td>
-          <td class="px-6 py-4">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span class="text-purple-600 font-semibold text-sm">LW</span>
-              </div>
-              <div>
-                <p class="text-sm font-medium text-gray-900">Dr. Lisa Wang</p>
-                <p class="text-xs text-gray-500">@lwang</p>
-              </div>
-            </div>
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-600">lisa.wang@institute.edu</td>
-          <td class="px-6 py-4">
-            <div class="flex flex-wrap gap-1">
-              <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-medium">Reviewer</span>
-              <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">Author</span>
-            </div>
-          </td>
-          <td class="px-6 py-4 text-sm text-gray-600">Oxford University</td>
-          <td class="px-6 py-4">
-            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span>
-          </td>
-          <td class="px-6 py-4">
-            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-role-btn" data-user-id="5">
-              Edit Roles
-            </button>
-          </td>
-        </tr>
+        @endforeach
+
       </tbody>
+
     </table>
   </div>
 
@@ -516,8 +434,25 @@
   // Open Edit Role Modal
   editRoleBtns.forEach(btn => {
     btn.addEventListener('click', () => {
+
+      const roles = btn.dataset.userRoles.split(',');
+
+      document.getElementById('modal-user-name').textContent = btn.dataset.userName;
+      document.getElementById('modal-user-email').textContent = btn.dataset.userEmail;
+      document.getElementById('modal-user-affiliation').textContent = btn.dataset.userAffiliation ?? '-';
+      document.getElementById('modal-user-initials').textContent = btn.dataset.userName.substring(0, 2).toUpperCase();
+
+      // Set checkbox sesuai role user
+      document.getElementById('role-conference-manager').checked = roles.includes('conference_manager');
+      document.getElementById('role-editor').checked = roles.includes('editor');
+      document.getElementById('role-reviewer').checked = roles.includes('reviewer');
+      document.getElementById('role-author').checked = roles.includes('author');
+
+      // Tampilkan modal
       editRoleModal.classList.remove('hidden');
-      // You can add logic here to load user-specific data based on data-user-id
+
+      // Simpan ID user untuk update nanti
+      saveRolesBtn.dataset.userId = btn.dataset.userId;
     });
   });
 
@@ -539,9 +474,29 @@
 
   // Save Roles
   saveRolesBtn.addEventListener('click', () => {
-    // Add your save logic here (AJAX call to backend)
-    showNotification('Roles updated successfully!');
-    editRoleModal.classList.add('hidden');
+    const userId = saveRolesBtn.dataset.userId;
+
+    const selectedRoles = [];
+    if (document.getElementById('role-conference-manager').checked) selectedRoles.push('conference_manager');
+    if (document.getElementById('role-editor').checked) selectedRoles.push('editor');
+    if (document.getElementById('role-reviewer').checked) selectedRoles.push('reviewer');
+    if (document.getElementById('role-author').checked) selectedRoles.push('author');
+
+    fetch(`/users/${userId}/update-roles`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+          roles: selectedRoles
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        showNotification("Roles updated successfully!");
+        location.reload(); // reload table
+      });
   });
 
   // Open Add User Modal
@@ -590,33 +545,28 @@
   }
 
   // Filter and Search Functionality
-  const filterRole = document.getElementById('filter-role');
-  const filterStatus = document.getElementById('filter-status');
-  const searchInput = document.getElementById('search-input');
+  document.getElementById('apply-filters').addEventListener('click', function() {
+    const roleValue = document.getElementById('filter-role').value.toLowerCase();
+    const statusValue = document.getElementById('filter-status').value.toLowerCase();
+    const searchValue = document.getElementById('search-input').value.toLowerCase();
 
-  filterRole.addEventListener('change', applyFilters);
-  filterStatus.addEventListener('change', applyFilters);
-  searchInput.addEventListener('input', applyFilters);
+    const rows = document.querySelectorAll('tbody tr');
 
-  function applyFilters() {
-    // Add your filter logic here
-    console.log('Filters applied:', {
-      role: filterRole.value,
-      status: filterStatus.value,
-      search: searchInput.value
+    rows.forEach(row => {
+      const rowRoles = row.dataset.role.toLowerCase();
+      const rowStatus = row.dataset.status.toLowerCase();
+      const rowText = row.dataset.text.toLowerCase();
+
+      const matchRole = !roleValue || rowRoles.includes(roleValue);
+      const matchStatus = !statusValue || rowStatus.includes(statusValue);
+      const matchSearch = !searchValue || rowText.includes(searchValue);
+
+      if (matchRole && matchStatus && matchSearch) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
     });
-  }
-
-  // Bulk Role Assignment
-  const btnBulkAssign = document.getElementById('btn-bulk-assign');
-  btnBulkAssign.addEventListener('click', () => {
-    const selectedUsers = Array.from(rowCheckboxes).filter(cb => cb.checked);
-    if (selectedUsers.length === 0) {
-      alert('Please select at least one user');
-      return;
-    }
-    // Add bulk assignment logic here
-    alert(`Selected ${selectedUsers.length} user(s) for bulk role assignment`);
   });
 </script>
 @endsection
