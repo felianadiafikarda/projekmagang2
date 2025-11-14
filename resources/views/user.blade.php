@@ -52,8 +52,9 @@
       <option value="active">Active</option>
       <option value="inactive">Inactive</option>
     </select>
-    
-    <input type="text" id="search-input" placeholder="Search..." class="border border-gray-300 rounded-md px-3 py-2 text-sm col-span-1">
+
+    <input type="text" id="search-input" placeholder="Search..." autocomplete="new-password"
+      readonly onfocus="this.removeAttribute('readonly')" class="border border-gray-300 rounded-md px-3 py-2 text-sm col-span-1">
 
     <button id="apply-filters" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 transition">
       Search
@@ -567,6 +568,9 @@
         row.style.display = 'none';
       }
     });
+  });
+  window.addEventListener('pageshow', () => {
+    document.getElementById('search-input').value = '';
   });
 </script>
 @endsection
