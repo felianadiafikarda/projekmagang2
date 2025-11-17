@@ -14,32 +14,40 @@ class UserSeeder extends Seeder
         // List user dummy
         $users = [
             [
-                'name' => 'Conference Manager One',
+                'first_name' => 'Conference',
+                'last_name' => 'Manager One',
                 'email' => 'cm1@gmail.com',
+                'username' => 'cm1',
                 'password' => Hash::make('password'),
                 'affiliation' => 'Universitas Negeri Teknologi',
                 'photo_path' => null,
                 'role' => 'conference_manager'
             ],
             [
-                'name' => 'Editor Satu',
+                'first_name' => 'Editor',
+                'last_name' => 'Satu',
                 'email' => 'editor1@gmail.com',
+                'username' => 'editor1',
                 'password' => Hash::make('password'),
                 'affiliation' => 'Universitas Informatika Indonesia',
                 'photo_path' => null,
                 'role' => 'editor'
             ],
             [
-                'name' => 'Reviewer A',
+                'first_name' => 'Reviewer',
+                'last_name' => 'A',
                 'email' => 'reviewer1@gmail.com',
+                'username' => 'reviewer1',
                 'password' => Hash::make('password'),
                 'affiliation' => 'Institut Sains dan Data',
                 'photo_path' => null,
                 'role' => 'reviewer'
             ],
             [
-                'name' => 'Author Test',
+                'first_name' => 'Author',
+                'last_name' => 'Test',
                 'email' => 'author1@gmail.com',
+                'username' => 'author1',
                 'password' => Hash::make('password'),
                 'affiliation' => 'Universitas Teknik Komputer',
                 'photo_path' => null,
@@ -48,19 +56,23 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $data) {
+
             // Buat user jika belum ada
             $user = User::firstOrCreate(
                 ['email' => $data['email']],
                 [
-                    'name' => $data['name'],
+                    'first_name' => $data['first_name'],
+                    'last_name' => $data['last_name'],
+                    'username' => $data['username'],
                     'password' => $data['password'],
                     'affiliation' => $data['affiliation'],
                     'photo_path' => $data['photo_path'],
                 ]
             );
 
-            // Ambil role dan attach (cek supaya tidak duplikat)
+            // Ambil role dan attach (hindari duplikat)
             $role = Role::where('name', $data['role'])->first();
+
             if ($role && !$user->roles()->where('role_id', $role->id)->exists()) {
                 $user->roles()->attach($role);
             }
