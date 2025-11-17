@@ -52,8 +52,9 @@
       <option value="active">Active</option>
       <option value="inactive">Inactive</option>
     </select>
-    
-    <input type="text" id="search-input" placeholder="Search..." class="border border-gray-300 rounded-md px-3 py-2 text-sm col-span-1">
+
+    <input type="text" id="search-input" placeholder="Search..." autocomplete="new-password"
+      readonly onfocus="this.removeAttribute('readonly')" class="border border-gray-300 rounded-md px-3 py-2 text-sm col-span-1">
 
     <button id="apply-filters" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 transition">
       Search
@@ -74,7 +75,6 @@
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Current Roles</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Affiliation</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
         </tr>
       </thead>
@@ -94,7 +94,7 @@
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
                 <span class="text-gray-600 font-semibold text-sm">
-                  {{ strtoupper(substr($user->name, 0, 2)) }}
+                  {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
                 </span>
               </div>
               <div>
@@ -128,20 +128,44 @@
           <td class="px-6 py-4 text-sm text-gray-600">{{ $user->affiliation ?? '-' }}</td>
 
           <td class="px-6 py-4">
-            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span>
+            <button onclick="toggleActions({{ $user->id }})"
+              class="p-2 hover:bg-gray-100 rounded text-gray-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
           </td>
 
-          <td class="px-6 py-4">
-            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-role-btn"
-              data-user-id="{{ $user->id }}"
-              data-user-name="{{ $user->name }}"
-              data-user-email="{{ $user->email }}"
-              data-user-affiliation="{{ $user->affiliation }}"
-              data-user-status="{{ $user->status ?? 'active' }}"
-              data-user-roles="{{ $user->roles->pluck('name')->join(',') }}">
-              Edit Roles
-            </button>
+        </tr>
 
+        <!-- Action Row -->
+        <tr id="actions-{{ $user->id }}" class="hidden bg-gray-50">
+          <td></td>
+          <td colspan="6" class="px-6 py-4">
+            <div class="flex items-center space-x-6 text-sm font-medium">
+
+              <a href="#" class="text-blue-600 hover:underline">View Details</a>
+              <button class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-role-btn"
+                data-user-id="{{ $user->id }}"
+                data-user-name="{{ $user->name }}"
+                data-user-email="{{ $user->email }}"
+                data-user-affiliation="{{ $user->affiliation }}"
+                data-user-status="{{ $user->status ?? 'active' }}"
+                data-user-roles="{{ $user->roles->pluck('name')->join(',') }}">
+                Edit Roles
+              </button>
+              <a href="#" class="text-blue-600 hover:underline">Edit</a>
+              <form action="{{ route('users.delete', $user->id) }}" method="POST"
+                onsubmit="return confirm('Yakin ingin menghapus user ini?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="text-red-600 hover:underline">
+                  Delete
+                </button>
+              </form>
+
+            </div>
           </td>
         </tr>
         @endforeach
@@ -152,16 +176,7 @@
   </div>
 
   <!-- Pagination -->
-  <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-    <p class="text-sm text-gray-600">Showing 1 to 5 of 89 users</p>
-    <div class="flex gap-2">
-      <button class="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50">Previous</button>
-      <button class="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm">1</button>
-      <button class="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50">2</button>
-      <button class="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50">3</button>
-      <button class="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50">Next</button>
-    </div>
-  </div>
+  {{ $users->links('vendor.pagination.custom') }}
 </div>
 
 <!-- EDIT ROLE MODAL -->
@@ -334,71 +349,101 @@
   <div class="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
     <h2 class="text-2xl font-bold text-gray-900 mb-6">Add New User with Roles</h2>
 
-    <div class="space-y-4">
-      <!-- Basic Info -->
-      <div class="grid grid-cols-2 gap-4">
+    <form action="{{ route('users.add') }}" method="POST">
+      @csrf
+      <div class="space-y-4">
+        <!-- Basic Info -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-medium text-gray-700 mb-1 block">First Name *</label>
+            <input type="text" name="first_name" placeholder="John" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-700 mb-1 block">Last Name *</label>
+            <input type="text" name="last_name" placeholder="Smith" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+          </div>
+        </div>
+
         <div>
-          <label class="text-sm font-medium text-gray-700 mb-1 block">First Name *</label>
-          <input type="text" placeholder="John" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+          <label class="text-sm font-medium text-gray-700 mb-1 block">Email *</label>
+          <input type="email" name="email" placeholder="user@university.edu" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
         </div>
+
         <div>
-          <label class="text-sm font-medium text-gray-700 mb-1 block">Last Name *</label>
-          <input type="text" placeholder="Smith" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+          <label class="text-sm font-medium text-gray-700 mb-1 block">Username *</label>
+          <input type="text" name="username" placeholder="jsmith" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-gray-700 mb-1 block">Password *</label>
+          <input type="password" name="password" placeholder="••••••••" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+        </div>
+
+        <!-- Country -->
+        <div>
+          <label class="text-sm font-medium text-gray-700 mb-1 block">Country</label>
+          <select id="country" class="w-full border border-gray-300 rounded-md px-3 py-2">
+            <option value="">-- Select Country --</option>
+          </select>
+        </div>
+
+        <!-- Affiliation -->
+        <div>
+          <label class="text-sm font-medium text-gray-700 mb-1 block">Affiliation</label>
+          <input type="text" name="affiliation" placeholder="University Name" class="w-full border border-gray-300 rounded-md px-3 py-2">
+        </div>
+
+        <!-- Phone -->
+        <div>
+          <label class="text-sm font-medium text-gray-700 mb-1 block">Phone Number</label>
+          <input type="text" name="phone" placeholder="08xxxxxxxxxx" class="w-full border border-gray-300 rounded-md px-3 py-2">
+        </div>
+
+        <!-- Address -->
+        <div>
+          <label class="text-sm font-medium text-gray-700 mb-1 block">Address</label>
+          <textarea name="address" placeholder="Full address..." class="w-full border border-gray-300 rounded-md px-3 py-2 h-24"></textarea>
+        </div>
+
+        <!-- Role Selection -->
+        <div class="pt-4 border-t border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Assign Initial Roles</h3>
+          <div class="space-y-2">
+
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" name="roles[]" value="conference_manager" class="rounded">
+              <span class="text-sm">Conference Manager</span>
+            </label>
+
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" name="roles[]" value="editor" class="rounded">
+              <span class="text-sm">Editor</span>
+            </label>
+
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" name="roles[]" value="reviewer" class="rounded">
+              <span class="text-sm">Reviewer</span>
+            </label>
+
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" name="roles[]" value="author" class="rounded" checked>
+              <span class="text-sm">Author (Default)</span>
+            </label>
+
+          </div>
         </div>
       </div>
 
-      <div>
-        <label class="text-sm font-medium text-gray-700 mb-1 block">Email *</label>
-        <input type="email" placeholder="user@university.edu" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+      <div class="flex gap-3 mt-6">
+        <button type="submit" class="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-indigo-700 transition">
+          Create User
+        </button>
+        <button id="close-add-user" type="button" class="flex-1 bg-gray-200 text-gray-800 px-6 py-3 rounded-md font-semibold hover:bg-gray-300 transition">
+          Cancel
+        </button>
       </div>
 
-      <div>
-        <label class="text-sm font-medium text-gray-700 mb-1 block">Username *</label>
-        <input type="text" placeholder="jsmith" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
-      </div>
-
-      <div>
-        <label class="text-sm font-medium text-gray-700 mb-1 block">Password *</label>
-        <input type="password" placeholder="••••••••" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
-      </div>
-
-      <div>
-        <label class="text-sm font-medium text-gray-700 mb-1 block">Affiliation</label>
-        <input type="text" placeholder="University Name" class="w-full border border-gray-300 rounded-md px-3 py-2">
-      </div>
-
-      <!-- Role Selection -->
-      <div class="pt-4 border-t border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">Assign Initial Roles</h3>
-        <div class="space-y-2">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" class="rounded">
-            <span class="text-sm">Conference Manager</span>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" class="rounded">
-            <span class="text-sm">Editor</span>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" class="rounded">
-            <span class="text-sm">Reviewer</span>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" class="rounded" checked>
-            <span class="text-sm">Author (Default)</span>
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <div class="flex gap-3 mt-6">
-      <button class="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-indigo-700 transition">
-        Create User
-      </button>
-      <button id="close-add-user" class="flex-1 bg-gray-200 text-gray-800 px-6 py-3 rounded-md font-semibold hover:bg-gray-300 transition">
-        Cancel
-      </button>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -411,6 +456,12 @@
 </div>
 
 <script>
+  // Dropdown Action Menu
+  function toggleActions(id) {
+    const row = document.getElementById("actions-" + id);
+    row.classList.toggle("hidden");
+  }
+
   // Edit Role Modal
   const editRoleModal = document.getElementById('modal-edit-role');
   const editRoleBtns = document.querySelectorAll('.edit-role-btn');
@@ -567,6 +618,49 @@
         row.style.display = 'none';
       }
     });
+  });
+  window.addEventListener('pageshow', () => {
+    document.getElementById('search-input').value = '';
+  });
+
+  // Country Dropdown Data
+  const countries = [
+    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia",
+    "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
+    "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil",
+    "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada",
+    "Cape Verde", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros",
+    "Congo (Congo-Brazzaville)", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic",
+    "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador",
+    "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France",
+    "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea",
+    "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia",
+    "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya",
+    "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya",
+    "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives",
+    "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia",
+    "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar (Burma)",
+    "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria",
+    "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Panama",
+    "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar",
+    "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia",
+    "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe",
+    "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia",
+    "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan",
+    "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan",
+    "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago",
+    "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates",
+    "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City",
+    "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+  ];
+
+  // Generate dropdown
+  const countrySelect = document.querySelector("#country");
+  countries.forEach(country => {
+    const option = document.createElement("option");
+    option.value = country;
+    option.textContent = country;
+    countrySelect.appendChild(option);
   });
 </script>
 @endsection
