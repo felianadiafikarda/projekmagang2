@@ -46,8 +46,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/editor', [EditorController::class, 'index'])->name('editor.index');
     Route::get('/reviewer', [ReviewerController::class, 'index'])->name('reviewer.index');
     Route::get('/author/kirim-artikel', [AuthorController::class, 'index'])->name('author.index');
+
+    // User Management Routes
+    Route::post('/users', [UserController::class, 'store'])->name('users.add');
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::delete('/users/{id}', [UserController::class, 'delete'])->name('users.delete');
     Route::post('/users/{user}/update-roles', [UserController::class, 'updateRoles']);
+
+
     Route::get('/author/regis', function () {
         return view('author.regis');
     });
