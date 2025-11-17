@@ -191,10 +191,10 @@ function fmt($d) {
                         <h4 class="font-semibold mb-2">Assign Reviewer</h4>
 
                         {{-- note: this is view-only; form action left intentionally '#', replace later --}}
-                        <form action="#" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <form action="#" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-3" id="assignReviewerForm">
                             <div>
                                 <label class="text-sm font-medium">Select reviewer</label>
-                                <select class="w-full border rounded p-2">
+                                <select class="w-full border rounded p-2" id="reviewerSelect">
                                     @foreach($all_reviewers as $rev)
                                         <option value="{{ $rev->id }}">{{ $rev->name }}</option>
                                     @endforeach
@@ -203,11 +203,11 @@ function fmt($d) {
 
                             <div>
                                 <label class="text-sm font-medium">Deadline</label>
-                                <input type="date" class="w-full border rounded p-2">
+                                <input type="date" class="w-full border rounded p-2" id="deadlineInput">
                             </div>
 
                             <div class="flex items-end">
-                                <button class="w-full bg-blue-600 text-white px-4 py-2 rounded">Send Request</button>
+                                <button type="button" onclick="openEmailPreview()" class="w-full bg-blue-600 text-white px-4 py-2 rounded">Send Request</button>
                             </div>
                         </form>
                     </div>
@@ -241,10 +241,10 @@ function fmt($d) {
 
                                     <div class="text-sm space-y-2">
                                         @if($ar->status === 'assigned')
-                                            <button class="px-3 py-1 border rounded text-yellow-700">Send Reminder</button>
+                                            <button onclick="openReminderPreview('{{ $ar->reviewer_name }}', '{{ fmt($ar->deadline) }}')" class="px-3 py-1 border rounded text-yellow-700">Send Reminder</button>
                                             <button class="px-3 py-1 border rounded text-red-600">Unassign</button>
                                         @elseif($ar->status === 'accept')
-                                            <button class="px-3 py-1 border rounded text-yellow-700">Send Reminder</button>
+                                            <button onclick="openReminderPreview('{{ $ar->reviewer_name }}', '{{ fmt($ar->deadline) }}')" class="px-3 py-1 border rounded text-yellow-700">Send Reminder</button>
                                         @elseif($ar->status === 'completed')
                                             <button class="px-3 py-1 border rounded text-blue-700">Read Review</button>
                                         @endif
@@ -288,6 +288,210 @@ function fmt($d) {
         </div>
     </div>
 
+    {{-- Email Preview Modal --}}
+    <div id="emailPreviewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" onclick="closeEmailPreview(event)">
+        <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
+            {{-- Modal Header --}}
+            <div class="bg-blue-500 text-white px-6 py-4">
+                <h3 class="text-lg font-semibold">Add Reviewer</h3>
+            </div>
+
+            {{-- Modal Body --}}
+            <div class="p-6 overflow-y-auto max-h-[70vh]">
+                {{-- Selected Reviewer Info --}}
+                <div class="mb-4">
+                    <label class="text-sm font-semibold text-gray-700">Selected Reviewer</label>
+                    <div class="mt-1 p-2 bg-gray-50 rounded" id="selectedReviewerName">-</div>
+                </div>
+
+                {{-- Email Content --}}
+                <div class="mb-4">
+                    <label class="text-sm font-semibold text-gray-700">Email to be sent to reviewer</label>
+                    <div class="mt-2 border rounded p-4 bg-gray-50 text-sm space-y-3">
+                        <div>
+                            <strong>Subject:</strong> Invitation to Review Manuscript
+                        </div>
+                        
+                        <div class="border-t pt-3">
+                            <p class="mb-2">Dear <span id="previewReviewerName">Dr. Reviewer</span>,</p>
+                            
+                            <p class="mb-2">I believe that you would serve as an excellent reviewer of the manuscript, "<strong>{{ $article->title ?? 'Manuscript Title' }}</strong>," which has been submitted to <strong>Jurnal Pemberdayaan: Publikasi Hasil Pengabdian Kepada Masyarakat</strong> on the section <strong>Research Article</strong>.</p>
+                            
+                            <p class="mb-2">The submission's abstract is inserted below, and I hope that you will consider undertaking this important task for us.</p>
+                            
+                            <p class="mb-2">Please log into the journal web site by <strong><span id="previewDeadline">RESPONSE DUE DATE</span></strong> to indicate whether you will undertake the review or not, as well as to access the submission and to record your review and recommendation.</p>
+                            
+                            <p class="mb-2">The review itself is due: <strong><span id="previewReviewDeadline">REVIEW DUE DATE</span></strong></p>
+                            
+                            <p class="mb-2"><strong>Submission URL:</strong> <span class="text-blue-600">URL</span></p>
+                            
+                            <p class="mb-2">Thank you for considering this request.</p>
+                            
+                            <p class="mt-4">
+                                {{ $editor->name ?? 'Editor Name' }}<br>
+                                Universitas Ahmad Dahlan
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Checkbox Option --}}
+                <div class="flex items-center">
+                    <input type="checkbox" id="skipEmailCheckbox" class="mr-2">
+                    <label for="skipEmailCheckbox" class="text-sm text-gray-700">Do not send email to Reviewer.</label>
+                </div>
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="border-t px-6 py-4 flex justify-end gap-3">
+                <button onclick="closeEmailPreview()" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button onclick="confirmSendReview()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Send</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Reminder Email Modal --}}
+    <div id="reminderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" onclick="closeReminderPreview(event)">
+        <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
+            {{-- Modal Header --}}
+            <div class="bg-yellow-500 text-white px-6 py-4">
+                <h3 class="text-lg font-semibold">Send Reminder</h3>
+            </div>
+
+            {{-- Modal Body --}}
+            <div class="p-6 overflow-y-auto max-h-[70vh]">
+                {{-- Selected Reviewer Info --}}
+                <div class="mb-4">
+                    <label class="text-sm font-semibold text-gray-700">Reviewer</label>
+                    <div class="mt-1 p-2 bg-gray-50 rounded" id="reminderReviewerName">-</div>
+                </div>
+
+                {{-- Email Content --}}
+                <div class="mb-4">
+                    <label class="text-sm font-semibold text-gray-700">Reminder email to be sent</label>
+                    <div class="mt-2 border rounded p-4 bg-gray-50 text-sm space-y-3">
+                        <div>
+                            <strong>Subject:</strong> Review Reminder - {{ $article->title ?? 'Manuscript Title' }}
+                        </div>
+                        
+                        <div class="border-t pt-3">
+                            <p class="mb-2">Dear <span id="reminderPreviewReviewerName">Dr. Reviewer</span>,</p>
+                            
+                            <p class="mb-2">This is a friendly reminder regarding your review assignment for the manuscript "<strong>{{ $article->title ?? 'Manuscript Title' }}</strong>" submitted to <strong>Jurnal Pemberdayaan: Publikasi Hasil Pengabdian Kepada Masyarakat</strong>.</p>
+                            
+                            <p class="mb-2">We kindly remind you that the review deadline is: <strong><span id="reminderDeadlineText">DEADLINE</span></strong></p>
+                            
+                            <p class="mb-2">If you have already completed the review, please disregard this message. If you need an extension or have any questions, please don't hesitate to contact us.</p>
+                            
+                            <p class="mb-2">You can access the submission and submit your review through the journal website.</p>
+                            
+                            <p class="mb-2"><strong>Submission URL:</strong> <span class="text-blue-600">URL</span></p>
+                            
+                            <p class="mb-2">We greatly appreciate your time and expertise in reviewing this manuscript.</p>
+                            
+                            <p class="mt-4">
+                                Best regards,<br>
+                                {{ $editor->name ?? 'Editor Name' }}<br>
+                                Universitas Ahmad Dahlan
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Checkbox Option --}}
+                <div class="flex items-center">
+                    <input type="checkbox" id="skipReminderCheckbox" class="mr-2">
+                    <label for="skipReminderCheckbox" class="text-sm text-gray-700">Do not send reminder email to Reviewer.</label>
+                </div>
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="border-t px-6 py-4 flex justify-end gap-3">
+                <button onclick="closeReminderPreview()" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button onclick="confirmSendReminder()" class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700">Send Reminder</button>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<script>
+function openEmailPreview() {
+    const reviewerSelect = document.getElementById('reviewerSelect');
+    const deadlineInput = document.getElementById('deadlineInput');
+    const reviewerName = reviewerSelect.options[reviewerSelect.selectedIndex].text;
+    
+    // Update preview content
+    document.getElementById('selectedReviewerName').textContent = reviewerName;
+    document.getElementById('previewReviewerName').textContent = reviewerName;
+    
+    if (deadlineInput.value) {
+        const deadline = new Date(deadlineInput.value);
+        const formattedDeadline = deadline.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('previewDeadline').textContent = formattedDeadline;
+        document.getElementById('previewReviewDeadline').textContent = formattedDeadline;
+    }
+    
+    // Show modal
+    const modal = document.getElementById('emailPreviewModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeEmailPreview(event) {
+    if (!event || event.target.id === 'emailPreviewModal') {
+        const modal = document.getElementById('emailPreviewModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+function confirmSendReview() {
+    const skipEmail = document.getElementById('skipEmailCheckbox').checked;
+    
+    if (skipEmail) {
+        alert('Reviewer assigned without sending email.');
+    } else {
+        alert('Review request sent successfully!');
+    }
+    
+    closeEmailPreview();
+    // Here you would submit the actual form
+    // document.getElementById('assignReviewerForm').submit();
+}
+
+function openReminderPreview(reviewerName, deadline) {
+    // Update reminder preview content
+    document.getElementById('reminderReviewerName').textContent = reviewerName;
+    document.getElementById('reminderPreviewReviewerName').textContent = reviewerName;
+    document.getElementById('reminderDeadlineText').textContent = deadline;
+    
+    // Show reminder modal
+    const modal = document.getElementById('reminderModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeReminderPreview(event) {
+    if (!event || event.target.id === 'reminderModal') {
+        const modal = document.getElementById('reminderModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+function confirmSendReminder() {
+    const skipReminder = document.getElementById('skipReminderCheckbox').checked;
+    
+    if (skipReminder) {
+        alert('Reminder not sent.');
+    } else {
+        alert('Reminder email sent successfully!');
+    }
+    
+    closeReminderPreview();
+    // Here you would submit the reminder request
+}
+</script>
 
 @endsection
