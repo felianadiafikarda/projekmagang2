@@ -45,8 +45,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/conference-manager', [ConferenceController::class, 'index'])->name('conference_manager.index');
     Route::get('/editor', [EditorController::class, 'index'])->name('editor.index');
     Route::get('/reviewer', [ReviewerController::class, 'index'])->name('reviewer.index');
-    Route::get('/author/kirim-artikel', [AuthorController::class, 'index'])->name('author.index');
+    Route::get('/author/kirim-artikel', [AuthorController::class, 'paper'])->name('author.kirim');
 
+    
     // User Management Routes
     Route::post('/users', [UserController::class, 'store'])->name('users.add');
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -57,6 +58,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/author/regis', function () {
         return view('author.regis');
     });
+     Route::get('/author', function () {
+        return view('author.listpaper');
+
+    })->name('author.index');
+
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
+
+
