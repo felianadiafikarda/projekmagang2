@@ -63,6 +63,10 @@ Route::middleware('auth')->group(function () {
 
     })->name('author.index');
 
+    Route::get('/editorr', function () {
+        return view('Editorr');
+    });
+
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
