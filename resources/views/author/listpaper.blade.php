@@ -1,124 +1,110 @@
 @extends('layouts.app')
 
-@section('page_title', 'Halaman Depan')
-@section('page_subtitle', 'Daftar Paper yang Diupload')
+@section('page_title', 'Author')
+@section('page_subtitle', 'List of Uploaded Papers')
 
 @section('content')
 
-@php
-// Dummy data untuk tampilan (tidak pakai controller)
-$papers = [
-    ['id'=>1,  'title'=>'Analisis Jaringan Sosial','author'=>'Aldi', 'status'=>'Unassigned', 'abstract'=>'Abstrak contoh untuk Analisis Jaringan Sosial.','file'=>'paper_1.pdf'],
-    ['id'=>2,  'title'=>'Machine Learning for Finance','author'=>'Rani', 'status'=>'In Review', 'abstract'=>'Abstrak contoh untuk ML in Finance.','file'=>'paper_2.pdf'],
-    ['id'=>3,  'title'=>'Optimasi Sistem Informasi','author'=>'Gea', 'status'=>'Rejected', 'abstract'=>'Abstrak contoh untuk Optimasi Sistem Informasi.','file'=>'paper_3.pdf'],
-    ['id'=>4,  'title'=>'Blockchain for Security','author'=>'Anisa','status'=>'Accept with Review', 'abstract'=>'Abstrak contoh untuk Blockchain for Security.','file'=>'paper_4.pdf'],
-    ['id'=>5,  'title'=>'Deep Learning Image Processing','author'=>'Felia','status'=>'Accepted', 'abstract'=>'Abstrak contoh untuk DL Image Processing.','file'=>'paper_5.pdf'],
-    ['id'=>6,  'title'=>'Text Mining Sentiment Analysis','author'=>'Budi','status'=>'In Review', 'abstract'=>'Abstrak contoh untuk Text Mining.','file'=>'paper_6.pdf'],
-    ['id'=>7,  'title'=>'IoT Smart Home Automation','author'=>'Sinta','status'=>'Unassigned', 'abstract'=>'Abstrak contoh untuk IoT Smart Home.','file'=>'paper_7.pdf'],
-    ['id'=>8,  'title'=>'Sistem Rekomendasi E-Commerce','author'=>'Rara','status'=>'Accepted', 'abstract'=>'Abstrak contoh untuk Recommender Systems.','file'=>'paper_8.pdf'],
-    ['id'=>9,  'title'=>'Data Warehouse Modern','author'=>'Yuda','status'=>'Rejected', 'abstract'=>'Abstrak contoh untuk Data Warehouse.','file'=>'paper_9.pdf'],
-    ['id'=>10, 'title'=>'Cloud Computing Optimization','author'=>'Mira','status'=>'Accept with Review', 'abstract'=>'Abstrak contoh untuk Cloud Optimization.','file'=>'paper_10.pdf'],
-];
-@endphp
-
-<h2 class="text-2xl font-semibold mb-6">Daftar Paper</h2>
+<h2 class="text-2xl font-semibold mb-6">List of Papers</h2>
 
 <div class="flex justify-between items-center mb-4">
-  <a href="{{ route('author.kirim')}}" class="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700">
-      + Kirim Artikel Baru
-  </a>
+    <a href="{{ route('author.kirim')}}" class="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700">
+        + Submit a new paper
+    </a>
 
-  <div class="text-sm text-gray-600">
-      Menampilkan {{ count($papers) }} paper
-  </div>
+    <div class="text-sm text-gray-600">
+        Showing{{ $papers?->count() ?? 0 }} paper
+    </div>
 </div>
 
 <div class="border p-4 rounded-lg shadow-sm overflow-x-auto">
     <table class="w-full text-left border">
         <thead class="bg-gray-100">
             <tr>
-                <th class="p-2 border">ID</th>
-                <th class="p-2 border">Judul Paper</th>
-                <th class="p-2 border">Author</th>
-                <th class="p-2 border">Status</th>
-                <th class="p-2 border text-center">Aksi</th>
+                <th class="p-2 border text-center">No</th>
+                <th class="p-2 border text-center">Title</th>
+                <th class="p-2 border text-center">Author</th>
+                <th class="p-2 border text-center">Status</th>
+                <th class="p-2 border text-center">Action</th>
             </tr>
         </thead>
 
         <tbody>
-            @foreach($papers as $p)
+            @forelse($papers as $p)
+            @php
+            $authors = $p->authors->map(function($a) {
+            return $a->first_name . ' ' . $a->last_name;
+            })->toArray();
+
+            $allAuthors = count($authors) ? implode(', ', $authors) : '-';
+            @endphp
+
+
             <tr class="odd:bg-white even:bg-gray-50">
-                <td class="p-2 border text-center" style="width:60px;">{{ $p['id'] }}</td>
+
+                <td class="p-2 border text-center">{{ $loop->iteration }}</td>
 
                 <td class="p-2 border">
-                    <div class="font-semibold text-gray-800">{{ $p['title'] }}</div>
+                    <div class="font-semibold text-gray-800">{{ $p->judul }}</div>
                 </td>
 
-                <td class="p-2 border">{{ $p['author'] }}</td>
+                <td class="p-2 border">
+                    {{ $allAuthors }}
+                </td>
 
                 <td class="p-2 border">
-                    @php
-                        $color = match($p['status']) {
-                            'Unassigned' => 'text-gray-600',
-                            'In Review' => 'text-blue-600',
-                            'Rejected' => 'text-red-600',
-                            'Accepted' => 'text-green-600',
-                            'Accept with Review' => 'text-yellow-600',
-                            default => 'text-gray-600'
-                        };
-                    @endphp
-                    <span class="font-semibold {{ $color }}">{{ $p['status'] }}</span>
+                    <span class="font-semibold text-gray-600">Unassigned</span>
                 </td>
 
                 <td class="p-2 border text-center">
-                    <button
-                        class="btn-detail px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
-                        data-id="{{ $p['id'] }}"
-                        data-title="{{ e($p['title']) }}"
-                        data-author="{{ e($p['author']) }}"
-                        data-status="{{ $p['status'] }}"
-                        data-abstract="{{ e($p['abstract']) }}"
-                        data-file="{{ $p['file'] }}"
-                    >
-                        Lihat Detail
+                    <button class="btn-detail px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+                        data-id="{{ $p->id }}" data-title="{{ e($p->judul) }}" data-author="{{ e($allAuthors) }}"
+                        data-status="Unassigned" data-abstract="{{ e($p->abstrak) }}" data-file="{{ $p->file_path }}">
+                        Detail
                     </button>
                 </td>
+
             </tr>
-            @endforeach
+            @empty
+            <tr>
+                <td colspan="5" class="p-4 text-center text-gray-500">No data available</td>
+            </tr>
+            @endforelse
         </tbody>
+
+
     </table>
 </div>
 
-
 <!-- ================================= MODAL ================================= -->
 <div id="detailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
-  <div class="bg-white w-11/12 md:w-2/3 lg:w-1/2 rounded-lg shadow-lg overflow-hidden">
+    <div class="bg-white w-11/12 md:w-2/3 lg:w-1/2 rounded-lg shadow-lg overflow-hidden">
 
-    <div class="flex justify-between items-center px-4 py-3 border-b">
-      <h3 class="text-lg font-semibold">Detail Paper</h3>
-      <button id="modalClose" class="text-gray-600 hover:text-gray-800">✖</button>
+        <div class="flex justify-between items-center px-4 py-3 border-b">
+            <h3 class="text-lg font-semibold">Detail Paper</h3>
+            <button id="modalClose" class="text-gray-600 hover:text-gray-800">✖</button>
+        </div>
+
+        <div class="p-4 space-y-3">
+            <div><strong>Title:</strong> <span id="mTitle" class="text-gray-800"></span></div>
+            <div><strong>Author:</strong> <span id="mAuthor"></span></div>
+            <div><strong>Status:</strong> <span id="mStatus" class="font-semibold"></span></div>
+
+            <div>
+                <strong>Abstract:</strong>
+                <p id="mAbstract" class="mt-2"></p>
+            </div>
+
+            <div>
+                <strong>File:</strong>
+                <div id="mFile" class="mt-2"></div>
+            </div>
+
+            <div class="mt-4 text-right">
+                <button id="modalCloseBtn" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Close</button>
+            </div>
+        </div>
     </div>
-
-    <div class="p-4 space-y-3">
-      <div><strong>Judul:</strong> <span id="mTitle" class="text-gray-800"></span></div>
-      <div><strong>Author:</strong> <span id="mAuthor"></span></div>
-      <div><strong>Status:</strong> <span id="mStatus" class="font-semibold"></span></div>
-
-      <div>
-        <strong>Abstrak:</strong>
-        <p id="mAbstract" class="mt-2"></p>
-      </div>
-
-      <div>
-        <strong>File:</strong>
-        <div id="mFile" class="mt-2"></div>
-      </div>
-
-      <div class="mt-4 text-right">
-        <button id="modalCloseBtn" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Tutup</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- SCRIPT MODAL -->
@@ -142,10 +128,24 @@ document.addEventListener("DOMContentLoaded", () => {
             "Accepted": "text-green-600",
             "Accept with Review": "text-yellow-600",
             "Unassigned": "text-gray-600"
-        }[data.status] || "text-gray-600");
+        } [data.status] || "text-gray-600");
 
         mAbstract.textContent = data.abstract;
-        mFile.innerHTML = `<a href="#" class="text-blue-600 underline">${data.file}</a>`;
+
+        if (data.file) {
+            const fileUrl = `/storage/${data.file}`;
+            mFile.innerHTML = `
+                <a href="${fileUrl}" 
+                target="_blank" 
+                class="text-blue-600 underline hover:text-blue-800">
+                Buka File Paper
+                </a>
+            `;
+
+        } else {
+            mFile.innerHTML = `<span class="text-red-600">Tidak ada file</span>`;
+        }
+
 
         modal.classList.remove("hidden");
         modal.classList.add("flex");
@@ -171,7 +171,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("modalClose").addEventListener("click", closeModal);
     document.getElementById("modalCloseBtn").addEventListener("click", closeModal);
-    modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+    modal.addEventListener("click", e => {
+        if (e.target === modal) closeModal();
+    });
 });
 </script>
 

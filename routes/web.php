@@ -55,20 +55,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/users/{user}/update-roles', [UserController::class, 'updateRoles']);
 
 
-    Route::get('/author/regis', function () {
-        return view('author.regis');
-    });
-     Route::get('/author', function () {
-        return view('author.listpaper');
+    Route::get('/author/regis', function () {return view('author.regis');});
+    Route::get('/author', [AuthorController::class, 'index'])->name('author.index');
+    Route::post('/author/sendArticle', [AuthorController::class, 'store'])->name('author.store');
 
-    })->name('author.index');
 
-    Route::get('/editorr', function () {
-        return view('Editorr');
-    });
+    Route::get('/editorr', function () {return view('Editorr');});
 
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
-
-
