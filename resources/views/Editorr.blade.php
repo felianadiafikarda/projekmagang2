@@ -2,7 +2,12 @@
 @extends('layouts.app')
 
 @section('page_title', 'Editor – Manage Submissions')
+
 @section('content')
+
+{{-- TomSelect CSS & JS --}}
+<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
 
 @php
 use Carbon\Carbon;
@@ -11,7 +16,7 @@ use Carbon\Carbon;
 $page = request('page') ?? ($page ?? 'list');
 $idParam = request('id') ?? null;
 
-// Dummy data (can be replaced with database)
+// Dummy data Submissions
 $articles = $articles ?? collect([
     (object)['id'=>1,'title'=>'Model Prediksi Co-Authorship','author_name'=>'Dewi Lestari','status'=>'in_review','created_at'=>Carbon::now()->subDays(10)],
     (object)['id'=>2,'title'=>'Analisis Sistem Informasi Akademik','author_name'=>'Rina Puspitasari','status'=>'unassigned','created_at'=>Carbon::now()->subDays(4)],
@@ -22,18 +27,20 @@ if (!isset($article)) {
     if ($idParam) {
         $article = $articles->firstWhere('id',(int)$idParam) ?? null;
     }
-    $article = $article ?? $articles->first();
+    // Fallback jika detail page dibuka tanpa ID valid
+    $article = $article ?? $articles->first(); 
 }
 
-// Reviewers
+// Available Reviewers
 $all_reviewers = $all_reviewers ?? collect([
     (object)['id'=>1,'name'=>'Dr. Sinta Maharani'],
     (object)['id'=>2,'name'=>'Prof. Rudi Santoso'],
     (object)['id'=>3,'name'=>'Much Fuad Saifuddin'],
     (object)['id'=>4,'name'=>'Dr. Anang Masduki'],
+    (object)['id'=>5,'name'=>'Dr. Budi Darmawan'],
 ]);
 
-// Section editors
+// Available Section Editors
 $all_section_editors = $all_section_editors ?? collect([
     (object)['id'=>1,'name'=>'Dr. Indah Pertiwi'],
     (object)['id'=>2,'name'=>'Prof. Budi Santoso'],
@@ -41,7 +48,9 @@ $all_section_editors = $all_section_editors ?? collect([
 
 // Assigned reviewers
 $assignedReviewers = $assignedReviewers ?? collect([
+    // Kasus 1: Masih ditugaskan, perlu tombol Reminder
     (object)['id'=>1,'reviewer_id'=>1,'reviewer_name'=>'Dr. Sinta Maharani','status'=>'assigned','deadline'=>Carbon::now()->addDays(7),'recommendation'=>null],
+    // Kasus 2: Sudah selesai, perlu tombol Read Review
     (object)['id'=>2,'reviewer_id'=>2,'reviewer_name'=>'Prof. Rudi Santoso','status'=>'completed','deadline'=>Carbon::now()->subDays(2),'recommendation'=>'Accept'],
 ]);
 
@@ -65,13 +74,13 @@ function fmt($d) {
             <h1 class="text-2xl font-semibold">Editor Dashboard</h1>
             <p class="text-sm text-gray-600">Manage submissions, assign reviewers & section editors.</p>
         </div>
+
         <div class="flex gap-2">
-            <a href="{{ url()->current().'?page=list' }}" class="px-3 py-2 bg-gray-100 rounded">All Submissions</a>
+            <a href="{{ url()->current().'?page=list' }}" class="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 transition">All Submissions</a>
         </div>
     </div>
 
-
-    {{-- ALL SUBMISSIONS TABLE --}}
+    {{-- TABLE LIST --}}
     @if($page === 'list')
     <div class="bg-white border rounded shadow p-6">
         <h3 class="font-semibold mb-2">All Submissions</h3>
@@ -89,19 +98,26 @@ function fmt($d) {
 
             <tbody>
                 @foreach($articles as $a)
-                <tr class="border-t hover:bg-gray-50">
+                <tr class="border-t hover:bg-gray-50 transition">
                     <td class="p-2">{{ $a->title }}</td>
                     <td class="p-2">{{ $a->author_name }}</td>
-                    <td class="p-2">{{ ucfirst(str_replace('_',' ',$a->status)) }}</td>
+                    <td class="p-2">
+                        <span class="px-2 py-1 text-xs rounded font-medium 
+                            {{ $a->status == 'in_review' ? 'bg-yellow-100 text-yellow-800' : '' }}
+                            {{ $a->status == 'accepted' ? 'bg-green-100 text-green-800' : '' }}
+                            {{ $a->status == 'unassigned' ? 'bg-gray-100 text-gray-800' : '' }}">
+                            {{ ucfirst(str_replace('_',' ',$a->status)) }}
+                        </span>
+                    </td>
                     <td class="p-2">{{ fmt($a->created_at) }}</td>
 
                     <td class="p-2">
                         <div class="flex gap-2">
-                            <a href="{{ url()->current().'?page=assign&id='.$a->id }}"
-                                class="px-3 py-1 text-sm bg-gray-200 rounded">Detail</a>
-
-                            <a href="{{ url()->current().'?page=assign&id='.$a->id }}"
-                                class="px-3 py-1 text-sm bg-blue-600 text-white rounded">Edit</a>
+                            <a href="{{ url()->current().'?page=assign&id='.$a->id }}" 
+                                class="px-3 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300">Detail</a>
+                            
+                            <a href="{{ url()->current().'?page=assign&id='.$a->id }}" 
+                                class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Edit</a>
                         </div>
                     </td>
                 </tr>
@@ -113,122 +129,362 @@ function fmt($d) {
     @endif
 
 
-
     {{-- ASSIGN PAGE --}}
-    @if($page === 'assign' || request('id'))
-    <div class="bg-white border rounded shadow p-6">
+    @if(($page === 'assign' || request('id')) && $article)
+    <div class="bg-white border rounded shadow p-6 relative">
 
         {{-- HEADER DETAIL --}}
         <div class="flex justify-between items-start mb-6">
             <div>
                 <h3 class="text-xl font-semibold">{{ $article->title }}</h3>
-                <div class="text-sm text-gray-500">
-                    Author: {{ $article->author_name }} • Submitted: {{ fmt($article->created_at) }}
+                <div class="text-sm text-gray-500 mt-1">
+                    Author: <span class="font-medium text-gray-800">{{ $article->author_name }}</span> • Submitted: {{ fmt($article->created_at) }}
                 </div>
             </div>
 
             <div class="text-right mt-1">
-                <span class="text-sm font-medium px-3 py-1 rounded bg-blue-50 text-blue-700">
+                <span class="text-sm font-medium px-3 py-1 rounded 
+                    {{ $article->status == 'in_review' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-50 text-blue-700' }}">
                     {{ ucfirst(str_replace('_',' ',$article->status ?? 'unassigned')) }}
                 </span>
             </div>
         </div>
 
-        {{-- ASSIGN REVIEWER --}}
+
+        {{-- ASSIGN REVIEWER SECTION --}}
         <div class="mt-6 border-t pt-6">
             <h4 class="font-semibold mb-4 text-lg">Assign Reviewer</h4>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                @foreach($all_reviewers as $rev)
-                <label class="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-blue-50 transition shadow-sm">
-                    <input type="checkbox" name="reviewers[]" value="{{ $rev->id }}"
-                        class="w-5 h-5 text-blue-600">
-
-                    <div>
-                        <div class="font-medium">{{ $rev->name }}</div>
-                        <div class="text-xs text-gray-500">Available Reviewer</div>
-                    </div>
-                </label>
-                @endforeach
+            
+            {{-- Multiselect Reviewer Dropdown --}}
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Select Reviewers</label>
+                <select id="reviewerSelect" name="reviewers[]" multiple placeholder="Cari dan pilih Reviewer..." autocomplete="off">
+                    @foreach($all_reviewers as $rev)
+                        <option value="{{ $rev->id }}" 
+                            @if(in_array($rev->id, $assignedReviewers->pluck('reviewer_id')->toArray()))
+                                selected
+                            @endif
+                        >
+                            {{ $rev->name }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
-            {{-- Deadline --}}
-            <div class="mt-5">
-                <label class="text-sm font-medium">Deadline for all selected reviewers</label>
-                <input type="date" class="border rounded p-2 w-full md:w-64 mt-1">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Deadline for selected reviewers</label>
+                <input type="date" class="border rounded p-2 w-full md:w-64 focus:ring-blue-500 focus:border-blue-500">
             </div>
 
-            <button class="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                Assign Selected Reviewers
+            {{-- TOMBOL UPDATE: Memicu Modal Assign --}}
+            <button type="button" onclick="openAssignModal()" 
+                class="mt-2 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 shadow-sm transition duration-200 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Send Request & Assign Reviewers
             </button>
         </div>
 
 
-        {{-- ASSIGN SECTION EDITOR --}}
+        {{-- ASSIGN SECTION EDITOR SECTION --}}
         <div class="mt-10 border-t pt-6">
             <h4 class="font-semibold mb-4 text-lg">Assign Section Editor</h4>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @foreach($all_section_editors as $se)
-                <label class="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-green-50 transition shadow-sm">
-                    <input type="checkbox" name="section_editors[]" value="{{ $se->id }}"
-                        class="w-5 h-5 text-green-600">
-
-                    <div class="font-medium">{{ $se->name }}</div>
-                </label>
-                @endforeach
+            {{-- Multiselect Section Editor Dropdown --}}
+            <div class="mb-4">
+                <select id="editorSelect" name="section_editors[]" multiple placeholder="Pilih Section Editor..." autocomplete="off">
+                    @foreach($all_section_editors as $se)
+                        <option value="{{ $se->id }}"
+                            @if(in_array($se->id, $assignedSectionEditors->pluck('editor_id')->toArray()))
+                                selected
+                            @endif
+                        >
+                            {{ $se->name }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
-            <button class="mt-4 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+            <button class="mt-2 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 shadow-sm transition duration-200">
                 Assign Selected Editors
             </button>
         </div>
 
 
-        {{-- ASSIGNED REVIEWERS --}}
+        {{-- LIST ASSIGNED REVIEWERS --}}
         <div class="mt-10">
             <h4 class="font-semibold mb-3 text-lg">Assigned Reviewers</h4>
 
             <div class="space-y-4">
                 @forelse($assignedReviewers as $ar)
-                <div class="border rounded p-4 shadow-sm">
-                    <div class="font-medium">{{ $ar->reviewer_name }}</div>
-                    <div class="text-xs text-gray-500">
-                        Deadline: {{ fmt($ar->deadline) }}
-                    </div>
-                    <div class="text-xs mt-1">{{ ucfirst($ar->status) }}</div>
+                <div class="border rounded-lg p-4 shadow-sm bg-white hover:shadow-md transition duration-200">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-medium text-lg text-gray-800">{{ $ar->reviewer_name }}</div>
+                            <div class="text-sm text-gray-500">
+                                Deadline: <span class="font-medium">{{ fmt($ar->deadline) }}</span>
+                            </div>
+                            <div class="text-sm mt-1 flex items-center gap-2">
+                                Status: 
+                                <span class="px-2 py-0.5 rounded text-xs font-semibold
+                                    {{ $ar->status === 'completed' ? 'bg-green-100 text-green-700' : '' }}
+                                    {{ $ar->status === 'assigned' ? 'bg-blue-100 text-blue-700' : '' }}
+                                    {{ $ar->status === 'declined' ? 'bg-red-100 text-red-700' : '' }}">
+                                    {{ ucfirst($ar->status) }}
+                                </span>
+                            </div>
+                            @if($ar->status==='completed' && $ar->recommendation)
+                            <div class="text-sm mt-2 p-2 bg-gray-50 rounded text-gray-700 border border-gray-200">
+                                Recommendation: <strong>{{ $ar->recommendation }}</strong>
+                            </div>
+                            @endif
+                        </div>
 
-                    @if($ar->status==='completed' && $ar->recommendation)
-                    <div class="text-xs mt-1 text-gray-700">
-                        Recommendation: <strong>{{ $ar->recommendation }}</strong>
+                        {{-- ACTIONS --}}
+                        <div class="flex flex-col gap-2 items-end">
+                            {{-- TOMBOL UPDATE: Memicu Modal Reminder --}}
+                            @if($ar->status === 'assigned' || $ar->status === 'declined')
+                                <button type="button" 
+                                    onclick="openReminderModal('{{ $ar->reviewer_name }}', '{{ fmt($ar->deadline) }}')"
+                                    class="text-sm bg-yellow-500 text-white px-3 py-1.5 rounded hover:bg-yellow-600 transition shadow-sm flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                      <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                                    </svg>
+                                    Send Reminder
+                                </button>
+                            @endif
+
+                            @if($ar->status === 'completed')
+                                <button class="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700 transition shadow-sm">
+                                    Read Review
+                                </button>
+                            @endif
+
+                            <button class="text-sm text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition">
+                                Unassign
+                            </button>
+                        </div>
                     </div>
-                    @endif
                 </div>
                 @empty
-                <div class="text-sm text-gray-500">No reviewers assigned yet.</div>
+                <div class="text-sm text-gray-500 p-4 border border-dashed rounded text-center">No reviewers assigned yet.</div>
                 @endforelse
             </div>
         </div>
 
 
-        {{-- ASSIGNED SECTION EDITORS --}}
+        {{-- LIST ASSIGNED SECTION EDITORS --}}
         <div class="mt-10">
             <h4 class="font-semibold mb-3 text-lg">Assigned Section Editors</h4>
 
             <div class="space-y-2">
                 @forelse($assignedSectionEditors as $ase)
-                <div class="border rounded p-3 shadow-sm">
-                    {{ $ase->editor_name }}
+                <div class="border rounded p-3 shadow-sm flex justify-between items-center bg-gray-50">
+                    <span class="font-medium text-gray-700">{{ $ase->editor_name }}</span>
+                    <a href="#" class="text-xs text-red-500 hover:text-red-700 font-medium hover:underline">
+                        Unassign
+                    </a>
                 </div>
                 @empty
-                <div class="text-sm text-gray-500">No section editors assigned yet.</div>
+                <div class="text-sm text-gray-500 p-3 border border-dashed rounded text-center">No section editors assigned yet.</div>
                 @endforelse
             </div>
         </div>
 
     </div>
     @endif
+    
+    {{-- MODAL EMAIL (Hidden by default) --}}
+    <div id="emailModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden transform transition-all">
+            {{-- Modal Header --}}
+            <div class="bg-blue-600 px-6 py-4 flex justify-between items-center">
+                <h3 class="text-white text-lg font-semibold" id="modalTitle">Add Reviewer & Send Email</h3>
+                <button onclick="closeModal()" class="text-white hover:text-gray-200 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Modal Body --}}
+            <div class="p-6 space-y-4">
+                
+                {{-- Recipient Display --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Selected Reviewer(s)</label>
+                    <input type="text" id="modalRecipientName" readonly class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-gray-600 focus:outline-none">
+                </div>
+
+                {{-- Email Subject --}}
+                <div>
+                     <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                     <input type="text" id="emailSubject" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                {{-- Email Body --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Content</label>
+                    <textarea id="emailBody" rows="8" class="w-full border border-gray-300 rounded px-3 py-2 font-mono text-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">You can edit the message above before sending.</p>
+                </div>
+
+                {{-- Checkbox --}}
+                <div class="flex items-center">
+                    <input id="skipEmail" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="skipEmail" class="ml-2 block text-sm text-gray-900">
+                        Do not send email to Reviewer (Assign only).
+                    </label>
+                </div>
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                <button onclick="closeModal()" class="px-4 py-2 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+                <button onclick="submitProcess()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition">Send & Process</button>
+            </div>
+        </div>
+    </div>
 
 </div>
+
+
+{{-- JAVASCRIPT LOGIC --}}
+<script>
+    // --- Variabel Data dari PHP ke JS ---
+    const articleTitle = "{{ $article->title ?? 'Judul Artikel' }}";
+    const journalName = "Jurnal Pemberdayaan: Publikasi Hasil Pengabdian Kepada Masyarakat";
+    // URL dummy, sesuaikan dengan route asli
+    const articleUrl = "{{ url()->current().'?id='.($article->id ?? 0) }}"; 
+    const editorName = "{{ $editor->name }}";
+    
+    let reviewerSelectInstance; 
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Init TomSelect Reviewer
+        if(document.getElementById("reviewerSelect")) {
+            reviewerSelectInstance = new TomSelect("#reviewerSelect", {
+                plugins: ['remove_button'],
+                maxItems: null,
+                placeholder: 'Cari dan pilih Reviewer...',
+                render: {
+                    option: function(data, escape) {
+                        return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
+                                    <div class="font-medium text-gray-800">${escape(data.text)}</div>
+                                    <div class="text-xs text-green-600">Available Reviewer</div>
+                                </div>`;
+                    },
+                    item: function(data, escape) {
+                        return `<div class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full mr-1 flex items-center shadow-sm border border-blue-200">
+                                    ${escape(data.text)}
+                                </div>`;
+                    }
+                }
+            });
+        }
+
+        // Init TomSelect Editor
+        if(document.getElementById("editorSelect")) {
+            new TomSelect("#editorSelect", {
+                plugins: ['remove_button'],
+                maxItems: null,
+                placeholder: 'Pilih Section Editor...',
+            });
+        }
+    });
+
+    // --- LOGIKA MODAL EMAIL ---
+    const modal = document.getElementById('emailModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalRecipient = document.getElementById('modalRecipientName');
+    const emailSubject = document.getElementById('emailSubject');
+    const emailBody = document.getElementById('emailBody');
+
+    // 1. Fungsi Buka Modal Assign Reviewer
+    function openAssignModal() {
+        if(!reviewerSelectInstance) return;
+
+        // Ambil data reviewer yang dipilih
+        const selectedItems = reviewerSelectInstance.items; // Array ID
+        const selectedOptions = reviewerSelectInstance.options; // Object Data
+        
+        if (selectedItems.length === 0) {
+            alert("Please select at least one reviewer first.");
+            return;
+        }
+
+        // Gabungkan nama reviewer
+        let names = selectedItems.map(id => selectedOptions[id].text).join(", ");
+
+        // Set Isi Modal
+        modalTitle.innerText = "Assign Reviewer & Send Invitation";
+        modalRecipient.value = names;
+        emailSubject.value = "Invitation to Review Manuscript";
+        
+        // Template Pesan Assign
+        const template = `Dear ${names},
+
+I believe that you would serve as an excellent reviewer of the manuscript, "${articleTitle}," which has been submitted to ${journalName}.
+
+The submission's abstract is inserted below, and I hope that you will consider undertaking this important task for us.
+
+Please log into the journal web site to indicate whether you will undertake the review or not.
+
+Submission URL: ${articleUrl}
+
+Thank you for considering this request.
+
+${editorName}
+Editor`;
+
+        emailBody.value = template;
+        
+        // Tampilkan Modal
+        modal.classList.remove('hidden');
+    }
+
+    // 2. Fungsi Buka Modal Reminder
+    function openReminderModal(reviewerName, deadline) {
+        // Set Isi Modal
+        modalTitle.innerText = "Send Reminder to Reviewer";
+        modalRecipient.value = reviewerName;
+        emailSubject.value = "Review Reminder: " + articleTitle;
+
+        // Template Pesan Reminder
+        const template = `Dear ${reviewerName},
+
+Just a gentle reminder regarding the manuscript "${articleTitle}" which is currently assigned to you for review.
+
+We noticed that the deadline is approaching (${deadline}). We would appreciate it if you could submit your review soon.
+
+Submission URL: ${articleUrl}
+
+Best regards,
+
+${editorName}
+Editor`;
+
+        emailBody.value = template;
+        modal.classList.remove('hidden');
+    }
+
+    // 3. Fungsi Tutup Modal
+    function closeModal() {
+        modal.classList.add('hidden');
+    }
+
+    // 4. Simulasi Submit (Ganti dengan form submit asli jika backend siap)
+    function submitProcess() {
+        const isSkip = document.getElementById('skipEmail').checked;
+        if(isSkip) {
+            alert("Success! Reviewer assigned without sending email.");
+        } else {
+            alert("Success! Email sent and Reviewer assigned.");
+        }
+        closeModal();
+        // document.getElementById('assignForm').submit(); 
+    }
+</script>
 
 @endsection
