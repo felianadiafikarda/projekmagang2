@@ -108,8 +108,10 @@
 
           @php
           $colors = [
+          'admin' => 'bg-green-100 text-gray-800',
           'conference_manager' => 'bg-red-100 text-red-800',
           'editor' => 'bg-orange-100 text-orange-800',
+          'section_editor' => 'bg-yellow-100 text-yellow-800',
           'reviewer' => 'bg-purple-100 text-purple-800',
           'author' => 'bg-blue-100 text-blue-800',
           ];
@@ -212,73 +214,36 @@
     <div class="space-y-4">
       <h3 class="text-lg font-semibold text-gray-900 mb-4">Assign Roles</h3>
 
-      <!-- Conference Manager Role -->
+      @foreach ($roles as $role)
       <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition">
         <div class="flex items-start justify-between">
           <div class="flex items-start gap-3 flex-1">
-            <input type="checkbox" id="role-conference-manager" class="mt-1 rounded">
-            <div>
-              <label for="role-conference-manager" class="font-semibold text-gray-900 cursor-pointer flex items-center gap-2">
-                Conference Manager
-                <span class="bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs">Highest Access</span>
-              </label>
-              <p class="text-sm text-gray-600 mt-1">
-                Pengelola penuh sistem konferensi dengan akses ke semua fitur manajemen user, submission, dan settings.
-              </p>
-              <div class="mt-2 flex flex-wrap gap-2 text-xs">
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">Manage Users</span>
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">Manage Roles</span>
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">System Settings</span>
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">All Permissions</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Editor Role -->
-      <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition">
-        <div class="flex items-start justify-between">
-          <div class="flex items-start gap-3 flex-1">
-            <input type="checkbox" id="role-editor" class="mt-1 rounded">
-            <div>
-              <label for="role-editor" class="font-semibold text-gray-900 cursor-pointer flex items-center gap-2">
-                Editor
-                <span class="bg-orange-100 text-orange-800 px-2 py-0.5 rounded text-xs">Editorial Access</span>
-              </label>
-              <p class="text-sm text-gray-600 mt-1">
-                Mengelola submission, assign reviewer, dan membuat keputusan editorial untuk paper yang di-assign.
-              </p>
-              <div class="mt-2 flex flex-wrap gap-2 text-xs">
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">Review Submissions</span>
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">Assign Reviewers</span>
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">Make Decisions</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+            {{-- Checkbox Role --}}
+            <input type="checkbox"
+              id="role-{{ $role->name }}"
+              value="{{ $role->name }}"
+              class="mt-1 rounded role-checkbox">
 
-      <!-- Reviewer Role -->
-      <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition">
-        <div class="flex items-start justify-between">
-          <div class="flex items-start gap-3 flex-1">
-            <input type="checkbox" id="role-reviewer" class="mt-1 rounded">
             <div class="w-full">
-              <label for="role-reviewer" class="font-semibold text-gray-900 cursor-pointer flex items-center gap-2">
-                Reviewer
-                <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs">Review Access</span>
-              </label>
-              <p class="text-sm text-gray-600 mt-1">
-                Melakukan peer review terhadap paper yang di-assign dan memberikan rekomendasi.
-              </p>
-              <div class="mt-2 flex flex-wrap gap-2 text-xs">
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">Review Papers</span>
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">Submit Reviews</span>
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">View Assignments</span>
-              </div>
+              <label for="role-{{ $role->name }}"
+                class="font-semibold text-gray-900 cursor-pointer flex items-center gap-2">
+                {{ ucfirst(str_replace('_', ' ', $role->name)) }}
 
-              <!-- Expertise Area (shown when reviewer is checked) -->
+                @if ($role->level >= 5)
+                <span class="bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs">Highest Access</span>
+                @elseif ($role->level > 3)
+                <span class="bg-orange-100 text-orange-800 px-2 py-0.5 rounded text-xs">Editorial Access</span>
+                @elseif ($role->level == 3)
+                <span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs">Administrator Access</span>
+                @elseif ($role->level >= 2)
+                <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs">Review Access</span>
+                @else
+                <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">Basic Access</span>
+                @endif
+              </label>
+
+              @if ($role->name == 'reviewer')
               <div class="mt-3 hidden" id="reviewer-expertise">
                 <label class="text-sm font-medium text-gray-700 block mb-2">Expertise Area</label>
                 <select class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
@@ -290,33 +255,13 @@
                   <option>Software Engineering</option>
                 </select>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
+              @endif
 
-      <!-- Author Role -->
-      <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition">
-        <div class="flex items-start justify-between">
-          <div class="flex items-start gap-3 flex-1">
-            <input type="checkbox" id="role-author" class="mt-1 rounded">
-            <div>
-              <label for="role-author" class="font-semibold text-gray-900 cursor-pointer flex items-center gap-2">
-                Author
-                <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">Basic Access</span>
-              </label>
-              <p class="text-sm text-gray-600 mt-1">
-                Submit paper, upload revisi, dan berinteraksi dengan reviewer comments.
-              </p>
-              <div class="mt-2 flex flex-wrap gap-2 text-xs">
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">Submit Papers</span>
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">Upload Revisions</span>
-                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">Track Status</span>
-              </div>
             </div>
           </div>
         </div>
       </div>
+      @endforeach
     </div>
 
     <!-- Additional Settings -->
@@ -494,10 +439,11 @@
       document.getElementById('modal-user-initials').textContent = btn.dataset.userName.substring(0, 2).toUpperCase();
 
       // Set checkbox sesuai role user
-      document.getElementById('role-conference-manager').checked = roles.includes('conference_manager');
-      document.getElementById('role-editor').checked = roles.includes('editor');
-      document.getElementById('role-reviewer').checked = roles.includes('reviewer');
-      document.getElementById('role-author').checked = roles.includes('author');
+      roles.forEach(role => {
+        const cb = document.getElementById(`role-${role}`);
+        if (cb) cb.checked = true;
+      });
+
 
       // Tampilkan modal
       editRoleModal.classList.remove('hidden');
@@ -526,12 +472,14 @@
   // Save Roles
   saveRolesBtn.addEventListener('click', () => {
     const userId = saveRolesBtn.dataset.userId;
+    const roleCheckboxes = document.querySelectorAll('.role-checkbox');
 
     const selectedRoles = [];
-    if (document.getElementById('role-conference-manager').checked) selectedRoles.push('conference_manager');
-    if (document.getElementById('role-editor').checked) selectedRoles.push('editor');
-    if (document.getElementById('role-reviewer').checked) selectedRoles.push('reviewer');
-    if (document.getElementById('role-author').checked) selectedRoles.push('author');
+    roleCheckboxes.forEach(cb => {
+      if (cb.checked) {
+        selectedRoles.push(cb.value);
+      }
+    });
 
     fetch(`/users/${userId}/update-roles`, {
         method: 'POST',
@@ -546,7 +494,7 @@
       .then(res => res.json())
       .then(data => {
         showNotification("Roles updated successfully!");
-        location.reload(); // reload table
+        location.reload();
       });
   });
 

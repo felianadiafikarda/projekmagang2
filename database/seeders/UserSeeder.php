@@ -14,6 +14,16 @@ class UserSeeder extends Seeder
         // List user dummy
         $users = [
             [
+                'first_name' => 'Super',
+                'last_name' => 'Admin',
+                'email' => 'admin@gmail.com',
+                'username' => 'superadmin',
+                'password' => Hash::make('password'),
+                'affiliation' => null,
+                'photo_path' => null,
+                'role' => 'admin'
+            ],
+            [
                 'first_name' => 'Conference',
                 'last_name' => 'Manager One',
                 'email' => 'cm1@gmail.com',
@@ -22,6 +32,16 @@ class UserSeeder extends Seeder
                 'affiliation' => 'Universitas Negeri Teknologi',
                 'photo_path' => null,
                 'role' => 'conference_manager'
+            ],
+            [
+                'first_name' => 'Section',
+                'last_name' => 'editor',
+                'email' => 'section_editor1@gmail.com',
+                'username' => 'section_editor1',
+                'password' => Hash::make('password'),
+                'affiliation' => 'Institut Teknologi Bandung',
+                'photo_path' => null,
+                'role' => 'section_editor'
             ],
             [
                 'first_name' => 'Editor',

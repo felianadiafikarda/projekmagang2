@@ -6,17 +6,31 @@
         </div>
 
         <nav class="mt-6 flex flex-col space-y-1">
-            @php
-            $roles = App\Models\Role::orderByDesc('level')->get();
-            @endphp
-
-            @foreach ($roles as $role)
-            <a href="{{ route($role->name . '.index') }}"
+            <a href="{{ route('conference_manager.index') }}"
                 class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
-            {{ Request::routeIs($role->name . '*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
-                <span>{{ ucfirst($role->display_name ?? $role->name) }}</span>
+            {{ Request::routeIs('conference_manager*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
+                <span>Conference Manager</span>
             </a>
-            @endforeach
+            <a href="{{ route('editor.index') }}"
+                class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+            {{ Request::routeIs('editor*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
+                <span>Editor</span>
+            </a>
+            <a href="/section_editor"
+                class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+            {{ Request::routeIs('section_editor*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
+                <span>Section Editor</span>
+            </a>
+            <a href="{{ route('reviewer.index') }}"
+                class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+            {{ Request::routeIs('reviewer*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
+                <span>Reviewer</span>
+            </a>
+            <a href="{{ route('author.index') }}"
+                class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+            {{ Request::routeIs('author*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
+                <span>Author</span>
+            </a>
             <a href="{{ route('users.index') }}"
                 class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
             {{ Request::routeIs('users*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
