@@ -53,8 +53,24 @@
                 </td>
 
                 <td class="p-2 border">
-                    <span class="font-semibold text-gray-600">Unassigned</span>
+                    @php
+                    $statusColor = [
+                    'submitted' => 'bg-gray-300 text-gray-800',
+                    'assigned_to_section_editor' => 'bg-blue-300 text-blue-800',
+                    'editing' => 'bg-yellow-300 text-yellow-900',
+                    'reviewing' => 'bg-purple-300 text-purple-900',
+                    'revision' => 'bg-orange-300 text-orange-900',
+                    'accepted' => 'bg-green-300 text-green-900',
+                    'rejected' => 'bg-red-300 text-red-900',
+                    ];
+                    @endphp
+
+                    <span class="px-2 py-1 rounded font-semibold 
+        {{ $statusColor[$p->status] ?? 'bg-gray-200 text-gray-700' }}">
+                        {{ ucfirst(str_replace('_', ' ', $p->status)) }}
+                    </span>
                 </td>
+
 
                 <td class="p-2 border text-center">
                     <button class="btn-detail px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"

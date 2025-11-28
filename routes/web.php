@@ -44,6 +44,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/conference-manager', [ConferenceController::class, 'index'])->name('conference_manager.index');
     Route::get('/editor', [EditorController::class, 'index'])->name('editor.index');
+    Route::get('/editor/detail/{id}', [EditorController::class, 'detail'])->name('editor.detail');
     Route::get('/reviewer', [ReviewerController::class, 'index'])->name('reviewer.index');
     Route::get('/author/kirim-artikel', [AuthorController::class, 'paper'])->name('author.kirim');
 
@@ -60,7 +61,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/author/sendArticle', [AuthorController::class, 'store'])->name('author.store');
 
 
-    Route::get('/editorr', function () {return view('Editorr');});
+    Route::get('/sectionEditor', function () {return view('sectionEditor');});
 
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');

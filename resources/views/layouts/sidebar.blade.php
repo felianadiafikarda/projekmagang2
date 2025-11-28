@@ -11,28 +11,23 @@
             {{ Request::routeIs('conference_manager*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
                 <span>Conference Manager</span>
             </a>
-            <a href="{{ route('editor.index') }}"
-                class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+            <a href="{{ route('editor.index') }}" class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
             {{ Request::routeIs('editor*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
                 <span>Editor</span>
             </a>
-            <a href="/section_editor"
-                class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+            <a href="/section_editor" class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
             {{ Request::routeIs('section_editor*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
                 <span>Section Editor</span>
             </a>
-            <a href="{{ route('reviewer.index') }}"
-                class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+            <a href="{{ route('reviewer.index') }}" class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
             {{ Request::routeIs('reviewer*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
                 <span>Reviewer</span>
             </a>
-            <a href="{{ route('author.index') }}"
-                class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+            <a href="{{ route('author.index') }}" class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
             {{ Request::routeIs('author*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
                 <span>Author</span>
             </a>
-            <a href="{{ route('users.index') }}"
-                class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+            <a href="{{ route('users.index') }}" class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
             {{ Request::routeIs('users*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
                 <span>Users</span>
             </a>
@@ -40,7 +35,8 @@
     </div>
 
     <div class="border-t border-gray-700 p-4">
-        <a href="{{ route('logout') }}" class="w-full flex items-center justify-center gap-2 bg-gray-700 text-gray-100 px-4 py-2 rounded-md hover:bg-gray-600 transition">
+        <a href="{{ route('logout') }}"
+            class="w-full flex items-center justify-center gap-2 bg-gray-700 text-gray-100 px-4 py-2 rounded-md hover:bg-gray-600 transition">
             Logout
         </a>
     </div>

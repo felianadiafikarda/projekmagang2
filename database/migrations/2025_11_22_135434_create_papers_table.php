@@ -15,6 +15,15 @@ return new class extends Migration
             $table->string('judul');
             $table->text('abstrak')->nullable();
             $table->string('keywords');
+            $table->enum('status', [
+                'submitted',
+                'assigned_to_section_editor',
+                'editing',
+                'reviewing',
+                'revision',
+                'accepted',
+                'rejected',
+            ])->default('submitted');
             $table->string('file_path');          
             $table->timestamps();
         });

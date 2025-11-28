@@ -12,10 +12,23 @@ class Paper extends Model
         'abstrak',
         'keywords',
         'file_path',
+        'status',
     ];
 
     public function authors()
     {
         return $this->hasMany(PaperAuthor::class);
     }
+
+    public function reviewers()
+    {
+        return $this->belongsToMany(User::class, 'paper_reviewer')->withPivot('deadline', 'status', 'recommendation')->withTimestamps();
+    }
+
+    public function sectionEditors()
+    {
+        return $this->belongsToMany(User::class, 'paper_section_editor')->withTimestamps();
+    }
+
+
 }
