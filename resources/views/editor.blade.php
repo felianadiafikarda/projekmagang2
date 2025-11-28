@@ -344,11 +344,7 @@
 // --- Variabel Data dari PHP ke JS ---
 const articleTitle = "{{ $paper->judul ?? 'Judul Artikel' }}";
 
-// Nama jurnal tetap statis atau bisa diambil dari config/db
-const journalName = "{{ $journalName ?? 'Jurnal Pemberdayaan: Publikasi Hasil Pengabdian Kepada Masyarakat' }}";
-
-
-const articleUrl = "{{ $paper->file_path ? asset('storage/' . $paper->file_path) : '#' }}";
+const articleUrl = "{{ $articleUrl ?? '#' }}"
 
 
 const editorName = "{{ $editors->first()->name ?? 'Editor' }}";
