@@ -26,7 +26,7 @@
             @endif
 
             @if($level >= 4)
-            <a href="/section_editor" class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+            <a href="{{ route('section_editor.index') }}" class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
            {{ Request::routeIs('section_editor*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
                 <span>Section Editor</span>
             </a>
