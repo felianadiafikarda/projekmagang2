@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class PaperAuthor extends Model
@@ -21,4 +22,9 @@ class PaperAuthor extends Model
         return $this->belongsTo(Paper::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'email', 'email');
+    }
+    
 }

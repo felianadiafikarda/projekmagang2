@@ -66,4 +66,9 @@ class User extends Authenticatable
 
         return $userLevel >= $targetRole->level;
     }
+
+    public function paper()
+    {
+        return $this->hasMany(Paper::class);
+    }
 }
