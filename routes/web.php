@@ -45,6 +45,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/conference-manager', [ConferenceController::class, 'index'])->name('conference_manager.index');
     Route::get('/editor', [EditorController::class, 'index'])->name('editor.index');
     Route::get('/editor/detail/{id}', [EditorController::class, 'detail'])->name('editor.detail');
+    Route::post('/editor/paper/{paper}/assign-reviewers', [EditorController::class, 'assignReviewers'])->name('editor.assignReviewers');
+    Route::post('/editor/{paperId}/send-reminder', [EditorController::class, 'sendReminder'])->name('editor.sendReminder');
+    Route::post('/editor/{paper}/unassign-reviewer', [EditorController::class, 'unassignReviewer'])->name('editor.unassignReviewer');
+    Route::post('/editor/{paper}/assign-section-editor', [EditorController::class, 'assignSectionEditor'])->name('editor.assignSectionEditor');
+    Route::post('/editor/{paper}/unassign-section-editor', [EditorController::class, 'unassignSectionEditor'])->name('editor.unassignSectionEditor');
+
+
+    
     Route::get('/reviewer', [ReviewerController::class, 'index'])->name('reviewer.index');
     Route::get('/author/kirim-artikel', [AuthorController::class, 'paper'])->name('author.kirim');
 
@@ -61,7 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/author/sendArticle', [AuthorController::class, 'store'])->name('author.store');
 
 
-    Route::get('/sectionEditor', function () {return view('sectionEditor');});
+    Route::get('/sectionEditor', function () {return view('sectionEditor.index');});
 
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
