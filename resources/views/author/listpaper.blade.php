@@ -9,7 +9,7 @@
 
 <div class="flex justify-between items-center mb-4">
     <a href="{{ route('author.kirim')}}" class="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700">
-        + Submit a new paper
+        + Submit
     </a>
 
     <div class="text-sm text-gray-600">

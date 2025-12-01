@@ -91,8 +91,15 @@
 
                     @php
                     $authors = old('authors', [
-                    ['email' => '', 'first_name' => '', 'last_name' => '', 'organization' => '', 'country' => '']
+                    [
+                    'email' => $user->email,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'organization' => $user->affiliation,
+                    'country' => '',
+                    ]
                     ]);
+
                     @endphp
 
                     @foreach ($authors as $i => $author)
@@ -104,8 +111,9 @@
 
                         <td class="p-2">
                             <input type="email" name="authors[{{ $i }}][email]" value="{{ $author['email'] ?? '' }}"
-                                required class="border rounded p-1 w-full @error(" authors.$i.email") border-red-500
-                                @enderror">
+                                required class="border rounded p-1 w-full" @if($i==0) readonly @endif
+                                style="{{ $i == 0 ? 'background:#e5e7eb; cursor:not-allowed;' : '' }}">
+
                             @error("authors.$i.email")
                             <p class="text-red-500 text-sm">{{ $message }}</p>
                             @enderror

@@ -19,7 +19,8 @@ class AuthorController extends Controller
 
      public function paper()
     {
-        return view('author.KirimArtikel');
+        $user = auth()->user();
+        return view('author.KirimArtikel', compact('user'));
     }
 
     public function store(Request $request)
