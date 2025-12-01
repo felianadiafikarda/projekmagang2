@@ -89,9 +89,6 @@
     </div>
     @endif
 
-
-
-
     {{-- ASSIGN PAGE --}}
     @if(($page === 'assign' || request('id')) && $paper)
     <div class="bg-white border rounded-xl shadow p-6 relative">
@@ -123,6 +120,8 @@
             <h4 class="font-semibold mb-4 text-lg">Assign Reviewer</h4>
             <form id="assignForm" method="POST" action="{{ route('editor.assignReviewers', $paper->id) }}">
                 @csrf
+                <input type="hidden" id="subjectInput" name="subject">
+                <input type="hidden" id="bodyInput" name="email_body">
                 <input type="hidden" id="reviewersInput" name="reviewers">
                 <input type="hidden" id="deadlineInput" name="deadline">
                 <input type="hidden" id="sendEmailInput" name="send_email" value="1">
@@ -518,7 +517,7 @@ Just a gentle reminder regarding the manuscript "${articleTitle}" which is curre
 
 We noticed that the deadline is approaching (${deadline}). We would appreciate it if you could submit your review soon.
 
-Submission URL: ${articleUrl}
+
 
 Best regards,
 
@@ -537,7 +536,7 @@ function closeModal() {
 // 4. Simulasi Submit (Ganti dengan form submit asli jika backend siap)
 function submitProcess() {
     if (modalMode === "assign") {
-        // --- PROCESS ASSIGN REVIWER ---
+
         const deadlineInputEl = document.querySelector('input[type="date"]');
         const deadlineValue = deadlineInputEl ? deadlineInputEl.value : '';
 
@@ -547,13 +546,25 @@ function submitProcess() {
             return;
         }
 
+        // kirim daftar reviewer
         document.getElementById('reviewersInput').value = reviewerSelectInstance.items.join(',');
+
+        // kirim deadline
         document.getElementById('deadlineInput').value = deadlineValue;
+
+        // kirim custom subject
+        document.getElementById('subjectInput').value = emailSubject.value;
+
+        // kirim custom email body
+        document.getElementById('bodyInput').value = emailBody.value;
+
+        // kirim switch email (skip atau tidak)
         document.getElementById('sendEmailInput').value = document.getElementById('skipEmail')?.checked ? 0 : 1;
 
         document.getElementById('assignForm').submit();
         return;
     }
+
 
     // --- PROCESS REMINDER EMAIL ---
     if (modalMode === "reminder") {
