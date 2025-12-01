@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('paper_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->date('deadline')->nullable();
-            $table->string('status')->default('assigned'); // assigned, completed, declined
+            $table->string('status')->default('Assigned'); // assigned, completed, declined
             $table->text('recommendation')->nullable();
             $table->timestamps();
         });
