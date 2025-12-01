@@ -8,10 +8,10 @@
 
 <div class="max-w-7xl mx-auto py-8 readonly">
 
-    {{-- ================= MAIN WRAPPER BOX ================= --}}
+
     <div class="bg-white shadow-lg rounded-xl p-14 border">
 
-        {{-- =============== PAPER INFO SECTION =============== --}}
+
         <h2 class="text-2xl font-bold mb-6">Paper Details</h2>
 
         <div class="space-y-4">
@@ -49,6 +49,18 @@
         {{-- ================= BOX FOR REVIEWERS & SECTION EDITORS ================= --}}
         <div class="mt-10 p-6 bg-gray-50 rounded-xl border shadow-sm">
 
+            {{-- SECTION EDITORS --}}
+            <h3 class="text-xl font-semibold mt-8 mb-4">Assigned Section Editors</h3>
+
+            <div class="space-y-2">
+                @forelse($assignedSectionEditors as $ase)
+                <div class="p-3 bg-white border rounded shadow-sm">
+                    {{ $ase->first_name }} {{ $ase->last_name }}
+                </div>
+                @empty
+                <p class="text-gray-500 text-sm italic">No section editors assigned.</p>
+                @endforelse
+            </div>
             {{-- LIST REVIEWERS --}}
             <h3 class="text-xl font-semibold mb-4">Assigned Reviewers</h3>
 
@@ -90,18 +102,7 @@
                 @endforelse
             </div>
 
-            {{-- SECTION EDITORS --}}
-            <h3 class="text-xl font-semibold mt-8 mb-4">Assigned Section Editors</h3>
 
-            <div class="space-y-2">
-                @forelse($assignedSectionEditors as $ase)
-                <div class="p-3 bg-white border rounded shadow-sm">
-                    {{ $ase->first_name }} {{ $ase->last_name }}
-                </div>
-                @empty
-                <p class="text-gray-500 text-sm italic">No section editors assigned.</p>
-                @endforelse
-            </div>
 
         </div>
 

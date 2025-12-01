@@ -26,7 +26,7 @@
     {{-- TABLE LIST --}}
     @if($page === 'list')
     <div class="bg-white border rounded-xl shadow p-6">
-        <h3 class="font-semibold mb-2">All Submissions</h3>
+
 
         <table class="w-full text-left border">
             <thead class="bg-gray-50">
@@ -115,6 +115,29 @@
         </div>
 
 
+        {{-- ASSIGN SECTION EDITOR SECTION --}}
+        <div class="mt-10 border-t pt-6">
+            <h4 class="font-semibold mb-4 text-lg">Assign Section Editor</h4>
+
+            {{-- Multiselect Section Editor Dropdown --}}
+            <form method="POST" action="{{ route('editor.assignSectionEditor', $paper->id) }}">
+                @csrf
+                <select id="editorSelect" name="section_editors[]" multiple>
+                    @foreach($all_section_editors as $se)
+                    <option value="{{ $se->id }}" @if(in_array($se->id,
+                        $assignedSectionEditors->pluck('id')->toArray())) selected @endif>
+                        {{ $se->first_name . ' ' . $se->last_name }}
+                    </option>
+                    @endforeach
+                </select>
+
+                <button class="mt-2 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+                    Assign Selected Editors
+                </button>
+            </form>
+
+        </div>
+
         {{-- ASSIGN REVIEWER SECTION --}}
         <div class="mt-6 border-t pt-6">
             <h4 class="font-semibold mb-4 text-lg">Assign Reviewer</h4>
@@ -162,29 +185,31 @@
         </div>
 
 
-        {{-- ASSIGN SECTION EDITOR SECTION --}}
-        <div class="mt-10 border-t pt-6">
-            <h4 class="font-semibold mb-4 text-lg">Assign Section Editor</h4>
+        {{-- LIST ASSIGNED SECTION EDITORS --}}
+        <div class="mt-10">
+            <h4 class="font-semibold mb-3 text-lg">Assigned Section Editors</h4>
 
-            {{-- Multiselect Section Editor Dropdown --}}
-            <form method="POST" action="{{ route('editor.assignSectionEditor', $paper->id) }}">
-                @csrf
-                <select id="editorSelect" name="section_editors[]" multiple>
-                    @foreach($all_section_editors as $se)
-                    <option value="{{ $se->id }}" @if(in_array($se->id,
-                        $assignedSectionEditors->pluck('id')->toArray())) selected @endif>
-                        {{ $se->first_name . ' ' . $se->last_name }}
-                    </option>
-                    @endforeach
-                </select>
+            <div class="space-y-2">
+                @forelse($assignedSectionEditors as $ase)
+                <div class="border rounded p-3 shadow-sm flex justify-between items-center bg-gray-50">
+                    <span class="font-medium text-gray-700">{{$ase->first_name . ' ' . $ase->last_name}}</span>
+                    <form method="POST" action="{{ route('editor.unassignSectionEditor', $paper->id) }}">
+                        @csrf
+                        <input type="hidden" name="editor_id" value="{{ $ase->id }}">
+                        <button
+                            class="text-sm text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition"
+                            onclick="return confirm('Remove this section editor?')">
+                            Unassign
+                        </button>
+                    </form>
 
-                <button class="mt-2 bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
-                    Assign Selected Editors
-                </button>
-            </form>
-
+                </div>
+                @empty
+                <div class="text-sm text-gray-500 p-3 border border-dashed rounded text-center">No section editors
+                    assigned yet.</div>
+                @endforelse
+            </div>
         </div>
-
 
         {{-- LIST ASSIGNED REVIEWERS --}}
         <div class="mt-10">
@@ -289,33 +314,6 @@
             </div>
         </div>
 
-
-
-        {{-- LIST ASSIGNED SECTION EDITORS --}}
-        <div class="mt-10">
-            <h4 class="font-semibold mb-3 text-lg">Assigned Section Editors</h4>
-
-            <div class="space-y-2">
-                @forelse($assignedSectionEditors as $ase)
-                <div class="border rounded p-3 shadow-sm flex justify-between items-center bg-gray-50">
-                    <span class="font-medium text-gray-700">{{$ase->first_name . ' ' . $ase->last_name}}</span>
-                    <form method="POST" action="{{ route('editor.unassignSectionEditor', $paper->id) }}">
-                        @csrf
-                        <input type="hidden" name="editor_id" value="{{ $ase->id }}">
-                        <button
-                            class="text-sm text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition"
-                            onclick="return confirm('Remove this section editor?')">
-                            Unassign
-                        </button>
-                    </form>
-
-                </div>
-                @empty
-                <div class="text-sm text-gray-500 p-3 border border-dashed rounded text-center">No section editors
-                    assigned yet.</div>
-                @endforelse
-            </div>
-        </div>
 
     </div>
 
