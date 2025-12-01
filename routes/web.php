@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\EditorController;
 use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\ConferenceController;
+use App\Http\Controllers\PreparedEmailController;
 
 Route::get('/', function () {
     if (!Auth::check()) {
@@ -51,12 +52,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/editor/{paper}/assign-section-editor', [EditorController::class, 'assignSectionEditor'])->name('editor.assignSectionEditor');
     Route::post('/editor/{paper}/unassign-section-editor', [EditorController::class, 'unassignSectionEditor'])->name('editor.unassignSectionEditor');
 
-
-    
     Route::get('/reviewer', [ReviewerController::class, 'index'])->name('reviewer.index');
     Route::get('/author/kirim-artikel', [AuthorController::class, 'paper'])->name('author.kirim');
 
-    
     // User Management Routes
     Route::post('/users', [UserController::class, 'store'])->name('users.add');
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -64,13 +62,24 @@ Route::middleware('auth')->group(function () {
     Route::post('/users/{user}/update-roles', [UserController::class, 'updateRoles']);
 
 
-    Route::get('/author/regis', function () {return view('author.regis');});
+    Route::get('/author/regis', function () {
+        return view('author.regis');
+    });
     Route::get('/author', [AuthorController::class, 'index'])->name('author.index');
     Route::post('/author/sendArticle', [AuthorController::class, 'store'])->name('author.store');
 
 
-    Route::get('/section_editor', function () {return view('sectionEditor');})->name('section_editor.index');
+    Route::get('/section_editor', function () {
+        return view('sectionEditor');
+    })->name('section_editor.index');
 
+    // Prepared Email Routes
+    Route::get('/prepared-emails', [PreparedEmailController::class, 'index'])->name('prepared_email.index');
+    Route::get('/prepared-emails/create', [PreparedEmailController::class, 'create'])->name('prepared_email.create');
+    Route::post('/prepared-emails', [PreparedEmailController::class, 'store'])->name('prepared_email.store');
+    Route::get('/prepared-emails/{emailTemplate}/edit', [PreparedEmailController::class, 'edit'])->name('prepared_email.edit');
+    Route::put('/prepared-emails/{emailTemplate}', [PreparedEmailController::class, 'update'])->name('prepared_email.update');
+    Route::delete('/prepared-emails/{emailTemplate }', [PreparedEmailController::class, 'destroy'])->name('prepared_email.destroy');
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
