@@ -69,7 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/author/sendArticle', [AuthorController::class, 'store'])->name('author.store');
 
 
-    Route::get('/sectionEditor', function () {return view('sectionEditor.index');});
+    Route::get('/section_editor', function () {return view('sectionEditor');})->name('section_editor.index');
 
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
