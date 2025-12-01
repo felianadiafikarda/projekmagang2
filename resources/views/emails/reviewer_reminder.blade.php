@@ -1,18 +1,27 @@
+@php
+$emailBody = $emailBody ?? '';
+
+// Template default jika emailBody kosong
+if (trim($emailBody) === '') {
+$emailBody = "
+Just a gentle reminder regarding the manuscript \"{$articleTitle}\" which is currently assigned to you for
+review.<br><br>
+We noticed that the deadline is approaching ({$deadline}). We would appreciate it if you could submit your review soon.
+";
+}
+
+$reviewerName = $reviewerName ?? ($names ?? 'Reviewer');
+$articleTitle = $articleTitle ?? '';
+$deadline = $deadline ?? '';
+$editorName = $editorName ?? '';
+@endphp
+
+@if(!str_contains($emailBody, 'Dear'))
 <p>Dear {{ $reviewerName }},</p>
+@endif
 
-<p>
-    Just a gentle reminder regarding the manuscript
-    <strong>"{{ $articleTitle }}"</strong>
-    which is currently assigned to you for review.
-</p>
+{!! $emailBody !!}
 
-<p>
-    We noticed that the review deadline is approaching
-    <strong>{{ $deadline ?? '-' }}</strong>.<br>
-    We would appreciate it if you could submit your review soon.
-</p>
-
-
-<p>Best regards,<br>
-    {{ $editorName }}
-</p>
+@if(!str_contains($emailBody, $editorName))
+<p>Best regards,<br>{{ $editorName }}</p>
+@endif

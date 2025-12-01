@@ -9,62 +9,45 @@ use App\Models\User;
 use App\Mail\ReviewerAssignmentMail;
 use App\Mail\ReviewerReminderMail;
 
-
 class EditorController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil apakah page=list atau page=assign
         $page = $request->get('page', 'list');
 
-        // ========= LIST PAGE ==========
         if ($page === 'list') {
 
-            // Ambil semua paper + authors
             $papers = Paper::with(['authors'])
                         ->orderBy('created_at', 'desc')
                         ->get();
 
-            // Ambil semua editor
             $editors = User::whereHas('roles', function($q) {
-                $q->where('name', 'editor'); // atau 'section_editor' sesuai kebutuhan
+                $q->where('name', 'editor');
             })->get();
 
             return view('editor', [
                 'page'     => $page,
                 'papers'   => $papers,
                 'editors'  => $editors,
-                'paper'    => null,   // ← WAJIB TAMBAH INI
-                'articleUrl' => null, // opsional
+                'paper'    => null,
+                'articleUrl' => null,
             ]);
-            
         }
 
-        // ========= ASSIGN REVIEWER PAGE ==========
         if ($page === 'assign') {
 
             $id = $request->get('id');
             $paper = Paper::with(['authors'])->findOrFail($id);
 
-            // URL artikel untuk JS
             $articleUrl = $paper->file_path ? asset('storage/' . $paper->file_path) : '#';
 
-            // Reviewer list
             $all_reviewers = User::whereHas('roles', function($q) {
                 $q->where('name', 'reviewer');
             })->get();
-            
-            // Section editor list
+
             $all_section_editors = User::whereHas('roles', function($q) {
                 $q->where('name', 'section_editor');
             })->get();
-            
-            // Assigned reviewers dan section editors
-            $assignedReviewers = $paper->reviewers()->get(); 
-            $assignedSectionEditors = $paper->sectionEditors()->get();
-
-            // Editor yang muncul di JS (misal sebagai pengirim email)
-            $editors = $all_section_editors;
 
             return view('editor', [
                 'page'                  => 'assign',
@@ -72,14 +55,13 @@ class EditorController extends Controller
                 'articleUrl'            => $articleUrl,
                 'all_reviewers'         => $all_reviewers,
                 'all_section_editors'   => $all_section_editors,
-                'assignedReviewers'     => $assignedReviewers,
-                'assignedSectionEditors'=> $assignedSectionEditors,
-                'editors'               => $editors,
-                'modalType' => 'assign',
+                'assignedReviewers'     => $paper->reviewers,
+                'assignedSectionEditors'=> $paper->sectionEditors,
+                'editors'               => $all_section_editors,
+                'modalType'             => 'assign',
             ]);
         }
 
-        // Default redirect
         return redirect()->back();
     }
 
@@ -87,72 +69,130 @@ class EditorController extends Controller
     {
         $paper = Paper::with(['authors', 'reviewers', 'sectionEditors'])->findOrFail($id);
 
-        $assignedReviewers = $paper->reviewers()->get();
-        $assignedSectionEditors = $paper->sectionEditors()->get();
-
-        return view('editorDetail', compact(
-            'paper',
-            'assignedReviewers',
-            'assignedSectionEditors'
-        ));
+        return view('editorDetail', [
+            'paper'                 => $paper,
+            'assignedReviewers'     => $paper->reviewers,
+            'assignedSectionEditors'=> $paper->sectionEditors
+        ]);
     }
 
 
-
-
+    // ===========================
+    // ASSIGN REVIEWERS + EMAIL
+    // ===========================
     public function assignReviewers(Request $request, Paper $paper)
     {
         $request->validate([
-            'reviewers' => 'required|array',
-            'deadline' => 'required|date',
-            'send_email' => 'required|boolean'
+            'reviewers'   => 'required|array',
+            'deadline'    => 'required|date',
+            'send_email'  => 'required|boolean',
         ]);
 
-        $reviewerIds = $request->reviewers; 
-        $deadline = $request->deadline;
-        $sendEmail = $request->send_email;
+        $reviewerIds = $request->reviewers;
+        $deadline    = $request->deadline;
+        $sendEmail   = $request->send_email;
 
-        // Assign reviewers ke pivot table (misal paper_reviewer)
+        // Tambahkan reviewer ke pivot
         $paper->reviewers()->syncWithoutDetaching(
-            collect($reviewerIds)->mapWithKeys(fn($id) => [$id => ['deadline' => $deadline, 'status'=>'assigned']])->toArray()
+            collect($reviewerIds)->mapWithKeys(fn($id) => [
+                $id => ['deadline' => $deadline, 'status' => 'assigned']
+            ])->toArray()
         );
 
         if ($sendEmail) {
+
             $reviewers = User::whereIn('id', $reviewerIds)->get();
+            $editorName = auth()->user()->first_name . ' ' . auth()->user()->last_name;
+
             foreach ($reviewers as $rev) {
-                // Kirim nama editor pertama sebagai pengirim
-                $editorName = auth()->user()->first_name . ' ' . auth()->user()->last_name;
-        
-                Mail::to($rev->email)->send(new ReviewerAssignmentMail($paper, $rev, $deadline, $editorName));
+
+                // SUBJECT
+                $subject = trim($request->subject) !== ''
+                    ? $request->subject
+                    : 'Invitation to Review Manuscript';
+
+                // BODY
+                $emailBody = trim($request->email_body);
+
+                if ($emailBody === '') {
+                    // fallback template
+                    $emailBody = view('emails.reviewer_assignment', [
+                        'names'        => $rev->first_name . ' ' . $rev->last_name,
+                        'articleTitle' => $paper->judul,
+                        'editorName'   => $editorName,
+                        'articleUrl'   => asset('storage/' . $paper->file_path),
+                    ])->render();
+                }
+
+                Mail::to($rev->email)->send(
+                    new ReviewerAssignmentMail(
+                        $paper,
+                        $rev,
+                        $deadline,
+                        $editorName,
+                        $subject,
+                        $emailBody
+                    )
+                );
             }
         }
 
-        return redirect()->back()->with('success', 'Reviewer assigned successfully!');
+        return back()->with('success', 'Reviewer assigned successfully!');
     }
 
+
+    // ===========================
+    // SEND REMINDER
+    // ===========================
     public function sendReminder(Request $request, $paperId)
     {
-        // Validasi minimal
         $request->validate([
             'reviewer_id' => 'required|integer|exists:users,id',
         ]);
 
-        // Ambil paper sebagai model (pastikan ini instance App\Models\Paper)
         $paper = Paper::findOrFail($paperId);
-
-        // Ambil reviewer
         $reviewer = User::findOrFail($request->reviewer_id);
 
-        // Nama editor pengirim
         $editorName = auth()->user()
-                        ? (trim(auth()->user()->first_name . ' ' . auth()->user()->last_name))
-                        : 'Editor';
+            ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name)
+            : 'Editor';
 
-        // Kirim email (gunakan Mailable yang menerima Paper & User)
-        Mail::to($reviewer->email)->send(new ReviewerReminderMail($paper, $reviewer, $editorName));
+        // SUBJECT
+        $subject = trim($request->subject) !== ''
+            ? $request->subject
+            : 'Review Reminder';
+
+        // BODY
+        $emailBody = trim($request->email_body);
+
+        if ($emailBody === '') {
+            $deadline = $paper->reviewers()
+                            ->where('user_id', $reviewer->id)
+                            ->first()
+                            ->pivot
+                            ->deadline ?? '-';
+
+            $emailBody = view('emails.reviewer_reminder', [
+                'reviewerName' => $reviewer->first_name . ' ' . $reviewer->last_name,
+                'articleTitle' => $paper->judul,
+                'deadline'     => $deadline,
+                'editorName'   => $editorName
+            ])->render();
+        }
+
+        Mail::to($reviewer->email)->send(
+            new ReviewerReminderMail(
+                $paper,
+                $reviewer,
+                $editorName,
+                $subject,
+                $emailBody
+            )
+        );
 
         return back()->with('success', 'Reminder sent!');
     }
+
 
     public function unassignReviewer(Request $request, Paper $paper)
     {
@@ -160,35 +200,28 @@ class EditorController extends Controller
             'reviewer_id' => 'required|integer|exists:users,id',
         ]);
 
-        // Hapus reviewer dari pivot table
         $paper->reviewers()->detach($request->reviewer_id);
 
         return back()->with('success', 'Reviewer unassigned successfully!');
     }
 
+
     public function assignSectionEditor(Request $request, $paperId)
     {
         $paper = Paper::findOrFail($paperId);
-
-        // list editor yg dipilih
         $editorIds = $request->section_editors ?? [];
 
-        // sync = update + delete + add
         $paper->sectionEditors()->sync($editorIds);
 
         return back()->with('success', 'Section editor updated!');
     }
 
+
     public function unassignSectionEditor(Request $request, $paperId)
     {
         $paper = Paper::findOrFail($paperId);
-
-        $editorId = $request->editor_id;
-
-        $paper->sectionEditors()->detach($editorId);
+        $paper->sectionEditors()->detach($request->editor_id);
 
         return back()->with('success', 'Section editor removed!');
     }
-
-
 }

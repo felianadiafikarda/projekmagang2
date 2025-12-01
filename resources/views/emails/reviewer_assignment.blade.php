@@ -1,15 +1,46 @@
+@php
+// Pastikan semua variabel aman
+$emailBody = $emailBody ?? '';
+$names = $names ?? 'Reviewer';
+$articleTitle = $articleTitle ?? '';
+$articleUrl = $articleUrl ?? '#';
+$deadline = $deadline ?? '';
+$editorName = $editorName ?? 'Editor';
+
+// TEMPLATE DEFAULT JIKA MODAL KOSONG
+if (trim($emailBody) === '') {
+$emailBody = "
+I believe that you would serve as an excellent reviewer of the manuscript, \"{$articleTitle}\".<br><br>
+Please log into the journal web site to indicate whether you will undertake the review or not.<br><br>
+Submission URL: {$articleUrl}<br><br>
+Thank you for considering this request.
+";
+}
+@endphp
+
+{{-- Dear --}}
+@if(!str_contains($emailBody, 'Dear'))
 <p>Dear {{ $names }},</p>
+@endif
 
-<p>I believe that you would serve as an excellent reviewer of the manuscript, "{{ $articleTitle }}".</p>
+<br>
 
-<p>The submission's abstract is inserted below, and I hope that you will consider undertaking this important task for
-    us.</p>
+{{-- Body --}}
+{!! $emailBody !!}
 
-<p>Please log into the journal web site to indicate whether you will undertake the review or not.</p>
+<br>
 
+{{-- Title (hanya muncul jika belum ada di body) --}}
+@if(!str_contains($emailBody, $articleTitle))
+<p><strong>Title:</strong> {{ $articleTitle }}</p>
+@endif
 
+{{-- Deadline --}}
+@if(!str_contains($emailBody, $deadline))
+<p><strong>Deadline:</strong> {{ $deadline }}</p>
+@endif
 
-
-<p>Thank you for considering this request.</p>
-
-<p>{{ $editorName }}</p>
+{{-- Best regards --}}
+@if(!str_contains($emailBody, $editorName))
+<p>Best regards,<br>{{ $editorName }}</p>
+@endif
