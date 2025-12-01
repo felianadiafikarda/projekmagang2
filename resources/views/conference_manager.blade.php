@@ -8,17 +8,17 @@
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
   <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
     <p class="text-sm text-gray-500 mb-1">Total Authors</p>
-    <p class="text-3xl font-bold text-blue-600">45</p>
+    <p class="text-3xl font-bold text-blue-600">{{ $totalAuthors }}</p>
     <p class="text-xs text-gray-500 mt-1">Registered authors</p>
   </div>
   <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
     <p class="text-sm text-gray-500 mb-1">Total Reviewers</p>
-    <p class="text-3xl font-bold text-purple-600">28</p>
+    <p class="text-3xl font-bold text-purple-600">{{ $totalReviewers }}</p>
     <p class="text-xs text-gray-500 mt-1">Active reviewers</p>
   </div>
   <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
     <p class="text-sm text-gray-500 mb-1">Total Editors</p>
-    <p class="text-3xl font-bold text-orange-600">8</p>
+    <p class="text-3xl font-bold text-orange-600">{{ $totalEditors }}</p>
     <p class="text-xs text-gray-500 mt-1">Section editors</p>
   </div>
 </div>
@@ -42,13 +42,13 @@
     Overview
   </button>
   <button id="tab-authors" class="tab-btn pb-3 px-2 font-semibold text-gray-500 hover:text-gray-800 transition whitespace-nowrap">
-    Authors (45)
+    Authors ({{ $totalAuthors }})
   </button>
   <button id="tab-reviewers" class="tab-btn pb-3 px-2 font-semibold text-gray-500 hover:text-gray-800 transition whitespace-nowrap">
-    Reviewers (28)
+    Reviewers ({{ $totalReviewers }})
   </button>
   <button id="tab-editors" class="tab-btn pb-3 px-2 font-semibold text-gray-500 hover:text-gray-800 transition whitespace-nowrap">
-    Editors (8)
+    Editors ({{ $totalEditors }})
   </button>
 </div>
 
@@ -88,39 +88,24 @@
       <button class="text-sm text-blue-600 hover:text-blue-800">View All</button>
     </div>
     <div class="space-y-3">
+      @foreach ($authorActivities as $author)
       <div class="flex items-start gap-4 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
         <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
           <span class="text-blue-600 font-semibold text-sm">JS</span>
         </div>
         <div class="flex-1">
-          <p class="font-medium text-gray-900">Dr. John Smith</p>
-          <p class="text-sm text-gray-600">Submitted new paper: "Machine Learning in Healthcare"</p>
-          <p class="text-xs text-gray-500 mt-1">2 hours ago • ID: SUB-2025-045</p>
+          <p class="font-medium text-gray-900">{{ $author->first_name . ' ' . $author->last_name }}</p>
+          <p class="text-sm text-gray-600">Submitted new paper: "{{ $author->paper->judul }}"</p>
+          <p class="text-xs text-gray-500 mt-1">{{ $author->paper->created_at->diffForHumans() }} •
+            @php
+            $paper = $author->paper;
+            $paperId = 'SUB-' . $paper->created_at->format('Y') . '-' . str_pad($paper->id, 3, '0', STR_PAD_LEFT);
+            @endphp
+            ID: {{ $paperId }}</p>
         </div>
         <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">New</span>
       </div>
-      <div class="flex items-start gap-4 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-          <span class="text-blue-600 font-semibold text-sm">SC</span>
-        </div>
-        <div class="flex-1">
-          <p class="font-medium text-gray-900">Dr. Sarah Chen</p>
-          <p class="text-sm text-gray-600">Uploaded revision for paper: "AI in Education"</p>
-          <p class="text-xs text-gray-500 mt-1">5 hours ago • ID: SUB-2025-038</p>
-        </div>
-        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Revised</span>
-      </div>
-      <div class="flex items-start gap-4 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-          <span class="text-blue-600 font-semibold text-sm">MB</span>
-        </div>
-        <div class="flex-1">
-          <p class="font-medium text-gray-900">Prof. Michael Brown</p>
-          <p class="text-sm text-gray-600">Responded to reviewer comments</p>
-          <p class="text-xs text-gray-500 mt-1">1 day ago • ID: SUB-2025-041</p>
-        </div>
-        <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">Response</span>
-      </div>
+      @endforeach
     </div>
   </div>
 
@@ -287,50 +272,19 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
+          @foreach ($authors as $a)
           <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 text-sm font-medium text-gray-900">Dr. John Smith</td>
-            <td class="px-6 py-4 text-sm text-gray-600">john.smith@university.edu</td>
-            <td class="px-6 py-4 text-sm text-gray-600">Stanford University</td>
-            <td class="px-6 py-4 text-sm text-gray-900">3 papers</td>
+            <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $a->first_name . ' ' . $a->last_name }}</td>
+            <td class="px-6 py-4 text-sm text-gray-600">{{ $a->email }}</td>
+            <td class="px-6 py-4 text-sm text-gray-600">{{ $a->affiliation }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900">{{ $a->paper_count }} paper{{ $a->paper_count > 1 ? 's' : '' }}</td>
             <td class="px-6 py-4 text-sm"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span></td>
             <td class="px-6 py-4 text-sm">
               <button class="text-blue-600 hover:text-blue-800 mr-3">Edit</button>
               <button class="text-red-600 hover:text-red-800">Delete</button>
             </td>
           </tr>
-          <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 text-sm font-medium text-gray-900">Dr. Sarah Chen</td>
-            <td class="px-6 py-4 text-sm text-gray-600">sarah.chen@mit.edu</td>
-            <td class="px-6 py-4 text-sm text-gray-600">MIT</td>
-            <td class="px-6 py-4 text-sm text-gray-900">2 papers</td>
-            <td class="px-6 py-4 text-sm"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span></td>
-            <td class="px-6 py-4 text-sm">
-              <button class="text-blue-600 hover:text-blue-800 mr-3">Edit</button>
-              <button class="text-red-600 hover:text-red-800">Delete</button>
-            </td>
-          </tr>
-          <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 text-sm font-medium text-gray-900">Prof. Michael Brown</td>
-            <td class="px-6 py-4 text-sm text-gray-600">m.brown@harvard.edu</td>
-            <td class="px-6 py-4 text-sm text-gray-600">Harvard University</td>
-            <td class="px-6 py-4 text-sm text-gray-900">5 papers</td>
-            <td class="px-6 py-4 text-sm"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span></td>
-            <td class="px-6 py-4 text-sm">
-              <button class="text-blue-600 hover:text-blue-800 mr-3">Edit</button>
-              <button class="text-red-600 hover:text-red-800">Delete</button>
-            </td>
-          </tr>
-          <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 text-sm font-medium text-gray-900">Dr. Emily Davis</td>
-            <td class="px-6 py-4 text-sm text-gray-600">emily.davis@oxford.edu</td>
-            <td class="px-6 py-4 text-sm text-gray-600">Oxford University</td>
-            <td class="px-6 py-4 text-sm text-gray-900">1 paper</td>
-            <td class="px-6 py-4 text-sm"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span></td>
-            <td class="px-6 py-4 text-sm">
-              <button class="text-blue-600 hover:text-blue-800 mr-3">Edit</button>
-              <button class="text-red-600 hover:text-red-800">Delete</button>
-            </td>
-          </tr>
+          @endforeach
         </tbody>
       </table>
     </div>
