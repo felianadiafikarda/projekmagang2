@@ -143,17 +143,6 @@
       <p class="text-gray-700 mb-4">Before you submit your report, please review it to make sure it's a complete and thorough review.</p>
       
       <p class="text-gray-700">For further information, please see the <a href="#" class="text-blue-600 hover:underline">Discover Electronics reviewer guidelines</a>.</p>
-      
-      <div class="mt-6 pt-6 border-t border-gray-200">
-        <p class="text-sm text-gray-600 mb-3">How was your experience today?</p>
-        <div class="flex gap-2">
-          <button class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">😄</button>
-          <button class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">🙂</button>
-          <button class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">😐</button>
-          <button class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">😕</button>
-          <button class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">😞</button>
-        </div>
-      </div>
     </div>
 
     <!-- Report Content (Hidden by default) -->
