@@ -73,6 +73,10 @@ Route::middleware('auth')->group(function () {
         return view('sectionEditor');
     })->name('section_editor.index');
 
+       Route::get('/review', function () {
+        return view('review');
+    });
+
     // Prepared Email Routes
     Route::get('/prepared-emails', [PreparedEmailController::class, 'index'])->name('prepared_email.index');
     Route::get('/prepared-emails/create', [PreparedEmailController::class, 'create'])->name('prepared_email.create');
@@ -82,4 +86,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/prepared-emails/{emailTemplate }', [PreparedEmailController::class, 'destroy'])->name('prepared_email.destroy');
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+
 });
+
