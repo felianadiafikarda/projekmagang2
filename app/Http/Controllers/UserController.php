@@ -108,10 +108,7 @@ class UserController extends Controller
         $user->roles()->sync($roleIds);
 
 
-        return response()->json([
-            'message' => 'User created successfully',
-            'user'    => $user
-        ]);
+        return redirect()->route('users.index')->with('success', 'User created successfully');
     }
 
     public function delete($id)

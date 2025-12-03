@@ -354,27 +354,12 @@
         <div class="pt-4 border-t border-gray-200">
           <h3 class="text-lg font-semibold text-gray-900 mb-3">Assign Initial Roles</h3>
           <div class="space-y-2">
-
+            @foreach ($roles as $role)
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" name="roles[]" value="conference_manager" class="rounded">
-              <span class="text-sm">Conference Manager</span>
+              <input type="checkbox" name="roles[]" value="{{ $role->name }}" class="rounded" {{ $role->name === 'author' ? 'checked' : '' }}>
+              <span class="text-sm">{{ ucfirst(str_replace('_', ' ', $role->name)) }}</span>
             </label>
-
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" name="roles[]" value="editor" class="rounded">
-              <span class="text-sm">Editor</span>
-            </label>
-
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" name="roles[]" value="reviewer" class="rounded">
-              <span class="text-sm">Reviewer</span>
-            </label>
-
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" name="roles[]" value="author" class="rounded" checked>
-              <span class="text-sm">Author (Default)</span>
-            </label>
-
+            @endforeach
           </div>
         </div>
       </div>
@@ -406,180 +391,191 @@
     row.classList.toggle("hidden");
   }
 
-  // Edit Role Modal
-  const editRoleModal = document.getElementById('modal-edit-role');
-  const editRoleBtns = document.querySelectorAll('.edit-role-btn');
-  const closeEditRoleBtn = document.getElementById('close-edit-role');
-  const cancelEditRoleBtn = document.getElementById('cancel-edit-role');
-  const saveRolesBtn = document.getElementById('save-roles-btn');
+  document.addEventListener('DOMContentLoaded', () => {
+    // Modal Elements
+    const editRoleModal = document.getElementById('modal-edit-role');
+    const editRoleBtns = document.querySelectorAll('.edit-role-btn');
+    const closeEditRoleBtn = document.getElementById('close-edit-role');
+    const cancelEditRoleBtn = document.getElementById('cancel-edit-role');
+    const saveRolesBtn = document.getElementById('save-roles-btn');
 
-  // Add User Modal
-  const addUserModal = document.getElementById('modal-add-user');
-  const btnAddUser = document.getElementById('btn-add-user');
-  const closeAddUserBtn = document.getElementById('close-add-user');
+    const addUserModal = document.getElementById('modal-add-user');
+    const btnAddUser = document.getElementById('btn-add-user');
+    const closeAddUserBtn = document.getElementById('close-add-user');
 
-  // Reviewer checkbox and expertise field
-  const reviewerCheckbox = document.getElementById('role-reviewer');
-  const reviewerExpertise = document.getElementById('reviewer-expertise');
+    const reviewerCheckbox = document.querySelector('input[data-role="reviewer"]');
+    const reviewerExpertise = document.getElementById('reviewer-expertise');
 
-  // Success notification
-  const successNotification = document.getElementById('success-notification');
-  const notificationMessage = document.getElementById('notification-message');
+    const successNotification = document.getElementById('success-notification');
+    const notificationMessage = document.getElementById('notification-message');
 
-  // Open Edit Role Modal
-  editRoleBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const rowCheckboxes = document.querySelectorAll('tbody input[type="checkbox"]');
 
-      const roles = btn.dataset.userRoles.split(',');
+    const searchInput = document.getElementById('search-input');
+    const countrySelect = document.getElementById("country");
 
-      document.getElementById('modal-user-name').textContent = btn.dataset.userName;
-      document.getElementById('modal-user-email').textContent = btn.dataset.userEmail;
-      document.getElementById('modal-user-affiliation').textContent = btn.dataset.userAffiliation ?? '-';
-      document.getElementById('modal-user-initials').textContent = btn.dataset.userName.substring(0, 2).toUpperCase();
+    // Edit Role Modal
+    if (editRoleBtns && editRoleBtns.length > 0) {
+      editRoleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const roles = btn.dataset.userRoles?.split(',') || [];
 
-      // Reset semua checkbox terlebih dahulu
-      document.querySelectorAll('.role-checkbox').forEach(cb => cb.checked = false);
+          const modalName = document.getElementById('modal-user-name');
+          const modalEmail = document.getElementById('modal-user-email');
+          const modalAffiliation = document.getElementById('modal-user-affiliation');
+          const modalInitials = document.getElementById('modal-user-initials');
 
-      roles.forEach(role => {
-        const cb = document.querySelector(`.role-checkbox[data-role="${role}"]`);
-        if (cb) cb.checked = true;
+          if (modalName) modalName.textContent = btn.dataset.userName || '';
+          if (modalEmail) modalEmail.textContent = btn.dataset.userEmail || '';
+          if (modalAffiliation) modalAffiliation.textContent = btn.dataset.userAffiliation ?? '-';
+          if (modalInitials && btn.dataset.userName) modalInitials.textContent = btn.dataset.userName.substring(0, 2).toUpperCase();
+
+          // Reset semua checkbox
+          document.querySelectorAll('.role-checkbox').forEach(cb => cb.checked = false);
+
+          roles.forEach(role => {
+            const cb = document.querySelector(`.role-checkbox[data-role="${role}"]`);
+            if (cb) cb.checked = true;
+          });
+
+          if (editRoleModal) editRoleModal.classList.remove('hidden');
+
+          if (saveRolesBtn) saveRolesBtn.dataset.userId = btn.dataset.userId;
+        });
       });
-
-      // Tampilkan modal
-      editRoleModal.classList.remove('hidden');
-
-      // Simpan ID user untuk update nanti
-      saveRolesBtn.dataset.userId = btn.dataset.userId;
-    });
-  });
-
-  // Close Edit Role Modal
-  closeEditRoleBtn.addEventListener('click', () => {
-    editRoleModal.classList.add('hidden');
-  });
-
-  cancelEditRoleBtn.addEventListener('click', () => {
-    editRoleModal.classList.add('hidden');
-  });
-
-  // Close modal when clicking outside
-  editRoleModal.addEventListener('click', (e) => {
-    if (e.target === editRoleModal) {
-      editRoleModal.classList.add('hidden');
     }
-  });
 
-  // Save Roles
-  saveRolesBtn.addEventListener('click', () => {
-    const userId = saveRolesBtn.dataset.userId;
-
-    const selectedRoles = [...document.querySelectorAll('.role-checkbox:checked')]
-      .map(cb => cb.value);
-
-    fetch(`/users/${userId}/update-roles`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-          roles: selectedRoles
-        })
-      })
-      .then(res => res.json())
-      .then(() => {
-        showNotification("Roles updated successfully!");
-        location.reload();
+    if (closeEditRoleBtn) {
+      closeEditRoleBtn.addEventListener('click', () => {
+        if (editRoleModal) editRoleModal.classList.add('hidden');
       });
-  });
-
-  // Open Add User Modal
-  btnAddUser.addEventListener('click', () => {
-    addUserModal.classList.remove('hidden');
-  });
-
-  // Close Add User Modal
-  closeAddUserBtn.addEventListener('click', () => {
-    addUserModal.classList.add('hidden');
-  });
-
-  addUserModal.addEventListener('click', (e) => {
-    if (e.target === addUserModal) {
-      addUserModal.classList.add('hidden');
     }
-  });
 
-  // Toggle Reviewer Expertise Field
-  reviewerCheckbox.addEventListener('change', () => {
-    if (reviewerCheckbox.checked) {
-      reviewerExpertise.classList.remove('hidden');
-    } else {
-      reviewerExpertise.classList.add('hidden');
+    if (cancelEditRoleBtn) {
+      cancelEditRoleBtn.addEventListener('click', () => {
+        if (editRoleModal) editRoleModal.classList.add('hidden');
+      });
     }
-  });
 
-  // Select All Checkbox
-  const selectAllCheckbox = document.getElementById('select-all');
-  const rowCheckboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+    if (editRoleModal) {
+      editRoleModal.addEventListener('click', e => {
+        if (e.target === editRoleModal) editRoleModal.classList.add('hidden');
+      });
+    }
 
-  selectAllCheckbox.addEventListener('change', () => {
-    rowCheckboxes.forEach(checkbox => {
-      checkbox.checked = selectAllCheckbox.checked;
-    });
-  });
+    if (saveRolesBtn) {
+      saveRolesBtn.addEventListener('click', () => {
+        const userId = saveRolesBtn.dataset.userId;
+        if (!userId) return;
 
-  // Show Notification Function
-  function showNotification(message) {
-    notificationMessage.textContent = message;
-    successNotification.classList.remove('hidden');
+        const selectedRoles = [...document.querySelectorAll('.role-checkbox:checked')].map(cb => cb.value);
 
-    setTimeout(() => {
-      successNotification.classList.add('hidden');
-    }, 3000);
-  }
+        fetch(`/users/${userId}/update-roles`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+              roles: selectedRoles
+            })
+          })
+          .then(res => res.json())
+          .then(() => {
+            showNotification("Roles updated successfully!");
+            location.reload();
+          });
+      });
+    }
 
-  window.addEventListener('pageshow', () => {
-    document.getElementById('search-input').value = '';
-  });
+    // Add User Modal
+    if (btnAddUser && addUserModal) {
+      btnAddUser.addEventListener('click', () => addUserModal.classList.remove('hidden'));
+    }
 
-  // Country Dropdown Data
-  const countries = [
-    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia",
-    "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
-    "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil",
-    "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada",
-    "Cape Verde", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros",
-    "Congo (Congo-Brazzaville)", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic",
-    "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador",
-    "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France",
-    "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea",
-    "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia",
-    "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya",
-    "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya",
-    "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives",
-    "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia",
-    "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar (Burma)",
-    "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria",
-    "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Panama",
-    "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar",
-    "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia",
-    "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe",
-    "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia",
-    "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan",
-    "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan",
-    "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago",
-    "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates",
-    "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City",
-    "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
-  ];
+    if (closeAddUserBtn && addUserModal) {
+      closeAddUserBtn.addEventListener('click', () => addUserModal.classList.add('hidden'));
+      addUserModal.addEventListener('click', e => {
+        if (e.target === addUserModal) addUserModal.classList.add('hidden');
+      });
+    }
 
-  // Generate dropdown
-  const countrySelect = document.querySelector("#country");
-  countries.forEach(country => {
-    const option = document.createElement("option");
-    option.value = country;
-    option.textContent = country;
-    countrySelect.appendChild(option);
-  });
+    // Reviewer Expertise Toggle
+    if (reviewerCheckbox && reviewerExpertise) {
+      reviewerCheckbox.addEventListener('change', () => {
+        reviewerExpertise.classList.toggle('hidden', !reviewerCheckbox.checked);
+      });
+    }
+
+    // Select All Checkbox
+    if (selectAllCheckbox && rowCheckboxes.length > 0) {
+      selectAllCheckbox.addEventListener('change', () => {
+        rowCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+      });
+    }
+
+    // Search Input Reset
+    if (searchInput) {
+      window.addEventListener('pageshow', () => {
+        searchInput.value = '';
+      });
+    }
+
+    // Show Notification
+    function showNotification(message) {
+      if (!notificationMessage || !successNotification) return;
+      notificationMessage.textContent = message;
+      successNotification.classList.remove('hidden');
+
+      setTimeout(() => successNotification.classList.add('hidden'), 3000);
+    }
+
+    // Country Dropdown
+    if (countrySelect) {
+      const countries = [
+        "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
+        "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas",
+        "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin",
+        "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei",
+        "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon",
+        "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia",
+        "Comoros", "Congo (Congo-Brazzaville)", "Costa Rica", "Croatia", "Cuba",
+        "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica",
+        "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea",
+        "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon",
+        "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala",
+        "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland",
+        "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica",
+        "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan",
+        "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein",
+        "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives",
+        "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico",
+        "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco",
+        "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands",
+        "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia",
+        "Norway", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay",
+        "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia",
+        "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines",
+        "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal",
+        "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia",
+        "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan",
+        "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria",
+        "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga",
+        "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda",
+        "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay",
+        "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen",
+        "Zambia", "Zimbabwe"
+      ];
+
+      countries.forEach(country => {
+        const opt = document.createElement("option");
+        opt.value = country;
+        opt.textContent = country;
+        countrySelect.appendChild(opt);
+      });
+    }
+
+  }); // End DOMContentLoaded
 </script>
 @endsection
