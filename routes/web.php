@@ -56,7 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/author/kirim-artikel', [AuthorController::class, 'paper'])->name('author.kirim');
 
     // User Management Routes
-    Route::post('/users', [UserController::class, 'store'])->name('users.add');
+    Route::post('/users/add', [UserController::class, 'store'])->name('users.add');
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::delete('/users/{id}', [UserController::class, 'delete'])->name('users.delete');
     Route::post('/users/{user}/update-roles', [UserController::class, 'updateRoles']);
