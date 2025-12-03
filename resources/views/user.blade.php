@@ -8,22 +8,22 @@
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
   <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
     <p class="text-sm text-gray-500 mb-1">Total Users</p>
-    <p class="text-3xl font-bold text-indigo-600">89</p>
+    <p class="text-3xl font-bold text-indigo-600">{{ $totalUsers }}</p>
     <p class="text-xs text-gray-500 mt-1">All registered users</p>
   </div>
   <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
     <p class="text-sm text-gray-500 mb-1">Conference Managers</p>
-    <p class="text-3xl font-bold text-red-600">3</p>
+    <p class="text-3xl font-bold text-red-600">{{ $conferenceManagers }}</p>
     <p class="text-xs text-gray-500 mt-1">System administrators</p>
   </div>
   <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
     <p class="text-sm text-gray-500 mb-1">Editors</p>
-    <p class="text-3xl font-bold text-orange-600">8</p>
+    <p class="text-3xl font-bold text-orange-600">{{ $editors }}</p>
     <p class="text-xs text-gray-500 mt-1">Active editors</p>
   </div>
   <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
     <p class="text-sm text-gray-500 mb-1">Reviewers</p>
-    <p class="text-3xl font-bold text-purple-600">28</p>
+    <p class="text-3xl font-bold text-purple-600">{{ $reviewers }}</p>
     <p class="text-xs text-gray-500 mt-1">Active reviewers</p>
   </div>
 </div>
@@ -37,29 +37,29 @@
 
 <!-- FILTERS & SEARCH -->
 <div class="bg-white p-4 rounded-lg shadow border border-gray-200 mb-6">
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+  <form method="GET" action="{{ route('users.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
 
-    <select id="filter-role" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+    <select name="role" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
       <option value="">All Roles</option>
-      <option value="conference_manager">Conference Manager</option>
-      <option value="editor">Editor</option>
-      <option value="reviewer">Reviewer</option>
-      <option value="author">Author</option>
+      @foreach ($roles as $role)
+      <option value="{{ $role->name }}" {{ request('role') == $role->name ? 'selected' : '' }}>
+        {{ ucfirst($role->display_name) }}
+      </option>
+      @endforeach
     </select>
 
-    <select id="filter-status" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+    <select name="status" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
       <option value="">All Status</option>
-      <option value="active">Active</option>
-      <option value="inactive">Inactive</option>
+      <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+      <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
     </select>
 
-    <input type="text" id="search-input" placeholder="Search..." autocomplete="new-password"
-      readonly onfocus="this.removeAttribute('readonly')" class="border border-gray-300 rounded-md px-3 py-2 text-sm col-span-1">
+    <input type="text" name="search" placeholder="Search..." value="{{ request('search') }}" class="border border-gray-300 rounded-md px-3 py-2 text-sm col-span-1">
 
-    <button id="apply-filters" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 transition">
+    <button class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 transition">
       Search
     </button>
-  </div>
+  </form>
 </div>
 
 <!-- USERS TABLE -->
@@ -82,9 +82,9 @@
 
         @foreach ($users as $user)
         <tr class="hover:bg-gray-50"
-          data-role="{{ strtolower($user->roles->pluck('name')->join(' ')) }}"
-          data-status="{{ $user->status ?? 'active' }}"
-          data-text="{{ strtolower($user->name . ' ' . $user->email . ' ' . ($user->affiliation ?? '')) }}">
+          data-role="{{ $user->roles->pluck('name')->join(',') }}"
+          data-status="{{ strtolower($user->status) }}"
+          data-text="{{ strtolower($user->name . ' ' . $user->email . ' ' . $user->affiliation) }}">
 
           <td class="px-6 py-4">
             <input type="checkbox" class="rounded">
@@ -221,7 +221,7 @@
 
             {{-- Checkbox Role --}}
             <input type="checkbox"
-              id="role-{{ $role->name }}"
+              data-role="{{ $role->name }}"
               value="{{ $role->name }}"
               class="mt-1 rounded role-checkbox">
 
@@ -387,7 +387,6 @@
           Cancel
         </button>
       </div>
-
     </form>
   </div>
 </div>
@@ -438,12 +437,13 @@
       document.getElementById('modal-user-affiliation').textContent = btn.dataset.userAffiliation ?? '-';
       document.getElementById('modal-user-initials').textContent = btn.dataset.userName.substring(0, 2).toUpperCase();
 
-      // Set checkbox sesuai role user
+      // Reset semua checkbox terlebih dahulu
+      document.querySelectorAll('.role-checkbox').forEach(cb => cb.checked = false);
+
       roles.forEach(role => {
-        const cb = document.getElementById(`role-${role}`);
+        const cb = document.querySelector(`.role-checkbox[data-role="${role}"]`);
         if (cb) cb.checked = true;
       });
-
 
       // Tampilkan modal
       editRoleModal.classList.remove('hidden');
@@ -472,14 +472,9 @@
   // Save Roles
   saveRolesBtn.addEventListener('click', () => {
     const userId = saveRolesBtn.dataset.userId;
-    const roleCheckboxes = document.querySelectorAll('.role-checkbox');
 
-    const selectedRoles = [];
-    roleCheckboxes.forEach(cb => {
-      if (cb.checked) {
-        selectedRoles.push(cb.value);
-      }
-    });
+    const selectedRoles = [...document.querySelectorAll('.role-checkbox:checked')]
+      .map(cb => cb.value);
 
     fetch(`/users/${userId}/update-roles`, {
         method: 'POST',
@@ -492,7 +487,7 @@
         })
       })
       .then(res => res.json())
-      .then(data => {
+      .then(() => {
         showNotification("Roles updated successfully!");
         location.reload();
       });
@@ -543,30 +538,6 @@
     }, 3000);
   }
 
-  // Filter and Search Functionality
-  document.getElementById('apply-filters').addEventListener('click', function() {
-    const roleValue = document.getElementById('filter-role').value.toLowerCase();
-    const statusValue = document.getElementById('filter-status').value.toLowerCase();
-    const searchValue = document.getElementById('search-input').value.toLowerCase();
-
-    const rows = document.querySelectorAll('tbody tr');
-
-    rows.forEach(row => {
-      const rowRoles = row.dataset.role.toLowerCase();
-      const rowStatus = row.dataset.status.toLowerCase();
-      const rowText = row.dataset.text.toLowerCase();
-
-      const matchRole = !roleValue || rowRoles.includes(roleValue);
-      const matchStatus = !statusValue || rowStatus.includes(statusValue);
-      const matchSearch = !searchValue || rowText.includes(searchValue);
-
-      if (matchRole && matchStatus && matchSearch) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
-    });
-  });
   window.addEventListener('pageshow', () => {
     document.getElementById('search-input').value = '';
   });

@@ -10,12 +10,54 @@ use Illuminate\Support\Facades\Hash;
 class UserController extends Controller
 {
     //
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('roles')->paginate(5);
+        $query = User::with('roles');
+
+        // --- Filter by role ---
+        if ($request->role) {
+            $query->whereHas('roles', function ($q) use ($request) {
+                $q->where('name', $request->role);
+            });
+        }
+
+        // --- Filter by status ---
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // --- Search by name, email, affiliation ---
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                    ->orWhere('email', 'like', "%$search%")
+                    ->orWhere('affiliation', 'like', "%$search%");
+            });
+        }
+
+        // --- Pagination (5 data per page seperti kode awal) ---
+        $users = $query->paginate(5);
+        $users->appends($request->all()); // penting: agar filter tetap saat next page
+
+        // Roles untuk filter dropdown, admin dikeluarkan
         $roles = Role::where('name', '!=', 'admin')->get();
 
-        return view('user', compact('users', 'roles'));
+        $totalUsers = User::count();
+
+        $conferenceManagers = User::whereHas('roles', function ($q) {
+            $q->where('name', 'conference_manager');
+        })->count();
+
+        $editors = User::whereHas('roles', function ($q) {
+            $q->where('name', 'editor');
+        })->count();
+
+        $reviewers = User::whereHas('roles', function ($q) {
+            $q->where('name', 'reviewer');
+        })->count();
+
+        return view('user', compact('users', 'roles', 'totalUsers', 'conferenceManagers', 'editors', 'reviewers'));
     }
 
     public function updateRoles(Request $request, User $user)
@@ -43,7 +85,7 @@ class UserController extends Controller
             'roles.*'    => 'string'
         ]);
 
-        // 1. Buat User
+        // Buat user
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name'  => $request->last_name,
@@ -56,16 +98,15 @@ class UserController extends Controller
             'country'    => $request->country,
         ]);
 
-        // 2. Ambil roles dari request (default: author)
-        $roles = $request->roles ?? ['author'];
+        // Ambil roles (default: author)
+        $roles = $request->input('roles', ['author']);
 
-        foreach ($roles as $roleName) {
-            $role = Role::where('name', $roleName)->first();
+        // Ambil ID dari tabel roles
+        $roleIds = Role::whereIn('name', $roles)->pluck('id')->toArray();
 
-            if ($role) {
-                $user->roles()->attach($role->id);
-            }
-        }
+        // Set roles (multiple diperbolehkan)
+        $user->roles()->sync($roleIds);
+
 
         return response()->json([
             'message' => 'User created successfully',
