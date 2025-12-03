@@ -15,13 +15,24 @@
 
     {{-- Header --}}
     <div class="flex items-center justify-between">
-
-
         <div class="flex gap-2">
             <a href="{{ url()->current().'?page=list' }}"
                 class="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 transition">All Submissions</a>
         </div>
     </div>
+
+    {{-- Alert Messages --}}
+    @if(session('success'))
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+        {{ session('success') }}
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        {{ session('error') }}
+    </div>
+    @endif
 
     {{-- TABLE LIST --}}
     @if($page === 'list')
@@ -141,6 +152,13 @@
         {{-- ASSIGN REVIEWER SECTION --}}
         <div class="mt-6 border-t pt-6">
             <h4 class="font-semibold mb-4 text-lg">Assign Reviewer</h4>
+            
+            {{-- Info tentang batasan 5 paper --}}
+            <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                <strong>ℹ️ Info:</strong> Setiap reviewer hanya bisa memegang maksimal <strong>5 paper aktif</strong> (yang sudah di-accept). 
+                Reviewer yang sudah mencapai batas akan ditandai dengan warna merah.
+            </div>
+
             <form id="assignForm" method="POST" action="{{ route('editor.assignReviewers', $paper->id) }}">
                 @csrf
                 <input type="hidden" id="subjectInput" name="subject">
@@ -154,14 +172,14 @@
                     <select id="reviewerSelect" name="reviewers[]" multiple placeholder="Cari dan pilih Reviewer..."
                         autocomplete="off">
                         @foreach($all_reviewers as $rev)
-                        <option value="{{ $rev->id }}" @if(in_array($rev->id,
-                            $assignedReviewers->pluck('id')->toArray()))
-                            selected @endif>
-                            {{ $rev->first_name . ' ' . $rev->last_name }}
+                        <option value="{{ $rev->id }}" 
+                            data-active="{{ $rev->active_papers }}"
+                            data-can-assign="{{ $rev->can_assign ? '1' : '0' }}"
+                            @if(in_array($rev->id, $assignedReviewers->pluck('id')->toArray())) selected @endif
+                            @if(!$rev->can_assign) disabled @endif>
+                            {{ $rev->first_name . ' ' . $rev->last_name }} ({{ $rev->active_papers }}/5 accepted)
                         </option>
-
                         @endforeach
-
                     </select>
                 </div>
 
@@ -418,15 +436,20 @@ document.addEventListener('DOMContentLoaded', function() {
             placeholder: 'Cari dan pilih Reviewer...',
             render: {
                 option: function(data, escape) {
-                    return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
-                                    <div class="font-medium text-gray-800">${escape(data.text)}</div>
-                                    <div class="text-xs text-green-600">Available Reviewer</div>
-                                </div>`;
+                    const activePapers = data.$option?.dataset?.active || '0';
+                    const canAssign = data.$option?.dataset?.canAssign === '1';
+                    const colorClass = canAssign ? 'text-green-600' : 'text-red-600';
+                    const statusText = canAssign ? 'Available' : 'Full (5/5)';
+                    
+                    return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0 ${!canAssign ? 'opacity-50' : ''}">
+                                <div class="font-medium text-gray-800">${escape(data.text)}</div>
+                                <div class="text-xs ${colorClass}">${statusText} - ${activePapers}/5 paper accepted</div>
+                            </div>`;
                 },
                 item: function(data, escape) {
                     return `<div class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full mr-1 flex items-center shadow-sm border border-blue-200">
-                                    ${escape(data.text)}
-                                </div>`;
+                                ${escape(data.text)}
+                            </div>`;
                 }
             }
         });
@@ -472,8 +495,8 @@ function openAssignModal() {
         return;
     }
 
-    // Gabungkan nama reviewer
-    let names = selectedItems.map(id => selectedOptions[id].text).join(", ");
+    // Gabungkan nama reviewer (hapus bagian "(X/5 accepted)" dari nama)
+    let names = selectedItems.map(id => selectedOptions[id].text.split(' (')[0]).join(", ");
 
     // Set isi modal
     modalTitle.innerText = "Assign Reviewer & Send Invitation";
@@ -485,8 +508,6 @@ function openAssignModal() {
 I believe that you would serve as an excellent reviewer of the manuscript, "${articleTitle},".
 
 Please log into the journal web site to indicate whether you will undertake the review or not.
-
-Submission URL: ${articleUrl}
 
 Thank you for considering this request.
 

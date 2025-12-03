@@ -44,6 +44,16 @@ class UserSeeder extends Seeder
                 'role' => 'section_editor'
             ],
             [
+                'first_name' => 'Felia',
+                'last_name' => 'Nadia',
+                'email' => 'section_editor2@gmail.com',
+                'username' => 'section_editor2',
+                'password' => Hash::make('password'),
+                'affiliation' => 'Institut Teknologi Sumatra',
+                'photo_path' => null,
+                'role' => 'section_editor'
+            ],
+            [
                 'first_name' => 'Editor',
                 'last_name' => 'Satu',
                 'email' => 'editor1@gmail.com',
@@ -72,6 +82,16 @@ class UserSeeder extends Seeder
                 'affiliation' => 'Universitas Teknik Komputer',
                 'photo_path' => null,
                 'role' => 'author'
+            ],
+            [
+                'first_name' => 'Fadiya',
+                'last_name' => 'Ghifari',
+                'email' => 'fadiyaghifari200@gmail.com',
+                'username' => 'dipaa',
+                'password' => Hash::make('password'),
+                'affiliation' => 'Universitas Ahmad Dahlan',
+                'photo_path' => null,
+                'role' => 'reviewer'
             ],
         ];
 
