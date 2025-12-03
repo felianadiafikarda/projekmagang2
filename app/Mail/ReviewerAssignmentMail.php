@@ -18,6 +18,7 @@ class ReviewerAssignmentMail extends Mailable
     public $articleUrl;
     public $editorName;
     public $articleTitle;
+    public $invitationUrl;
 
     public $subjectText;   
     public $emailBody;     
@@ -28,12 +29,14 @@ class ReviewerAssignmentMail extends Mailable
         $deadline, 
         $editorName,
         $subjectText = null, 
-        $emailBody = null
+        $emailBody = null,
+        $invitationUrl = null
     ) {
         $this->paper        = $paper;
         $this->reviewer     = $reviewer;
         $this->deadline     = $deadline;
         $this->editorName   = $editorName;
+        $this->invitationUrl = $invitationUrl ?? '#';
 
         $this->articleTitle = $paper->judul;
         $this->articleUrl   = $paper->file_path 
@@ -61,8 +64,8 @@ class ReviewerAssignmentMail extends Mailable
                 'articleUrl'   => $this->articleUrl,
                 'editorName'   => $this->editorName,
                 'articleTitle' => $this->articleTitle,
-                'emailBody'    => $this->emailBody, 
-                
+                'emailBody'    => $this->emailBody,
+                'invitationUrl' => $this->invitationUrl,
             ]);
 
         if ($this->paper->file_path && file_exists(storage_path('app/public/' . $this->paper->file_path))) {

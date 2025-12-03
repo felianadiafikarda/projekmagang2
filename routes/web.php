@@ -9,6 +9,7 @@ use App\Http\Controllers\EditorController;
 use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\ConferenceController;
 use App\Http\Controllers\PreparedEmailController;
+use App\Http\Controllers\SectionEditorController;
 
 Route::get('/', function () {
     if (!Auth::check()) {
@@ -24,6 +25,8 @@ Route::get('/', function () {
                 return redirect()->route('conference_manager.index');
             case 'editor':
                 return redirect()->route('editor.index');
+            case 'section_editor':
+                return redirect()->route('section_editor.index');
             case 'reviewer':
                 return redirect()->route('reviewer.index');
             case 'author':
@@ -41,6 +44,26 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
 });
+
+// Reviewer Invitation Routes (public - accessed via email link)
+Route::get('/review-invitation/{token}', [ReviewerController::class, 'showInvitation'])->name('reviewer.invitation');
+Route::post('/review-invitation/{token}/accept', [ReviewerController::class, 'acceptInvitation'])->name('reviewer.invitation.accept');
+Route::post('/review-invitation/{token}/decline', [ReviewerController::class, 'declineInvitation'])->name('reviewer.invitation.decline');
+
+// Test route untuk preview halaman invitation (hapus di production)
+Route::get('/review-invitation-preview', function () {
+    $paper = App\Models\Paper::with('authors')->first();
+    if (!$paper) {
+        return 'Tidak ada paper di database. Silakan tambahkan paper terlebih dahulu.';
+    }
+    return view('reviewer.invitation', [
+        'paper' => $paper,
+        'reviewer' => App\Models\User::first(),
+        'deadline' => now()->addDays(10)->format('Y-m-d'),
+        'status' => 'assigned',
+        'token' => 'test-preview-token',
+    ]);
+})->name('reviewer.invitation.preview');
 
 Route::middleware('auth')->group(function () {
     Route::get('/conference-manager', [ConferenceController::class, 'index'])->name('conference_manager.index');
@@ -69,13 +92,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/author/sendArticle', [AuthorController::class, 'store'])->name('author.store');
 
 
-    Route::get('/section_editor', function () {
-        return view('sectionEditor');
-    })->name('section_editor.index');
-
-       Route::get('/review', function () {
-        return view('review');
-    });
+    // Section Editor Routes
+    Route::get('/section-editor', [SectionEditorController::class, 'index'])->name('section_editor.index');
+    Route::get('/section-editor/detail/{id}', [SectionEditorController::class, 'detail'])->name('section_editor.detail');
+    Route::post('/section-editor/paper/{paper}/assign-reviewers', [SectionEditorController::class, 'assignReviewers'])->name('section_editor.assignReviewers');
+    Route::post('/section-editor/{paperId}/send-reminder', [SectionEditorController::class, 'sendReminder'])->name('section_editor.sendReminder');
+    Route::post('/section-editor/{paper}/unassign-reviewer', [SectionEditorController::class, 'unassignReviewer'])->name('section_editor.unassignReviewer');
 
     // Prepared Email Routes
     Route::get('/prepared-emails', [PreparedEmailController::class, 'index'])->name('prepared_email.index');
@@ -86,6 +108,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/prepared-emails/{emailTemplate }', [PreparedEmailController::class, 'destroy'])->name('prepared_email.destroy');
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
-
 });
-

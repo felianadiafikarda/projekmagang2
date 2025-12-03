@@ -6,53 +6,104 @@
         </div>
 
         @php
-        $level = auth()->user()->roles->first()->level ?? 0;
+            $user = auth()->user();
+            $userRoles = $user->roles->pluck('name')->toArray();
+            
+            $isAdmin = in_array('admin', $userRoles);
+            $isConferenceManager = in_array('conference_manager', $userRoles);
+            $isEditor = in_array('editor', $userRoles);
+            $isSectionEditor = in_array('section_editor', $userRoles);
+            $isReviewer = in_array('reviewer', $userRoles);
+            $isAuthor = in_array('author', $userRoles);
         @endphp
+        
         <nav class="mt-6 flex flex-col space-y-1">
 
-            @if($level >= 6)
-            <a href="{{ route('conference_manager.index') }}"
-                class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
-           {{ Request::routeIs('conference_manager*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
-                <span>Conference Manager</span>
-            </a>
+            {{-- SUPER ADMIN: Tampilkan semua menu --}}
+            @if($isAdmin)
+                <a href="{{ route('conference_manager.index') }}"
+                    class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+                    {{ Request::routeIs('conference_manager*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700' }}">
+                    <span>Conference Manager</span>
+                </a>
+                
+                <a href="{{ route('editor.index') }}" 
+                    class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+                    {{ Request::routeIs('editor*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700' }}">
+                    <span>Editor</span>
+                </a>
+                
+                <a href="{{ route('section_editor.index') }}" 
+                    class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+                    {{ Request::routeIs('section_editor*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700' }}">
+                    <span>Section Editor</span>
+                </a>
+                
+                <a href="{{ route('reviewer.index') }}" 
+                    class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+                    {{ Request::routeIs('reviewer*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700' }}">
+                    <span>Reviewer</span>
+                </a>
+                
+                <a href="{{ route('author.index') }}" 
+                    class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+                    {{ Request::routeIs('author*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700' }}">
+                    <span>Author</span>
+                </a>
+                
+                <a href="{{ route('users.index') }}" 
+                    class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+                    {{ Request::routeIs('users*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700' }}">
+                    <span>Users</span>
+                </a>
+
+            {{-- CONFERENCE MANAGER: Hanya tampilkan Conference Manager --}}
+            @elseif($isConferenceManager)
+                <a href="{{ route('conference_manager.index') }}"
+                    class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+                    {{ Request::routeIs('conference_manager*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700' }}">
+                    <span>Conference Manager</span>
+                </a>
+
+            {{-- USER BIASA: Tampilkan menu sesuai role yang dimiliki --}}
+            @else
+                {{-- Editor --}}
+                @if($isEditor)
+                <a href="{{ route('editor.index') }}" 
+                    class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+                    {{ Request::routeIs('editor*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700' }}">
+                    <span>Editor</span>
+                </a>
+                @endif
+
+                {{-- Section Editor (tidak bisa bersamaan dengan Editor) --}}
+                @if($isSectionEditor && !$isEditor)
+                <a href="{{ route('section_editor.index') }}" 
+                    class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+                    {{ Request::routeIs('section_editor*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700' }}">
+                    <span>Section Editor</span>
+                </a>
+                @endif
+
+                {{-- Reviewer --}}
+                @if($isReviewer)
+                <a href="{{ route('reviewer.index') }}" 
+                    class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+                    {{ Request::routeIs('reviewer*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700' }}">
+                    <span>Reviewer</span>
+                </a>
+                @endif
+
+                {{-- Author --}}
+                @if($isAuthor)
+                <a href="{{ route('author.index') }}" 
+                    class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
+                    {{ Request::routeIs('author*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700' }}">
+                    <span>Author</span>
+                </a>
+                @endif
             @endif
 
-            @if($level >= 5)
-            <a href="{{ route('editor.index') }}" class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
-           {{ Request::routeIs('editor*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
-                <span>Editor</span>
-            </a>
-            @endif
-
-            @if($level >= 4)
-            <a href="{{ route('section_editor.index') }}" class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
-           {{ Request::routeIs('section_editor*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
-                <span>Section Editor</span>
-            </a>
-            @endif
-
-            @if($level >= 2)
-            <a href="{{ route('reviewer.index') }}" class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
-           {{ Request::routeIs('reviewer*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
-                <span>Reviewer</span>
-            </a>
-            @endif
-
-            {{-- Author (level 1+) → semua user minimal author --}}
-            @if($level >= 1)
-            <a href="{{ route('author.index') }}" class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
-           {{ Request::routeIs('author*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
-                <span>Author</span>
-            </a>
-            @endif
-
-            @if($level >= 7)
-            <a href="{{ route('users.index') }}" class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
-           {{ Request::routeIs('users*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-100' }}">
-                <span>Users</span>
-            </a>
-            @endif
         </nav>
 
     </div>
