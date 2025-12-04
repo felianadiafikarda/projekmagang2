@@ -88,7 +88,7 @@
       <button class="text-sm text-blue-600 hover:text-blue-800">View All</button>
     </div>
     <div class="space-y-3">
-      @foreach ($authorActivities as $author)
+      @forelse ($authorActivities as $author)
       <div class="flex items-start gap-4 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
         <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
           <span class="text-blue-600 font-semibold text-sm">JS</span>
@@ -105,7 +105,11 @@
         </div>
         <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">New</span>
       </div>
-      @endforeach
+      @empty
+      <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-gray-600">
+        There is no recent author activity.
+      </div>
+      @endforelse
     </div>
   </div>
 
@@ -209,7 +213,7 @@
   </div>
 
   <!-- Recent Decisions -->
-  <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+  <div class="bg-white rounded-lg shadow border border-gray-200 p-6 mb-6">
     <div class="flex justify-between items-center mb-4">
       <h3 class="text-lg font-semibold text-gray-900">Recent Editorial Decisions</h3>
       <button class="text-sm text-blue-600 hover:text-blue-800">View All</button>
