@@ -88,6 +88,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/author/regis', function () {
         return view('author.regis');
     });
+
+    Route::get('/review', function () {
+        return view('review');
+    });
+
     Route::get('/author', [AuthorController::class, 'index'])->name('author.index');
     Route::post('/author/sendArticle', [AuthorController::class, 'store'])->name('author.store');
 
