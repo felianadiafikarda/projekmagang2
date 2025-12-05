@@ -29,7 +29,7 @@
             
             {{-- 1. Dropdown Filter Status --}}
             <select name="filter_status" onchange="this.form.submit()" 
-                class="w-full md:w-48 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm text-sm px-3 py-2 cursor-pointer bg-white text-gray-700">
+                class="w-full md:w-48 border-gray-300 focus:border-gray-900 focus:ring-gray-900 rounded-md shadow-sm text-sm px-3 py-2 cursor-pointer bg-white text-gray-700">
                 <option value="">All Status</option>
                 @foreach(['Unassign', 'In Review', 'Rejected', 'Accept with Review', 'Accepted'] as $status)
                     <option value="{{ $status }}" {{ request('filter_status') == $status ? 'selected' : '' }}>
@@ -42,10 +42,10 @@
             <div class="relative w-full md:w-64">
                 <input type="text" name="search" value="{{ request('search') }}" 
                     placeholder="Search..." 
-                    class="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm text-sm px-3 py-2 pr-10">
+                    class="w-full border-gray-300 focus:border-gray-900 focus:ring-gray-900 rounded-md shadow-sm text-sm px-3 py-2 pr-10">
                 
-                {{-- Tombol Search --}}
-                <button type="submit" class="absolute inset-y-0 right-0 flex items-center px-3 text-white bg-blue-600 hover:bg-blue-700 rounded-r-md transition">
+                {{-- Tombol Search (WARNA DIGANTI JADI GRAY-900) --}}
+                <button type="submit" class="absolute inset-y-0 right-0 flex items-center px-3 text-white bg-gray-900 hover:bg-gray-700 rounded-r-md transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -101,7 +101,7 @@
                     <td class="p-2 border font-semibold text-gray-800">{{ $p->judul }}</td>
                     <td class="p-2 border">{{ $authors ?: '-' }}</td>
                     
-                    {{-- STATUS (KEMBALI KE LABEL/TEKS BIASA) --}}
+                    {{-- STATUS (LABEL BIASA) --}}
                     <td class="p-2 border text-center">
                         <span class="px-2 py-1 rounded text-sm font-semibold {{ $statusColor[$p->status] ?? 'bg-gray-200 text-gray-700' }}">
                             {{ ucfirst(str_replace('_',' ', $p->status)) }}
@@ -115,8 +115,9 @@
                             Detail
                         </a>
 
+                        {{-- Tombol Edit (WARNA DIGANTI JADI GRAY-900) --}}
                         <a href="{{ url()->current().'?page=assign&id='.$p->id }}"
-                            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            class="px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-700">
                             Edit
                         </a>
                     </td>
@@ -153,7 +154,7 @@
                     @csrf
                     @method('PATCH')
                     <select name="status" onchange="this.form.submit()" 
-                        class="cursor-pointer text-sm font-medium px-3 py-1 rounded border border-gray-300 bg-gray-50 focus:ring-blue-500 focus:border-blue-500">
+                        class="cursor-pointer text-sm font-medium px-3 py-1 rounded border border-gray-300 bg-gray-50 focus:ring-gray-900 focus:border-gray-900">
                          @foreach(['Unassign', 'In Review', 'Rejected', 'Accept with Review', 'Accepted'] as $opt)
                             <option value="{{ $opt }}" {{ $paper->status == $opt ? 'selected' : '' }}>
                                 {{ $opt }}
@@ -166,15 +167,13 @@
 
 
         {{-- ========================================================== --}}
-        {{-- 1. GROUP: ASSIGN SECTION EDITOR (FORM + LIST GABUNG) --}}
+        {{-- 1. GROUP: ASSIGN SECTION EDITOR --}}
         {{-- ========================================================== --}}
         <div class="mt-8 border-t pt-6">
             <h4 class="font-semibold mb-4 text-lg">Assign Section Editor</h4>
 
-            {{-- KOTAK WRAPPER --}}
             <div class="bg-gray-50 border rounded-lg p-4">
                 
-                {{-- Form Assign --}}
                 <form method="POST" action="{{ route('editor.assignSectionEditor', $paper->id) }}" class="mb-4">
                     @csrf
                     <div class="flex gap-2">
@@ -193,7 +192,6 @@
                     </div>
                 </form>
 
-                {{-- List Assigned --}}
                 <div class="mt-2 border-t border-gray-200 pt-3">
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Assigned Section Editors List</label>
                     <div class="space-y-2">
@@ -222,15 +220,13 @@
 
 
         {{-- ========================================================== --}}
-        {{-- 2. GROUP: ASSIGN REVIEWER (FORM + LIST GABUNG) --}}
+        {{-- 2. GROUP: ASSIGN REVIEWER --}}
         {{-- ========================================================== --}}
         <div class="mt-8 border-t pt-6">
             <h4 class="font-semibold mb-4 text-lg">Assign Reviewer</h4>
             
-            {{-- KOTAK WRAPPER --}}
             <div class="bg-gray-50 border rounded-lg p-4">
                 
-                {{-- Form Assign --}}
                 <form id="assignForm" method="POST" action="{{ route('editor.assignReviewers', $paper->id) }}">
                     @csrf
                     <input type="hidden" id="subjectInput" name="subject">
@@ -253,20 +249,20 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
                             <input type="date" id="deadlineDate" name="deadline"
-                                class="border border-gray-300 rounded p-1.5 w-full focus:ring-blue-500 focus:border-blue-500 h-[38px] mt-[1px]">
+                                class="border border-gray-300 rounded p-1.5 w-full focus:ring-gray-900 focus:border-gray-900 h-[38px] mt-[1px]">
                         </div>
                     </div>
 
+                    {{-- Tombol Send Request (WARNA DIGANTI JADI GRAY-900) --}}
                     <button type="button" onclick="openAssignModal()"
-                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 shadow-sm transition duration-200 flex items-center gap-2 text-sm font-medium">
+                        class="bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-700 shadow-sm transition duration-200 flex items-center gap-2 text-sm font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
-                        Request Review
+                        Send Request & Assign Reviewers
                     </button>
                 </form>
 
-                {{-- List Assigned --}}
                 <div class="mt-4 border-t border-gray-200 pt-4">
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Assigned Reviewers List</label>
                     <div class="space-y-4">
@@ -344,7 +340,8 @@
 {{-- MODAL EMAIL (Hidden by default) --}}
 <div id="emailModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden transform transition-all">
-        <div class="bg-blue-600 px-6 py-4 flex justify-between items-center">
+        {{-- Header Modal (WARNA DIGANTI JADI GRAY-900) --}}
+        <div class="bg-gray-900 px-6 py-4 flex justify-between items-center">
             <h3 class="text-white text-lg font-semibold" id="modalTitle">Add Reviewer & Send Email</h3>
             <button onclick="closeModal()" class="text-white hover:text-gray-200 focus:outline-none">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -359,11 +356,11 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                <input type="text" id="emailSubject" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                <input type="text" id="emailSubject" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-gray-900 focus:border-gray-900">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email Content</label>
-                <textarea id="emailBody" rows="8" class="w-full border border-gray-300 rounded px-3 py-2 font-mono text-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+                <textarea id="emailBody" rows="8" class="w-full border border-gray-300 rounded px-3 py-2 font-mono text-sm focus:ring-gray-900 focus:border-gray-900"></textarea>
                 <p class="text-xs text-gray-500 mt-1">You can edit the message above before sending.</p>
             </div>
             @if(isset($modalType) && $modalType === 'assign')
@@ -375,7 +372,8 @@
         </div>
         <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
             <button onclick="closeModal()" class="px-4 py-2 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition">Cancel</button>
-            <button onclick="submitProcess()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition">Send & Process</button>
+            {{-- Tombol Send Modal (WARNA DIGANTI JADI GRAY-900) --}}
+            <button onclick="submitProcess()" class="px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-700 shadow-sm transition">Send & Process</button>
         </div>
     </div>
 </div>
@@ -462,7 +460,6 @@ function openAssignModal() {
     modalRecipient.value = names;
     emailSubject.value = "Invitation to Review Manuscript";
 
-    // Template Pesan Assign (UTUH)
     const template = `Dear ${names},
 
 I believe that you would serve as an excellent reviewer of the manuscript, "${articleTitle},".
@@ -491,7 +488,7 @@ function openReminderModal(reviewerId, reviewerName, deadline) {
     modalRecipient.value = reviewerName;
     emailSubject.value = "Review Reminder: " + articleTitle;
 
-    // Template Pesan Reminder (UTUH)
+    // Template Pesan Reminder
     const template = `Dear ${reviewerName},
 
 Just a gentle reminder regarding the manuscript "${articleTitle}" which is currently assigned to you for review.
