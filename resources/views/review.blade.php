@@ -25,6 +25,19 @@
   </div>
 </div>
 
+<!-- TABS -->
+<div class="flex gap-4 border-b border-gray-300 mb-6">
+  <button id="tab-pending" class="tab-btn pb-3 px-2 font-semibold border-b-2 border-gray-800 text-gray-900">
+    Pending (2)
+  </button>
+  <button id="tab-progress" class="tab-btn pb-3 px-2 font-semibold text-gray-500 hover:text-gray-800 transition">
+    In Progress (1)
+  </button>
+  <button id="tab-completed" class="tab-btn pb-3 px-2 font-semibold text-gray-500 hover:text-gray-800 transition">
+    Completed (1)
+  </button>
+</div>
+
 <!-- ARTICLE LISTS -->
 <div id="content-pending" class="space-y-4">
   <!-- Pending Card 1 - Collapsed View -->
@@ -41,6 +54,9 @@
     <div class="flex gap-2 mt-4">
       <button class="view-details-btn bg-gray-800 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700 transition">
         View Details
+      </button>
+      <button class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm hover:bg-gray-300 transition">
+        Download PDF
       </button>
     </div>
   </div>
@@ -127,7 +143,8 @@
       <p class="text-gray-700 mb-4">Before you submit your report, please review it to make sure it's a complete and thorough review.</p>
       
       <p class="text-gray-700">For further information, please see the <a href="#" class="text-blue-600 hover:underline">Discover Electronics reviewer guidelines</a>.</p>
-    </div>
+      
+      
 
     <!-- Report Content (Hidden by default) -->
     <div class="report-content hidden p-8">
@@ -141,109 +158,83 @@
         </div>
       </div>
 
-      <!-- Main Form -->
-      <div>
-          <div id="form-section">
-            <h4 class="text-xl font-semibold mb-4">Feedback for the author(s)</h4>
-            <p class="text-sm text-gray-600 mb-1"><span class="text-red-500">*</span> Indicates a required field</p>
+      <!-- Left Sidebar Navigation -->
+      <div class="grid grid-cols-4 gap-6">
+        <div class="col-span-1 space-y-2">
+          <a href="#feedback-author" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded font-medium">
+            Feedback for the author(s)
+          </a>
+          <a href="#confidential" class="block px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">
+            Confidential feedback for the Editor
+          </a>
+          <a href="#preview" class="block px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">
+            Preview
+          </a>
+        </div>
+
+        <!-- Main Form -->
+        <div class="col-span-3">
+          <h4 class="text-xl font-semibold mb-4">Feedback for the author(s)</h4>
+          <p class="text-sm text-gray-600 mb-1"><span class="text-red-500">*</span> Indicates a required field</p>
+          
+          <ul class="list-disc ml-5 mb-6 text-sm text-gray-700 space-y-1">
+            <li>Your review should be constructive and focused on ensuring the results are accurately reported.</li>
+            <li>Please explain how the text can be revised and what essential work is needed to prepare a revision ready for acceptance.</li>
+            <li>If recommending rejection, you should explain why the submission does not meet our editorial criteria for publication.</li>
+            <li>If you wish to keep your anonymity, please avoid adding personal details to your report.</li>
+            <li>You can upload a file with your comments for the author(s) or include them in the text box below.</li>
+          </ul>
+
+          <!-- Review Files Upload -->
+          <div class="mb-6">
+            <h5 class="font-semibold text-gray-900 mb-2">Review file(s)</h5>
+            <p class="text-sm text-gray-600 mb-3">
+              Please, upload all the relevant review files. We accept files with a <strong>maximum size of 500MB</strong> each and in the following formats: <strong>DOC, DOCX or PDF.</strong>
+            </p>
             
-            <ul class="list-disc ml-5 mb-6 text-sm text-gray-700 space-y-1">
-              <li>Your review should be constructive and focused on ensuring the results are accurately reported.</li>
-              <li>Please explain how the text can be revised and what essential work is needed to prepare a revision ready for acceptance.</li>
-              <li>If recommending rejection, you should explain why the submission does not meet our editorial criteria for publication.</li>
-              <li>If you wish to keep your anonymity, please avoid adding personal details to your report.</li>
-              <li>You can upload a file with your comments for the author(s) or include them in the text box below.</li>
-            </ul>
-
-            <!-- Review Files Upload -->
-            <div class="mb-6">
-              <h5 class="font-semibold text-gray-900 mb-2">Review file(s)</h5>
-              <p class="text-sm text-gray-600 mb-3">
-                Please, upload all the relevant review files. We accept files with a <strong>maximum size of 500MB</strong> each and in the following formats: <strong>DOC, DOCX or PDF.</strong>
-              </p>
+            <!-- Drag & Drop Upload Area -->
+            <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer bg-gray-50 hover:bg-gray-100">
+              <input type="file" id="reviewFiles" class="hidden" accept=".doc,.docx,.pdf" multiple>
               
-              <!-- Drag & Drop Upload Area -->
-              <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer bg-gray-50 hover:bg-gray-100">
-                <input type="file" id="reviewFiles" class="hidden" accept=".doc,.docx,.pdf" multiple>
+              <div class="flex flex-col items-center justify-center">
+                <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
                 
-                <div class="flex flex-col items-center justify-center">
-                  <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                <p class="text-lg font-semibold text-gray-700 mb-2">
+                  Drag & drop files here
+                </p>
+                <p class="text-sm text-gray-500 mb-4">or</p>
+                
+                <button type="button" onclick="document.getElementById('reviewFiles').click()" class="bg-slate-700 text-white px-6 py-3 rounded-md hover:bg-slate-600 transition font-medium">
+                  <svg class="w-5 h-5 inline mr-2 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                   </svg>
-                  
-                  <p class="text-lg font-semibold text-gray-700 mb-2">
-                    Drag & drop files here
-                  </p>
-                  <p class="text-sm text-gray-500 mb-4">or</p>
-                  
-                  <button type="button" onclick="document.getElementById('reviewFiles').click()" class="bg-slate-700 text-white px-6 py-3 rounded-md hover:bg-slate-600 transition font-medium">
-                    <svg class="w-5 h-5 inline mr-2 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Browse Files
-                  </button>
-                  
-                  <p class="text-xs text-gray-400 mt-3">
-                    Supported formats: DOC, DOCX, PDF • Max size: 500MB per file
-                  </p>
-                </div>
+                  Browse Files
+                </button>
+                
+                <p class="text-xs text-gray-400 mt-3">
+                  Supported formats: DOC, DOCX, PDF • Max size: 500MB per file
+                </p>
               </div>
-              
-              <!-- File List -->
-              <div id="fileList" class="mt-4 space-y-2"></div>
             </div>
-
-            <!-- Comments Textarea -->
-            <div class="mb-6">
-              <h5 class="font-semibold text-gray-900 mb-2">Comments to the author(s)</h5>
-              <p class="text-sm text-gray-600 mb-3">Please include your comments for the authors in the box below.</p>
-              <textarea id="commentsTextarea" class="w-full border border-gray-300 rounded-md p-3 h-48 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your comments here..."></textarea>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex justify-end gap-3">
-              <button id="previewBtn" class="bg-slate-600 text-white px-8 py-3 rounded-md hover:bg-slate-500 transition font-semibold">
-                Preview
-              </button>
-              <button id="nextBtn" class="bg-gray-800 text-white px-8 py-3 rounded-md hover:bg-gray-700 transition font-semibold">
-                Next >
-              </button>
-            </div>
+            
+            <!-- File List -->
+            <div id="fileList" class="mt-4 space-y-2"></div>
           </div>
 
-          <!-- Preview Section (Hidden by default) -->
-          <div id="preview-section" class="hidden">
-            <div class="mb-6 flex justify-between items-center">
-              <div>
-                <h4 class="text-xl font-semibold">Preview Your Report</h4>
-                <p class="text-sm text-gray-600 mt-1">Please review your report before submitting</p>
-              </div>
-              <button id="backToFormBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition text-sm">
-                Back to Edit
-              </button>
-            </div>
+          <!-- Comments Textarea -->
+          <div class="mb-6">
+            <h5 class="font-semibold text-gray-900 mb-2">Comments to the author(s)</h5>
+            <p class="text-sm text-gray-600 mb-3">Please include your comments for the authors in the box below.</p>
+            <textarea class="w-full border border-gray-300 rounded-md p-3 h-48 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your comments here..."></textarea>
+          </div>
 
-            <div id="previewContent" class="bg-gray-50 border border-gray-300 rounded-lg p-8 space-y-6">
-              <!-- Preview content will be inserted here -->
-            </div>
-
-            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div class="flex items-start gap-3">
-                <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                </svg>
-                <div class="flex-1">
-                  <p class="text-sm font-medium text-blue-900">Review your information carefully</p>
-                  <p class="text-sm text-blue-700 mt-1">If everything looks correct, click "Back to Edit & Submit" button below to return to the form and submit your review.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="mt-6 flex justify-end">
-              <button id="backToFormBtn2" class="bg-gray-800 text-white px-8 py-3 rounded-md hover:bg-gray-700 transition font-semibold">
-                Back to Edit & Submit
-              </button>
-            </div>
+          <!-- Next Button -->
+          <div class="flex justify-end">
+            <button class="bg-gray-800 text-white px-8 py-3 rounded-md hover:bg-gray-700 transition font-semibold">
+              Next >
+            </button>
           </div>
         </div>
       </div>
@@ -265,10 +256,67 @@
       <button class="bg-gray-800 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700 transition">
         View Details
       </button>
+      <button class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm hover:bg-gray-300 transition">
+        Download PDF
+      </button>
     </div>
   </div>
 </div>
+
+<!-- IN PROGRESS -->
+<div id="content-progress" class="hidden space-y-4">
+  <div class="bg-white rounded-lg shadow border border-gray-200 p-6 hover:shadow-lg transition">
+    <div class="flex justify-between items-start mb-3">
+      <h3 class="text-lg font-semibold text-gray-900">AI-Powered Medical Diagnosis System</h3>
+      <span class="bg-blue-200 text-blue-800 text-xs px-3 py-1 rounded-full ml-2">In Progress</span>
+    </div>
+    <p class="text-sm text-gray-600 mb-2"><strong>Authors:</strong> Sarah Connor, Michael Lee</p>
+    <p class="text-sm text-gray-600 mb-2"><strong>Started:</strong> 2025-10-01</p>
+    <p class="text-sm text-gray-600 mb-2"><strong>Deadline:</strong> 2025-10-25</p>
+    <div class="flex gap-2 mt-4">
+      <button class="bg-gray-800 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700 transition">
+        Continue Review
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETED -->
+<div id="content-completed" class="hidden space-y-4">
+  <div class="bg-white rounded-lg shadow border border-gray-200 p-6 hover:shadow-lg transition">
+    <div class="flex justify-between items-start mb-3">
+      <h3 class="text-lg font-semibold text-gray-900">Optimization Algorithms in Data Science</h3>
+      <span class="bg-green-200 text-green-800 text-xs px-3 py-1 rounded-full ml-2">Completed</span>
+    </div>
+    <p class="text-sm text-gray-600 mb-2"><strong>Authors:</strong> Kevin Wright, Laura Green</p>
+    <p class="text-sm text-gray-600 mb-2"><strong>Reviewed:</strong> 2025-09-30</p>
+    <p class="text-sm text-gray-600 mb-2"><strong>Status:</strong> Accepted</p>
+    <div class="flex gap-2 mt-4">
+      <button class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm hover:bg-gray-300 transition">
+        View Review
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
+  // Tab switching for main tabs (Pending, In Progress, Completed)
+  const tabs = document.querySelectorAll('.tab-btn');
+  const contents = {
+    'tab-pending': document.getElementById('content-pending'),
+    'tab-progress': document.getElementById('content-progress'),
+    'tab-completed': document.getElementById('content-completed')
+  };
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('border-b-2', 'border-gray-800', 'text-gray-900'));
+      tab.classList.add('border-b-2', 'border-gray-800', 'text-gray-900');
+
+      Object.values(contents).forEach(c => c.classList.add('hidden'));
+      contents[tab.id].classList.remove('hidden');
+    });
+  });
 
   // View Details button - Show/Hide manuscript detail
   const viewDetailsButtons = document.querySelectorAll('.view-details-btn');
@@ -340,76 +388,6 @@
       reportContent.classList.remove('hidden');
       guidanceContent.classList.add('hidden');
     });
-  });
-
-  // Preview functionality
-  document.getElementById('previewBtn').addEventListener('click', () => {
-    const formSection = document.getElementById('form-section');
-    const previewSection = document.getElementById('preview-section');
-    const previewContent = document.getElementById('previewContent');
-    
-    // Get form data
-    const comments = document.getElementById('commentsTextarea').value;
-    const fileList = document.getElementById('fileList');
-    const files = fileList.querySelectorAll('.group');
-    
-    // Build preview content
-    let filesHTML = '';
-    if (files.length > 0) {
-      filesHTML = '<ul class="space-y-2">';
-      files.forEach(file => {
-        const fileName = file.querySelector('.truncate').textContent;
-        const fileSize = file.querySelector('.text-xs').textContent.split(' ')[0];
-        filesHTML += `<li class="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 p-3 rounded border border-gray-200">
-          <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd"/>
-          </svg>
-          <span class="flex-1">${fileName}</span>
-          <span class="text-gray-500 text-xs">${fileSize} MB</span>
-        </li>`;
-      });
-      filesHTML += '</ul>';
-    }
-    
-    previewContent.innerHTML = `
-      <div class="bg-white rounded-lg p-6 shadow-sm">
-        <h5 class="text-lg font-semibold text-gray-900 mb-4 pb-3 border-b border-gray-200">Feedback for the author(s)</h5>
-        
-        ${filesHTML ? `<div class="mb-6">
-          <h6 class="font-medium text-gray-900 mb-3">Uploaded Files:</h6>
-          ${filesHTML}
-        </div>` : ''}
-        
-        <div>
-          <h6 class="font-medium text-gray-900 mb-3">Comments to the author(s):</h6>
-          <div class="bg-white border-2 border-gray-200 rounded-lg p-4 text-gray-700 whitespace-pre-wrap min-h-[100px]">
-            ${comments || '<span class="text-gray-400 italic">No comments provided yet</span>'}
-          </div>
-        </div>
-      </div>
-    `;
-    
-    formSection.classList.add('hidden');
-    previewSection.classList.remove('hidden');
-  });
-
-  // Back to form buttons
-  document.getElementById('backToFormBtn').addEventListener('click', () => {
-    document.getElementById('form-section').classList.remove('hidden');
-    document.getElementById('preview-section').classList.add('hidden');
-  });
-
-  document.getElementById('backToFormBtn2').addEventListener('click', () => {
-    document.getElementById('form-section').classList.remove('hidden');
-    document.getElementById('preview-section').classList.add('hidden');
-  });
-
-  // Preview link in sidebar
-  document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('preview-link')) {
-      e.preventDefault();
-      document.getElementById('previewBtn').click();
-    }
   });
 
   // File upload handler
