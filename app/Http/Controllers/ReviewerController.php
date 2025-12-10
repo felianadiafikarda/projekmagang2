@@ -58,6 +58,16 @@ class ReviewerController extends Controller
             ->where('invitation_token', $token)
             ->update(['status' => 'accept_to_review']);
 
+        DB::table('notifications')
+            ->where('type', 'invite_review')
+            ->where('data->token', $token)  
+            ->update([
+                'status' => 'accepted',
+                'is_read' => true,
+                'updated_at' => now(),
+            ]);
+
+
         return redirect()->route('login')->with('success', 'You have accepted the review invitation. Please login to continue reviewing the manuscript.');
     }
 
@@ -78,6 +88,16 @@ class ReviewerController extends Controller
         DB::table('paper_reviewer')
             ->where('invitation_token', $token)
             ->update(['status' => 'decline_to_review']);
+
+        DB::table('notifications')
+            ->where('type', 'invite_review')
+            ->where('data->token', $token)
+            ->update([
+                'status' => 'declined',
+                'is_read' => true,
+                'updated_at' => now(),
+            ]);
+
 
         return redirect()->route('login')->with('info', 'You have declined the review invitation. Thank you for your response.');
     }

@@ -93,6 +93,16 @@ class UserSeeder extends Seeder
                 'photo_path' => null,
                 'role' => 'reviewer'
             ],
+            [
+                'first_name' => 'Ricky',
+                'last_name' => 'Al',
+                'email' => 'mrickyal@gmail.com',
+                'username' => 'riickyy',
+                'password' => Hash::make('password'),
+                'affiliation' => 'Universitas Ahmad Dahlan',
+                'photo_path' => null,
+                'role' => 'editor'
+            ],
         ];
 
         foreach ($users as $data) {

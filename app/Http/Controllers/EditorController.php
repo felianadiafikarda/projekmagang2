@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use App\Models\Paper;
-use App\Models\User;
 use App\Models\Role;
-use App\Mail\ReviewerAssignmentMail;
+use App\Models\User;
+use App\Models\Paper;
+use Illuminate\Support\Str;
+use App\Models\Notification;
+use Illuminate\Http\Request;
 use App\Mail\ReviewerReminderMail;
+use Illuminate\Support\Facades\DB;
+use App\Mail\ReviewerAssignmentMail;
+use Illuminate\Support\Facades\Mail;
 
 class EditorController extends Controller
 {
@@ -21,8 +22,8 @@ class EditorController extends Controller
         if ($page === 'list') {
 
             $papers = Paper::with(['authors'])
-                        ->orderBy('created_at', 'desc')
-                        ->get();
+                ->orderBy('created_at', 'desc')
+                ->get();
 
             $editors = User::whereHas('roles', function($q) {
                 $q->where('name', 'editor');
@@ -51,10 +52,10 @@ class EditorController extends Controller
                     ->where('user_id', $reviewer->id)
                     ->whereIn('status', ['accept_to_review', 'completed'])
                     ->count();
-                
+
                 $reviewer->active_papers = $activePapers;
                 $reviewer->can_assign = $activePapers < 5;
-                
+
                 return $reviewer;
             });
 
@@ -109,7 +110,7 @@ class EditorController extends Controller
         foreach ($reviewerIds as $id) {
             $token = Str::uuid()->toString();
             $pivotData[$id] = [
-                'deadline' => $deadline, 
+                'deadline' => $deadline,
                 'status' => 'assigned',
                 'invitation_token' => $token
             ];
@@ -127,6 +128,23 @@ class EditorController extends Controller
                     $user->roles()->attach($reviewerRole->id);
                 }
             }
+        }
+
+        foreach ($reviewerIds as $revId) {
+            Notification::create([
+                'user_id'  => $revId,
+                'title'    => 'Invitation to Review',
+                'message'  => 'You are invited to review the manuscript: "' . $paper->judul . '"',
+                'type'     => 'invite_review',   // khusus invitation
+                'status'   => 'pending',         // reviewer belum accept/decline
+                'data'     => [
+                    'paper_id'      => $paper->id,
+                    'paper_title'   => $paper->judul,
+                    'deadline'      => $deadline,
+                    'invited_by'    => auth()->id(),
+                    'token'         => $pivotData[$revId]['invitation_token']
+                ],
+            ]);
         }
 
         if ($sendEmail) {
@@ -197,10 +215,10 @@ class EditorController extends Controller
 
         if ($emailBody === '') {
             $deadline = $paper->reviewers()
-                            ->where('user_id', $reviewer->id)
-                            ->first()
-                            ->pivot
-                            ->deadline ?? '-';
+                ->where('user_id', $reviewer->id)
+                ->first()
+                ->pivot
+                ->deadline ?? '-';
 
             $emailBody = view('emails.reviewer_reminder', [
                 'reviewerName' => $reviewer->first_name . ' ' . $reviewer->last_name,
@@ -253,6 +271,21 @@ class EditorController extends Controller
                     $user->roles()->attach($sectionEditorRole->id);
                 }
             }
+        }
+
+        foreach ($editorIds as $editorId) {
+            Notification::create([
+                'user_id'  => $editorId,
+                'title'    => 'Assigned as Section Editor',
+                'message'  => 'You are assigned as a section editor for the paper: "' . $paper->judul . '"',
+                'type'     => 'assign_section_editor',
+                'status'   => null,
+                'data'     => [
+                    'paper_id'      => $paper->id,
+                    'paper_title'   => $paper->judul,
+                    'invited_by'    => auth()->id(),
+                ],
+            ]);
         }
 
         return back()->with('success', 'Section editor updated!');
