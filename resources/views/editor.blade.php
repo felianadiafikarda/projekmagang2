@@ -11,7 +11,7 @@
 
 <div class="max-w-7xl rounded-xl mx-auto space-y-6 py-6">
 
-    {{-- === HEADER SECTION: NAVIGASI, FILTER & SEARCH === --}}
+    {{-- === HEADER: NAVIGASI, FILTER & SEARCH === --}}
     <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
         
         {{-- Kiri: Tombol Navigasi --}}
@@ -27,7 +27,7 @@
         <form action="{{ url()->current() }}" method="GET" class="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
             <input type="hidden" name="page" value="list">
             
-            {{-- 1. Dropdown Filter Status --}}
+            {{-- Dropdown Filter --}}
             <select name="filter_status" onchange="this.form.submit()" 
                 class="w-full md:w-48 border-gray-300 focus:border-gray-900 focus:ring-gray-900 rounded-md shadow-sm text-sm px-3 py-2 cursor-pointer bg-white text-gray-700">
                 <option value="">All Status</option>
@@ -38,13 +38,13 @@
                 @endforeach
             </select>
 
-            {{-- 2. Input Search --}}
+            {{-- Input Search --}}
             <div class="relative w-full md:w-64">
                 <input type="text" name="search" value="{{ request('search') }}" 
                     placeholder="Search..." 
                     class="w-full border-gray-300 focus:border-gray-900 focus:ring-gray-900 rounded-md shadow-sm text-sm px-3 py-2 pr-10">
                 
-                {{-- Tombol Search (WARNA DIGANTI JADI GRAY-900) --}}
+                {{-- Tombol Search --}}
                 <button type="submit" class="absolute inset-y-0 right-0 flex items-center px-3 text-white bg-gray-900 hover:bg-gray-700 rounded-r-md transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -101,7 +101,7 @@
                     <td class="p-2 border font-semibold text-gray-800">{{ $p->judul }}</td>
                     <td class="p-2 border">{{ $authors ?: '-' }}</td>
                     
-                    {{-- STATUS (LABEL BIASA) --}}
+                    {{-- STATUS (TEXT LABEL BIASA) --}}
                     <td class="p-2 border text-center">
                         <span class="px-2 py-1 rounded text-sm font-semibold {{ $statusColor[$p->status] ?? 'bg-gray-200 text-gray-700' }}">
                             {{ ucfirst(str_replace('_',' ', $p->status)) }}
@@ -115,7 +115,6 @@
                             Detail
                         </a>
 
-                        {{-- Tombol Edit (WARNA DIGANTI JADI GRAY-900) --}}
                         <a href="{{ url()->current().'?page=assign&id='.$p->id }}"
                             class="px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-700">
                             Edit
@@ -148,21 +147,34 @@
                 </div>
             </div>
 
-            {{-- UPDATE STATUS (DROPDOWN) --}}
-            <div class="text-right mt-1">
+            {{-- [MODIFIKASI] 3 TOMBOL AKSI PENGGANTI DROPDOWN --}}
+            <div class="text-right w-56">
                 <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
                     @csrf
                     @method('PATCH')
-                    <select name="status" onchange="this.form.submit()" 
-                        class="cursor-pointer text-sm font-medium px-3 py-1 rounded border border-gray-300 bg-gray-50 focus:ring-gray-900 focus:border-gray-900">
-                         @foreach(['Unassign', 'In Review', 'Rejected', 'Accept with Review', 'Accepted'] as $opt)
-                            <option value="{{ $opt }}" {{ $paper->status == $opt ? 'selected' : '' }}>
-                                {{ $opt }}
-                            </option>
-                         @endforeach
-                    </select>
+                    
+                    <div class="flex flex-col gap-2">
+                        {{-- 1. Request Revisions (Abu-abu) --}}
+                        <button type="submit" name="status" value="Accept with Review"
+                            class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded shadow-sm text-sm transition text-left border border-gray-300">
+                            Request Revisions
+                        </button>
+
+                        {{-- 2. Accept Submission (Biru) --}}
+                        <button type="submit" name="status" value="Accepted"
+                            class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded shadow-sm text-sm transition text-left">
+                            Accept Submission
+                        </button>
+
+                        {{-- 3. Decline Submission (Pink/Merah) --}}
+                        <button type="submit" name="status" value="Rejected"
+                            class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded shadow-sm text-sm transition text-left">
+                            Decline Submission
+                        </button>
+                    </div>
                 </form>
             </div>
+            {{-- [AKHIR MODIFIKASI] --}}
         </div>
 
 
@@ -174,6 +186,7 @@
 
             <div class="bg-gray-50 border rounded-lg p-4">
                 
+                {{-- Form --}}
                 <form method="POST" action="{{ route('editor.assignSectionEditor', $paper->id) }}" class="mb-4">
                     @csrf
                     <div class="flex gap-2">
@@ -192,6 +205,7 @@
                     </div>
                 </form>
 
+                {{-- List Assigned --}}
                 <div class="mt-2 border-t border-gray-200 pt-3">
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Assigned Section Editors List</label>
                     <div class="space-y-2">
@@ -227,6 +241,7 @@
             
             <div class="bg-gray-50 border rounded-lg p-4">
                 
+                {{-- Form --}}
                 <form id="assignForm" method="POST" action="{{ route('editor.assignReviewers', $paper->id) }}">
                     @csrf
                     <input type="hidden" id="subjectInput" name="subject">
@@ -253,7 +268,6 @@
                         </div>
                     </div>
 
-                    {{-- Tombol Send Request (WARNA DIGANTI JADI GRAY-900) --}}
                     <button type="button" onclick="openAssignModal()"
                         class="bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-700 shadow-sm transition duration-200 flex items-center gap-2 text-sm font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -263,6 +277,7 @@
                     </button>
                 </form>
 
+                {{-- List Assigned --}}
                 <div class="mt-4 border-t border-gray-200 pt-4">
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Assigned Reviewers List</label>
                     <div class="space-y-4">
@@ -317,7 +332,7 @@
                             </div>
                         </div>
                         @empty
-                        <div class="text-sm text-gray-500 italic p-4 text-center">No reviewers assigned yet.</div>
+                        <div class="text-sm text-gray-500 italic">No reviewers assigned yet.</div>
                         @endforelse
                     </div>
                 </div>
@@ -340,7 +355,6 @@
 {{-- MODAL EMAIL (Hidden by default) --}}
 <div id="emailModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden transform transition-all">
-        {{-- Header Modal (WARNA DIGANTI JADI GRAY-900) --}}
         <div class="bg-gray-900 px-6 py-4 flex justify-between items-center">
             <h3 class="text-white text-lg font-semibold" id="modalTitle">Add Reviewer & Send Email</h3>
             <button onclick="closeModal()" class="text-white hover:text-gray-200 focus:outline-none">
@@ -372,7 +386,6 @@
         </div>
         <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
             <button onclick="closeModal()" class="px-4 py-2 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition">Cancel</button>
-            {{-- Tombol Send Modal (WARNA DIGANTI JADI GRAY-900) --}}
             <button onclick="submitProcess()" class="px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-700 shadow-sm transition">Send & Process</button>
         </div>
     </div>
@@ -460,6 +473,7 @@ function openAssignModal() {
     modalRecipient.value = names;
     emailSubject.value = "Invitation to Review Manuscript";
 
+    // TEMPLATE PESAN ASLI (Multi-line)
     const template = `Dear ${names},
 
 I believe that you would serve as an excellent reviewer of the manuscript, "${articleTitle},".
@@ -488,7 +502,7 @@ function openReminderModal(reviewerId, reviewerName, deadline) {
     modalRecipient.value = reviewerName;
     emailSubject.value = "Review Reminder: " + articleTitle;
 
-    // Template Pesan Reminder
+    // TEMPLATE PESAN REMINDER ASLI (Multi-line)
     const template = `Dear ${reviewerName},
 
 Just a gentle reminder regarding the manuscript "${articleTitle}" which is currently assigned to you for review.
