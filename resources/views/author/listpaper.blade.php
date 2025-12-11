@@ -52,7 +52,7 @@
                     {{ $allAuthors }}
                 </td>
 
-                <td class="p-2 border">
+                <td class="p-2 border text-center">
                     @php
                     $statusColor = [
                     'submitted' => 'bg-gray-300 text-gray-800',
