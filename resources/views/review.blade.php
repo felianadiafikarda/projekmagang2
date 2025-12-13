@@ -1,12 +1,17 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reviewer Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
 
-@section('page_title', 'Reviewer Dashboard')
-@section('page_subtitle', 'Manage and review assigned manuscripts')
-
-@section('content')
-
+<div class="max-w-7xl mx-auto p-8">
+  
 <!-- STATISTICS -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+<div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-10">
   <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
     <p class="text-sm text-gray-500 mb-1">Pending Reviews</p>
     <p class="text-3xl font-bold text-gray-800">2</p>
@@ -20,48 +25,101 @@
     <p class="text-3xl font-bold text-gray-800">1</p>
   </div>
   <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
+    <p class="text-sm text-gray-500 mb-1">Declined</p>
+    <p class="text-3xl font-bold text-gray-800">4</p>
+  </div>
+  <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
     <p class="text-sm text-gray-500 mb-1">Total Reviews</p>
     <p class="text-3xl font-bold text-gray-800">4</p>
   </div>
 </div>
 
-<!-- TABS -->
-<div class="flex gap-4 border-b border-gray-300 mb-6">
-  <button id="tab-pending" class="tab-btn pb-3 px-2 font-semibold border-b-2 border-gray-800 text-gray-900">
-    Pending (2)
-  </button>
-  <button id="tab-progress" class="tab-btn pb-3 px-2 font-semibold text-gray-500 hover:text-gray-800 transition">
-    In Progress (1)
-  </button>
-  <button id="tab-completed" class="tab-btn pb-3 px-2 font-semibold text-gray-500 hover:text-gray-800 transition">
-    Completed (1)
-  </button>
-</div>
-
 <!-- ARTICLE LISTS -->
 <div id="content-pending" class="space-y-4">
-  <!-- Pending Card 1 - Collapsed View -->
-  <div class="manuscript-card bg-white rounded-lg shadow border border-gray-200 p-6 hover:shadow-lg transition">
-    <div class="flex justify-between items-start mb-3">
-      <h3 class="text-lg font-semibold text-gray-900">
+  <!-- Article Card 1 - Initial State (Accept/Decline) -->
+  <div class="manuscript-card bg-white rounded-lg shadow border border-gray-200 p-6 hover:shadow-lg transition" data-status="pending">
+    <div class="flex justify-between items-start mb-4">
+      <h3 class="text-xl font-semibold text-gray-900">
         Machine Learning Approaches for Climate Change Prediction
       </h3>
-      <span class="bg-yellow-200 text-yellow-800 text-xs px-3 py-1 rounded-full ml-2">Pending</span>
+      <span class="bg-yellow-200 text-yellow-800 text-xs px-3 py-1 rounded-full ml-2">Awaiting Response</span>
     </div>
-    <p class="text-sm text-gray-600 mb-2"><strong>Authors:</strong> John Doe, Jane Smith</p>
-    <p class="text-sm text-gray-600 mb-2"><strong>Submitted:</strong> 2025-09-15</p>
-    <p class="text-sm text-gray-600 mb-2"><strong>Deadline:</strong> 2025-10-20</p>
-    <div class="flex gap-2 mt-4">
-      <button class="view-details-btn bg-gray-800 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700 transition">
-        View Details
-      </button>
-      <button class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm hover:bg-gray-300 transition">
-        Download PDF
-      </button>
+    
+    <div class="mb-4 pb-4 border-b border-gray-200">
+      <p class="text-sm text-gray-700 mb-3"><strong>Abstract:</strong></p>
+      <p class="text-sm text-gray-600 leading-relaxed">
+        Climate change prediction using machine learning techniques has become increasingly important. This paper explores various ML approaches including neural networks, random forests, and support vector machines to predict temperature anomalies and precipitation patterns. Our results demonstrate that ensemble methods achieve superior accuracy compared to individual models...
+      </p>
+    </div>
+    
+    <!-- Date and Buttons Section -->
+    <div class="accept-decline-section flex flex-col md:flex-row gap-4 mt-6">
+      <!-- Dates Column -->
+      <div class="flex-1 grid grid-cols-1 gap-3">
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Submitted</p>
+          <p class="text-sm font-medium text-gray-900">September 15, 2025</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Review Assigned</p>
+          <p class="text-sm font-medium text-gray-900">November 20, 2025</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Review Due Date</p>
+          <p class="text-sm font-medium text-red-600">December 10, 2025</p>
+        </div>
+      </div>
+      
+      <!-- Buttons Column -->
+      <div class="flex flex-col gap-3 md:w-64">
+        <button class="accept-btn bg-green-600 text-white px-6 py-3 rounded-md text-sm font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          Accept Review
+        </button>
+        <button class="decline-btn bg-red-600 text-white px-6 py-3 rounded-md text-sm font-semibold hover:bg-red-700 transition flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          Decline Review
+        </button>
+      </div>
+    </div>
+
+    <!-- Additional Info Section (Hidden initially, shown after accept) -->
+    <div class="accepted-info hidden mt-2 pt-2">
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4">
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Submitted</p>
+          <p class="text-sm font-semibold text-gray-900">September 15, 2025</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Review Assigned</p>
+          <p class="text-sm font-semibold text-gray-900">November 20, 2025</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Review Due Date</p>
+          <p class="text-sm font-semibold text-red-600">December 10, 2025</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Review Accepted On</p>
+          <p class="text-sm font-semibold text-green-600 accepted-date">-</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Review Completed</p>
+          <p class="text-sm font-semibold text-gray-900 completed-date">Not yet completed</p>
+        </div>
+        <div class="flex items-end">
+          <button class="view-details-btn bg-gray-800 text-white px-6 py-2.5 rounded-md text-sm font-semibold hover:bg-gray-700 transition w-full">
+            Start Review
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Pending Card 1 - Expanded Detail View (Hidden by default) -->
+  <!-- Manuscript Detail View -->
   <div class="manuscript-detail hidden bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
     <!-- Header Info -->
     <div class="bg-slate-700 text-white p-6">
@@ -84,7 +142,7 @@
         </p>
         <div class="flex gap-2 mt-3">
           <button class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded text-sm transition">
-            📄 Open Quick Preview
+            Open Quick Preview
           </button>
           <button class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded text-sm transition">
             Download files
@@ -143,8 +201,7 @@
       <p class="text-gray-700 mb-4">Before you submit your report, please review it to make sure it's a complete and thorough review.</p>
       
       <p class="text-gray-700">For further information, please see the <a href="#" class="text-blue-600 hover:underline">Discover Electronics reviewer guidelines</a>.</p>
-      
-      
+    </div>
 
     <!-- Report Content (Hidden by default) -->
     <div class="report-content hidden p-8">
@@ -158,82 +215,292 @@
         </div>
       </div>
 
-      <!-- Left Sidebar Navigation -->
-      <div class="grid grid-cols-4 gap-6">
-        <div class="col-span-1 space-y-2">
-          <a href="#feedback-author" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded font-medium">
-            Feedback for the author(s)
-          </a>
-          <a href="#confidential" class="block px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">
-            Confidential feedback for the Editor
-          </a>
-          <a href="#preview" class="block px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">
-            Preview
-          </a>
+      <!-- Sub-tabs for Your Report -->
+      <div class="flex gap-4 border-b border-gray-200 mb-6">
+        <button class="report-subtab active pb-3 px-2 font-medium text-sm border-b-2 border-teal-600 text-teal-600 transition-colors" data-tab="feedback">
+          Feedback for the author(s)
+        </button>
+        <button class="report-subtab pb-3 px-2 font-medium text-sm text-gray-500 hover:text-gray-700 transition-colors" data-tab="confidential">
+          Confidential feedback for the Editor
+        </button>
+        <button class="report-subtab pb-3 px-2 font-medium text-sm text-gray-500 hover:text-gray-700 transition-colors" data-tab="preview">
+          Preview
+        </button>
+      </div>
+
+      <!-- Feedback Tab Content -->
+      <div id="feedback-tab" class="report-tab-content">
+        <h4 class="text-xl font-semibold mb-4">Feedback for the author(s)</h4>
+        <p class="text-sm text-gray-600 mb-1"><span class="text-red-500">*</span> Indicates a required field</p>
+        
+        <ul class="list-disc ml-5 mb-6 text-sm text-gray-700 space-y-1">
+          <li>Your review should be constructive and focused on ensuring the results are accurately reported.</li>
+          <li>Please explain how the text can be revised and what essential work is needed to prepare a revision ready for acceptance.</li>
+          <li>If recommending rejection, you should explain why the submission does not meet our editorial criteria for publication.</li>
+          <li>If you wish to keep your anonymity, please avoid adding personal details to your report.</li>
+          <li>You can upload a file with your comments for the author(s) or include them in the text box below.</li>
+        </ul>
+
+        <!-- Review Files Upload -->
+        <div class="mb-6">
+          <h5 class="font-semibold text-gray-900 mb-2">Review file(s)</h5>
+          <p class="text-sm text-gray-600 mb-3">
+            Please, upload all the relevant review files. We accept files with a <strong>maximum size of 500MB</strong> each and in the following formats: <strong>DOC, DOCX or PDF.</strong>
+          </p>
+          
+          <!-- Drag & Drop Upload Area -->
+          <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer bg-gray-50 hover:bg-gray-100">
+            <input type="file" id="reviewFiles" class="hidden" accept=".doc,.docx,.pdf" multiple>
+            
+            <div class="flex flex-col items-center justify-center">
+              <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+              </svg>
+              
+              <p class="text-lg font-semibold text-gray-700 mb-2">
+                Drag & drop files here
+              </p>
+              <p class="text-sm text-gray-500 mb-4">or</p>
+              
+              <button type="button" onclick="document.getElementById('reviewFiles').click()" class="bg-slate-700 text-white px-6 py-3 rounded-md hover:bg-slate-600 transition font-medium">
+                <svg class="w-5 h-5 inline mr-2 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Browse Files
+              </button>
+              
+              <p class="text-xs text-gray-400 mt-3">
+                Supported formats: DOC, DOCX, PDF • Max size: 500MB per file
+              </p>
+            </div>
+          </div>
+          
+          <!-- File List -->
+          <div id="fileList" class="mt-4 space-y-2"></div>
         </div>
 
-        <!-- Main Form -->
-        <div class="col-span-3">
-          <h4 class="text-xl font-semibold mb-4">Feedback for the author(s)</h4>
-          <p class="text-sm text-gray-600 mb-1"><span class="text-red-500">*</span> Indicates a required field</p>
-          
-          <ul class="list-disc ml-5 mb-6 text-sm text-gray-700 space-y-1">
-            <li>Your review should be constructive and focused on ensuring the results are accurately reported.</li>
-            <li>Please explain how the text can be revised and what essential work is needed to prepare a revision ready for acceptance.</li>
-            <li>If recommending rejection, you should explain why the submission does not meet our editorial criteria for publication.</li>
-            <li>If you wish to keep your anonymity, please avoid adding personal details to your report.</li>
-            <li>You can upload a file with your comments for the author(s) or include them in the text box below.</li>
-          </ul>
+        <!-- Comments Textarea -->
+        <div class="mb-6">
+          <h5 class="font-semibold text-gray-900 mb-2">Comments to the author(s)</h5>
+          <p class="text-sm text-gray-600 mb-3">Please include your comments for the authors in the box below.</p>
+          <textarea id="commentsTextarea" class="w-full border border-gray-300 rounded-md p-3 h-48 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your comments here..."></textarea>
+        </div>
 
-          <!-- Review Files Upload -->
-          <div class="mb-6">
-            <h5 class="font-semibold text-gray-900 mb-2">Review file(s)</h5>
-            <p class="text-sm text-gray-600 mb-3">
-              Please, upload all the relevant review files. We accept files with a <strong>maximum size of 500MB</strong> each and in the following formats: <strong>DOC, DOCX or PDF.</strong>
-            </p>
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3">
+          <button class="bg-slate-600 text-white px-8 py-3 rounded-md hover:bg-slate-500 transition font-semibold">
+            Save Draft
+          </button>
+          <button class="bg-gray-800 text-white px-8 py-3 rounded-md hover:bg-gray-700 transition font-semibold">
+            Submit Review
+          </button>
+        </div>
+      </div>
+
+      <!-- Confidential Tab Content -->
+      <div id="confidential-tab" class="report-tab-content hidden">
+        <h4 class="text-xl font-semibold mb-4">Confidential feedback for the Editor</h4>
+        <p class="text-sm text-gray-600 mb-4">
+          <span class="text-red-500">*</span> Indicates a required field
+        </p>
+
+        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-blue-900">Confidential Information</p>
+              <p class="text-sm text-blue-700 mt-1">
+                This information will only be shared with the Editor and will not be visible to the authors.
+              </p>
+            </div>
+          </div>
+        </div>
+
+         <!-- Recommendation -->
+        <div class="mb-6">
+          <label class="block font-semibold text-gray-900 mb-3">
+            <span class="text-red-500">*</span> Your recommendation
+          </label>
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="recommendation" value="accept" class="w-4 h-4">
+              <span class="text-sm text-gray-700">Accept</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="recommendation" value="reject" class="w-4 h-4">
+              <span class="text-sm text-gray-700">Reject</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="recommendation" value="minor" class="w-4 h-4">
+              <span class="text-sm text-gray-700">Return for minor revisions</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="recommendation" value="major" class="w-4 h-4">
+              <span class="text-sm text-gray-700">Return for major revisions</span>
+            </label>
+          </div>
+          <p class="text-sm text-gray-600 mt-3">
+            If recommending a revision, please give clear and constructive advice that enables the authors to prepare their manuscript so that it's ready for acceptance - without requiring multiple rounds of revision.
+          </p>
+        </div>
+
+        <!--Q1-->
+        <div class="mb-6">
+          <label class="block font-semibold text-gray-900 mb-3">
+            <span class="text-red-500">*</span> Is the presentation of the work clear?
+          </label>
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="Q1" value="yes" class="w-4 h-4">
+              <span class="text-sm text-gray-700">Yes</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="Q1" value="no1" class="w-4 h-4">
+              <span class="text-sm text-gray-700">No, it's not suitable for publication unless extencively edited</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="Q1" value="no2" class="w-4 h-4">
+              <span class="text-sm text-gray-700">No, it needs some language corrections before being published</span>
+            </label>
+          </div>
+        </div>
+
+        <!--Q2-->
+        <div class="mb-6">
+          <label class="block font-semibold text-gray-900 mb-3">
+            <span class="text-red-500">*</span> Is the study design appropriate to answer the research question (including the use of appropriate controls), and are the conclusions supported by the evidence presented?
+          </label>
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="Q2" value="yes" class="w-4 h-4">
+              <span class="text-sm text-gray-700">Yes</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="Q2" value="no1" class="w-4 h-4">
+              <span class="text-sm text-gray-700">No, but these points can be addressed with revisions</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="Q2" value="no2" class="w-4 h-4">
+              <span class="text-sm text-gray-700">No, and there are fundamental issues that cannot be addressed</span>
+            </label>
+          </div>
+        </div>
+
+        <!--Q3-->
+        <div class="mb-6">
+          <label class="block font-semibold text-gray-900 mb-3">
+            <span class="text-red-500">*</span> Are the methods sufficiently described to allow the study to be repeated?
+          </label>
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="Q3" value="yes" class="w-4 h-4">
+              <span class="text-sm text-gray-700">Yes</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="Q3" value="no1" class="w-4 h-4">
+              <span class="text-sm text-gray-700">No, but these points can be addressed with revisions</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="Q3" value="no2" class="w-4 h-4">
+              <span class="text-sm text-gray-700">No, and there are fundamental issues that cannot be addressed</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <h5 class="font-semibold text-gray-900 mb-2">Confidential to the Editor (optional)</h5>
+          <p class="text-sm text-gray-600 mb-3">
+            Please note, comments added to this box are confidential and will not be shared with the author
+          </p>
+          <ul class="list-disc ml-5 mb-6 text-sm text-gray-700 space-y-1">
+          <li>Ethical concern regarding experiments</li>
+          <li>Concerns regarding any disclosed conflict of interest</li>
+          <li>Concern regarding plagiarism or publication ethics</li>
+          <li>Any additional comments to enable the Editor to assess the revions you have requested</li>
+          </ul>
+          <textarea id="confidentialTextarea" class="w-full border border-gray-300 rounded-md p-3 h-48 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your confidential comments here..."></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3">
+          <button class="bg-slate-600 text-white px-8 py-3 rounded-md hover:bg-slate-500 transition font-semibold">
+            Save Draft
+          </button>
+          <button class="bg-gray-800 text-white px-8 py-3 rounded-md hover:bg-gray-700 transition font-semibold">
+            Submit Review
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview Tab Content -->
+      <div id="preview-tab" class="report-tab-content hidden">
+        <div class="mb-6">
+          <h4 class="text-xl font-semibold mb-2">Preview Your Report</h4>
+          <p class="text-sm text-gray-600">Please review your report before submitting</p>
+        </div>
+
+        <div id="previewContent" class="space-y-6">
+          <!-- Feedback Preview -->
+          <div class="bg-gray-50 border border-gray-300 rounded-lg p-8">
+            <h4 class="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+              Feedback for the author(s)
+            </h4>
             
-            <!-- Drag & Drop Upload Area -->
-            <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer bg-gray-50 hover:bg-gray-100">
-              <input type="file" id="reviewFiles" class="hidden" accept=".doc,.docx,.pdf" multiple>
-              
-              <div class="flex flex-col items-center justify-center">
-                <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                </svg>
-                
-                <p class="text-lg font-semibold text-gray-700 mb-2">
-                  Drag & drop files here
-                </p>
-                <p class="text-sm text-gray-500 mb-4">or</p>
-                
-                <button type="button" onclick="document.getElementById('reviewFiles').click()" class="bg-slate-700 text-white px-6 py-3 rounded-md hover:bg-slate-600 transition font-medium">
-                  <svg class="w-5 h-5 inline mr-2 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                  </svg>
-                  Browse Files
-                </button>
-                
-                <p class="text-xs text-gray-400 mt-3">
-                  Supported formats: DOC, DOCX, PDF • Max size: 500MB per file
+            <div class="mb-6" id="previewRecommendation">
+              <h5 class="font-medium text-gray-900 mb-3">Your Recommendation:</h5>
+              <div class="bg-white border-2 border-gray-200 rounded-lg p-4">
+                <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800" id="recommendationValue">
+                  Not selected
+                </span>
+              </div>
+            </div>
+
+            <div class="mb-6 hidden" id="previewFiles">
+              <h5 class="font-medium text-gray-900 mb-3">Uploaded Files:</h5>
+              <ul class="space-y-2" id="previewFilesList"></ul>
+            </div>
+            
+            <div>
+              <h5 class="font-medium text-gray-900 mb-3">Comments to the author(s):</h5>
+              <div class="bg-white border-2 border-gray-200 rounded-lg p-4 text-gray-700 whitespace-pre-wrap min-h-[100px]" id="previewComments">
+                <span class="text-gray-400 italic">No comments provided yet</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Confidential Preview -->
+          <div class="bg-gray-50 border border-gray-300 rounded-lg p-8 hidden" id="previewConfidentialSection">
+            <h4 class="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+              Confidential feedback for the Editor
+            </h4>
+            <div class="bg-white border-2 border-gray-200 rounded-lg p-4 text-gray-700 whitespace-pre-wrap min-h-[100px]" id="previewConfidential">
+            </div>
+          </div>
+
+          <!-- Info Box -->
+          <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="flex items-start gap-3">
+              <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-blue-900">Review your information carefully</p>
+                <p class="text-sm text-blue-700 mt-1">
+                  If everything looks correct, you can go back to the previous tabs to make edits or submit your review.
                 </p>
               </div>
             </div>
-            
-            <!-- File List -->
-            <div id="fileList" class="mt-4 space-y-2"></div>
           </div>
 
-          <!-- Comments Textarea -->
-          <div class="mb-6">
-            <h5 class="font-semibold text-gray-900 mb-2">Comments to the author(s)</h5>
-            <p class="text-sm text-gray-600 mb-3">Please include your comments for the authors in the box below.</p>
-            <textarea class="w-full border border-gray-300 rounded-md p-3 h-48 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your comments here..."></textarea>
-          </div>
-
-          <!-- Next Button -->
-          <div class="flex justify-end">
+          <!-- Action Buttons -->
+          <div class="flex justify-end gap-3">
+            <button onclick="switchReportTab('feedback')" class="bg-slate-600 text-white px-8 py-3 rounded-md hover:bg-slate-500 transition font-semibold">
+              Back to Edit
+            </button>
             <button class="bg-gray-800 text-white px-8 py-3 rounded-md hover:bg-gray-700 transition font-semibold">
-              Next >
+              Submit Review
             </button>
           </div>
         </div>
@@ -241,104 +508,174 @@
     </div>
   </div>
 
-  <!-- Pending Card 2 - Collapsed View -->
-  <div class="bg-white rounded-lg shadow border border-gray-200 p-6 hover:shadow-lg transition">
-    <div class="flex justify-between items-start mb-3">
-      <h3 class="text-lg font-semibold text-gray-900">
+  <!-- Article Card 2 -->
+  <div class="manuscript-card bg-white rounded-lg shadow border border-gray-200 p-6 hover:shadow-lg transition" data-status="pending">
+    <div class="flex justify-between items-start mb-4">
+      <h3 class="text-xl font-semibold text-gray-900">
         Blockchain Technology in Healthcare Systems
       </h3>
-      <span class="bg-yellow-200 text-yellow-800 text-xs px-3 py-1 rounded-full ml-2">Pending</span>
+      <span class="bg-yellow-200 text-yellow-800 text-xs px-3 py-1 rounded-full ml-2">Awaiting Response</span>
     </div>
-    <p class="text-sm text-gray-600 mb-2"><strong>Authors:</strong> Alice Johnson, Bob Williams</p>
-    <p class="text-sm text-gray-600 mb-2"><strong>Submitted:</strong> 2025-09-20</p>
-    <p class="text-sm text-gray-600 mb-2"><strong>Deadline:</strong> 2025-10-25</p>
-    <div class="flex gap-2 mt-4">
-      <button class="bg-gray-800 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700 transition">
-        View Details
-      </button>
-      <button class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm hover:bg-gray-300 transition">
-        Download PDF
+    
+    <div class="mb-4 pb-4 border-b border-gray-200">
+      <p class="text-sm text-gray-700 mb-3"><strong>Abstract:</strong></p>
+      <p class="text-sm text-gray-600 leading-relaxed">
+        This research investigates the implementation of blockchain technology in healthcare information systems. We propose a decentralized framework for secure patient data management that ensures privacy, interoperability, and auditability. The system utilizes smart contracts to automate access control and maintain comprehensive audit trails...
+      </p>
+    </div>
+    
+    <!-- Date and Buttons Section -->
+    <div class="accept-decline-section flex flex-col md:flex-row gap-4 mt-6">
+      <!-- Dates Column -->
+      <div class="flex-1 grid grid-cols-1 gap-3">
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Submitted</p>
+          <p class="text-sm font-medium text-gray-900">September 15, 2025</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Review Assigned</p>
+          <p class="text-sm font-medium text-gray-900">November 20, 2025</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Review Due Date</p>
+          <p class="text-sm font-medium text-red-600">December 10, 2025</p>
+        </div>
+      </div>
+      
+      <!-- Buttons Column -->
+      <div class="flex flex-col gap-3 md:w-64">
+        <button class="accept-btn bg-green-600 text-white px-6 py-3 rounded-md text-sm font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          Accept Review
+        </button>
+        <button class="decline-btn bg-red-600 text-white px-6 py-3 rounded-md text-sm font-semibold hover:bg-red-700 transition flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          Decline Review
+        </button>
+      </div>
+    </div>
+
+    <!-- Additional Info Section (Hidden initially, shown after accept) -->
+    <div class="accepted-info hidden mt-4 pt-4">
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Review Accepted On</p>
+          <p class="text-sm font-medium text-green-600 accepted-date">-</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Review Completed</p>
+          <p class="text-sm font-medium text-gray-900 completed-date">Not yet completed</p>
+        </div>
+      </div>
+      <button class="view-details-btn w-full bg-gray-800 text-white px-6 py-3 rounded-md text-sm font-semibold hover:bg-gray-700 transition">
+        Start Review
       </button>
     </div>
   </div>
 </div>
 
-<!-- IN PROGRESS -->
-<div id="content-progress" class="hidden space-y-4">
-  <div class="bg-white rounded-lg shadow border border-gray-200 p-6 hover:shadow-lg transition">
-    <div class="flex justify-between items-start mb-3">
-      <h3 class="text-lg font-semibold text-gray-900">AI-Powered Medical Diagnosis System</h3>
-      <span class="bg-blue-200 text-blue-800 text-xs px-3 py-1 rounded-full ml-2">In Progress</span>
-    </div>
-    <p class="text-sm text-gray-600 mb-2"><strong>Authors:</strong> Sarah Connor, Michael Lee</p>
-    <p class="text-sm text-gray-600 mb-2"><strong>Started:</strong> 2025-10-01</p>
-    <p class="text-sm text-gray-600 mb-2"><strong>Deadline:</strong> 2025-10-25</p>
-    <div class="flex gap-2 mt-4">
-      <button class="bg-gray-800 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700 transition">
-        Continue Review
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- COMPLETED -->
-<div id="content-completed" class="hidden space-y-4">
-  <div class="bg-white rounded-lg shadow border border-gray-200 p-6 hover:shadow-lg transition">
-    <div class="flex justify-between items-start mb-3">
-      <h3 class="text-lg font-semibold text-gray-900">Optimization Algorithms in Data Science</h3>
-      <span class="bg-green-200 text-green-800 text-xs px-3 py-1 rounded-full ml-2">Completed</span>
-    </div>
-    <p class="text-sm text-gray-600 mb-2"><strong>Authors:</strong> Kevin Wright, Laura Green</p>
-    <p class="text-sm text-gray-600 mb-2"><strong>Reviewed:</strong> 2025-09-30</p>
-    <p class="text-sm text-gray-600 mb-2"><strong>Status:</strong> Accepted</p>
-    <div class="flex gap-2 mt-4">
-      <button class="bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm hover:bg-gray-300 transition">
-        View Review
-      </button>
-    </div>
-  </div>
 </div>
 
 <script>
-  // Tab switching for main tabs (Pending, In Progress, Completed)
-  const tabs = document.querySelectorAll('.tab-btn');
-  const contents = {
-    'tab-pending': document.getElementById('content-pending'),
-    'tab-progress': document.getElementById('content-progress'),
-    'tab-completed': document.getElementById('content-completed')
-  };
-
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('border-b-2', 'border-gray-800', 'text-gray-900'));
-      tab.classList.add('border-b-2', 'border-gray-800', 'text-gray-900');
-
-      Object.values(contents).forEach(c => c.classList.add('hidden'));
-      contents[tab.id].classList.remove('hidden');
-    });
+  // Accept Review Button Handler
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.accept-btn')) {
+      const card = e.target.closest('.manuscript-card');
+      const acceptDeclineSection = card.querySelector('.accept-decline-section');
+      const acceptedInfo = card.querySelector('.accepted-info');
+      const statusBadge = card.querySelector('span');
+      
+      // Get current date
+      const currentDate = new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      
+      // Update UI
+      acceptDeclineSection.classList.add('hidden');
+      acceptedInfo.classList.remove('hidden');
+      acceptedInfo.querySelector('.accepted-date').textContent = currentDate;
+      
+      // Update status badge
+      statusBadge.textContent = 'Accepted';
+      statusBadge.classList.remove('bg-yellow-200', 'text-yellow-800');
+      statusBadge.classList.add('bg-green-200', 'text-green-800');
+      
+      // Update card status
+      card.setAttribute('data-status', 'accepted');
+      
+      // Show success message
+      showNotification('Review accepted successfully!', 'success');
+    }
   });
 
+  // Decline Review Button Handler
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.decline-btn')) {
+      const card = e.target.closest('.manuscript-card');
+      const statusBadge = card.querySelector('span');
+      
+      // Confirm decline
+      if (confirm('Are you sure you want to decline this review? This action cannot be undone.')) {
+        // Update status badge
+        statusBadge.textContent = 'Declined';
+        statusBadge.classList.remove('bg-yellow-200', 'text-yellow-800');
+        statusBadge.classList.add('bg-red-200', 'text-red-800');
+        
+        // Hide accept/decline buttons
+        const acceptDeclineSection = card.querySelector('.accept-decline-section');
+        acceptDeclineSection.classList.add('hidden');
+        
+        // Update card status
+        card.setAttribute('data-status', 'declined');
+        
+        // Show message
+        showNotification('Review declined', 'info');
+        
+        // Optionally fade out the card after a delay
+        setTimeout(() => {
+          card.style.opacity = '0.5';
+          card.style.pointerEvents = 'none';
+        }, 1000);
+      }
+    }
+  });
+
+  // Show notification helper function
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-50 ${
+      type === 'success' ? 'bg-green-600' : 
+      type === 'error' ? 'bg-red-600' : 
+      'bg-blue-600'
+    }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      notification.style.transition = 'opacity 0.3s';
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
   // View Details button - Show/Hide manuscript detail
-  const viewDetailsButtons = document.querySelectorAll('.view-details-btn');
-  
-  viewDetailsButtons.forEach((btn, index) => {
-    btn.addEventListener('click', () => {
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('view-details-btn') || e.target.closest('.view-details-btn')) {
+      const btn = e.target.classList.contains('view-details-btn') ? e.target : e.target.closest('.view-details-btn');
       const card = btn.closest('.manuscript-card');
       const detail = card.nextElementSibling;
       
       if (detail && detail.classList.contains('manuscript-detail')) {
-        // Toggle visibility
-        if (detail.classList.contains('hidden')) {
-          detail.classList.remove('hidden');
-          card.classList.add('hidden');
-          btn.textContent = 'Hide Details';
-        } else {
-          detail.classList.add('hidden');
-          card.classList.remove('hidden');
-          btn.textContent = 'View Details';
-        }
+        detail.classList.remove('hidden');
+        card.classList.add('hidden');
       }
-    });
+    }
   });
 
   // Back button - Return to card view
@@ -354,7 +691,7 @@
     }
   });
 
-  // Tab switching for Guidance/Report
+  // Tab switching for Guidance/Report (Main tabs)
   const guidanceTabs = document.querySelectorAll('.guidance-tab');
   const reportTabs = document.querySelectorAll('.report-tab');
   
@@ -389,6 +726,110 @@
       guidanceContent.classList.add('hidden');
     });
   });
+
+  // Sub-tabs switching for Report section
+  function switchReportTab(tabName) {
+    // Remove active class from all sub-tabs
+    document.querySelectorAll('.report-subtab').forEach(tab => {
+      tab.classList.remove('active', 'border-b-2', 'border-teal-600', 'text-teal-600');
+      tab.classList.add('text-gray-500');
+    });
+    
+    // Hide all tab contents
+    document.querySelectorAll('.report-tab-content').forEach(content => {
+      content.classList.add('hidden');
+    });
+    
+    // Show selected tab
+    const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+    const selectedContent = document.getElementById(`${tabName}-tab`);
+    
+    if (selectedTab) {
+      selectedTab.classList.add('active', 'border-b-2', 'border-teal-600', 'text-teal-600');
+      selectedTab.classList.remove('text-gray-500');
+    }
+    
+    if (selectedContent) {
+      selectedContent.classList.remove('hidden');
+    }
+    
+    // Update preview if switching to preview tab
+    if (tabName === 'preview') {
+      updatePreview();
+    }
+  }
+
+  // Add click handlers for sub-tabs
+  document.querySelectorAll('.report-subtab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.getAttribute('data-tab');
+      switchReportTab(tabName);
+    });
+  });
+
+  // Update preview function
+  function updatePreview() {
+    // Get recommendation
+    const selectedRecommendation = document.querySelector('input[name="recommendation"]:checked');
+    const recommendationValue = document.getElementById('recommendationValue');
+    if (selectedRecommendation) {
+      const labels = {
+        'accept': 'Accept',
+        'reject': 'Reject',
+        'minor': 'Return for minor revisions',
+        'major': 'Return for major revisions'
+      };
+      recommendationValue.textContent = labels[selectedRecommendation.value];
+      document.getElementById('previewRecommendation').classList.remove('hidden');
+    }
+    
+    // Get uploaded files
+    const fileList = document.getElementById('fileList');
+    const files = fileList.querySelectorAll('.group');
+    const previewFiles = document.getElementById('previewFiles');
+    const previewFilesList = document.getElementById('previewFilesList');
+    
+    if (files.length > 0) {
+      previewFilesList.innerHTML = '';
+      files.forEach(file => {
+        const fileName = file.querySelector('.truncate').textContent;
+        const fileSize = file.querySelector('.text-xs').textContent.split(' ')[0];
+        const li = document.createElement('li');
+        li.className = 'flex items-center gap-2 text-sm text-gray-700 bg-white p-3 rounded border border-gray-200';
+        li.innerHTML = `
+          <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clip-rule="evenodd"/>
+          </svg>
+          <span class="flex-1">${fileName}</span>
+          <span class="text-gray-500 text-xs">${fileSize} MB</span>
+        `;
+        previewFilesList.appendChild(li);
+      });
+      previewFiles.classList.remove('hidden');
+    } else {
+      previewFiles.classList.add('hidden');
+    }
+    
+    // Get comments
+    const comments = document.getElementById('commentsTextarea').value;
+    const previewComments = document.getElementById('previewComments');
+    if (comments) {
+      previewComments.textContent = comments;
+    } else {
+      previewComments.innerHTML = '<span class="text-gray-400 italic">No comments provided yet</span>';
+    }
+    
+    // Get confidential comments
+    const confidentialComments = document.getElementById('confidentialTextarea').value;
+    const previewConfidentialSection = document.getElementById('previewConfidentialSection');
+    const previewConfidential = document.getElementById('previewConfidential');
+    if (confidentialComments) {
+      previewConfidential.textContent = confidentialComments;
+      previewConfidentialSection.classList.remove('hidden');
+    } else {
+      previewConfidentialSection.classList.add('hidden');
+    }
+  }
 
   // File upload handler
   const dropZone = document.getElementById('dropZone');
@@ -533,4 +974,6 @@
     fileInput.value = '';
   }
 </script>
-@endsection
+
+</body>
+</html>
