@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -117,8 +118,12 @@ Route::middleware('auth')->group(function () {
     Route::put('/prepared-emails/{emailTemplate}', [PreparedEmailController::class, 'update'])->name('prepared_email.update');
     Route::delete('/prepared-emails/{emailTemplate }', [PreparedEmailController::class, 'destroy'])->name('prepared_email.destroy');
 
-    Route::post('/review/invitation/{id}/accept', [ReviewerController::class, 'acceptInvitation'])->name('reviewer.accept');
-    Route::post('/review/invitation/{id}/decline', [ReviewerController::class, 'declineInvitation'])->name('reviewer.decline');
+    
+    Route::post('/notifications/read-all', function () {
+        Notification::where('user_id', auth()->id())
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+    })->name('notifications.markRead'); // Tandai semua notifikasi sebagai sudah dibaca
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });

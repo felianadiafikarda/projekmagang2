@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -36,9 +37,8 @@ class UserController extends Controller
             });
         }
 
-        // --- Pagination (5 data per page seperti kode awal) ---
         $users = $query->paginate(5);
-        $users->appends($request->all()); // penting: agar filter tetap saat next page
+        $users->appends($request->all());
 
         // Roles untuk filter dropdown, admin dikeluarkan
         $roles = Role::where('name', '!=', 'admin')->get();
@@ -62,10 +62,49 @@ class UserController extends Controller
 
     public function updateRoles(Request $request, User $user)
     {
-        $roles = Role::whereIn('name', $request->roles)->pluck('id');
-        $user->roles()->sync($roles);
+        $request->validate([
+            'roles'   => 'array',
+            'roles.*' => 'string'
+        ]);
 
-        return response()->json(['success' => true]);
+        // Ambil role lama (name)
+        $oldRoles = $user->roles->pluck('name')->toArray();
+
+        // Role baru dari request
+        $newRoles = $request->roles ?? [];
+
+        // Ambil ID role
+        $roleIds = Role::whereIn('name', $newRoles)->pluck('id')->toArray();
+
+        // Update role user
+        $user->roles()->sync($roleIds);
+
+        // Cari role yang BARU DITAMBAHKAN
+        $addedRoles = array_diff($newRoles, $oldRoles);
+
+        // Jika ada role baru → buat notifikasi
+        if (count($addedRoles) > 0) {
+            foreach ($addedRoles as $roleName) {
+                $roles = Role::where('name', $roleName)->first();
+
+                Notification::create([
+                    'user_id' => $user->id,
+                    'title'   => 'Role Updated',
+                    'message' => 'Your role has changed. You now have access as a ' . $roles->display_name . '.',
+                    'type'    => 'role_updated',
+                    'status'  => null,
+                    'data'    => [
+                        'role_name'  => $roles->display_name,
+                        'updated_by' => auth()->id(),
+                    ],
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'added'   => array_values($addedRoles),
+        ]);
     }
 
     public function store(Request $request)

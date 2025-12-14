@@ -37,7 +37,7 @@
 
 <!-- FILTERS & SEARCH -->
 <div class="bg-white p-4 rounded-lg shadow border border-gray-200 mb-6">
-  <form method="GET" action="{{ route('users.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+  <form method="GET" action="{{ route('users.index') }}" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-center">
 
     <select name="role" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
       <option value="">All Roles</option>
@@ -48,13 +48,7 @@
       @endforeach
     </select>
 
-    <select name="status" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
-      <option value="">All Status</option>
-      <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-      <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-    </select>
-
-    <input type="text" name="search" placeholder="Search..." value="{{ request('search') }}" class="border border-gray-300 rounded-md px-3 py-2 text-sm col-span-1">
+    <input type="text" name="search" placeholder="Search..." value="{{ request('search') }}" class="md:col-span-3 border border-gray-300 rounded-md px-4 py-2 text-sm" id="search-input">
 
     <button class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 transition">
       Search
@@ -98,7 +92,7 @@
                 </span>
               </div>
               <div>
-                <p class="text-sm font-medium text-gray-900">{{ $user->name }}</p>
+                <p class="text-sm font-medium text-gray-900">{{ $user->first_name . ' ' . $user->last_name }}</p>
                 <p class="text-xs text-gray-500">{{ '@' . explode('@', $user->email)[0] }}</p>
               </div>
             </div>
@@ -150,10 +144,9 @@
               <a href="#" class="text-blue-600 hover:underline">View Details</a>
               <button class="text-blue-600 hover:text-blue-800 text-sm font-medium edit-role-btn"
                 data-user-id="{{ $user->id }}"
-                data-user-name="{{ $user->name }}"
+                data-user-name="{{ $user->first_name}} {{ $user->last_name }}"
                 data-user-email="{{ $user->email }}"
                 data-user-affiliation="{{ $user->affiliation }}"
-                data-user-status="{{ $user->status ?? 'active' }}"
                 data-user-roles="{{ $user->roles->pluck('name')->join(',') }}">
                 Edit Roles
               </button>
@@ -200,12 +193,12 @@
     <div class="bg-gray-50 p-4 rounded-lg mb-6">
       <div class="flex items-center gap-4">
         <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center">
-          <span class="text-indigo-600 font-semibold text-lg" id="modal-user-initials">JW</span>
+          <span class="text-indigo-600 font-semibold text-lg" id="modal-user-initials">{{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}</span>
         </div>
         <div>
-          <h3 class="font-semibold text-gray-900" id="modal-user-name">Prof. James Wilson</h3>
-          <p class="text-sm text-gray-600" id="modal-user-email">james.wilson@journal.edu</p>
-          <p class="text-xs text-gray-500" id="modal-user-affiliation">University of Tech</p>
+          <h3 class="font-semibold text-gray-900" id="modal-user-name">{{ $user->first_name . ' ' . $user->last_name }}</h3>
+          <p class="text-sm text-gray-600" id="modal-user-email">{{ $user->email }}</p>
+          <p class="text-xs text-gray-500" id="modal-user-affiliation">{{ $user->affiliation ?? '-' }}</p>
         </div>
       </div>
     </div>
@@ -482,9 +475,20 @@
             })
           })
           .then(res => res.json())
-          .then(() => {
-            showNotification("Roles updated successfully!");
-            location.reload();
+          .then(data => {
+            if (data.added && data.added.length > 0) {
+              showNotification(
+                `Role berhasil ditambahkan: ${data.added.join(', ')}`
+              );
+            } else if (data.removed && data.removed.length > 0) {
+              showNotification(
+                `Role berhasil dihapus: ${data.removed.join(', ')}`
+              );
+            } else {
+              showNotification("Role diperbarui tanpa perubahan");
+            }
+
+            setTimeout(() => location.reload(), 1500);
           });
       });
     }
