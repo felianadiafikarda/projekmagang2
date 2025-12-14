@@ -77,6 +77,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/editor/paper/{id}/status', [EditorController::class, 'updateStatus'])->name('editor.updateStatus');
 
     Route::get('/reviewer', [ReviewerController::class, 'index'])->name('reviewer.index');
+    Route::post('/reviewer/{paper}/accept', [ReviewerController::class, 'acceptReview'])->name('reviewer.accept');
+    Route::post('/reviewer/{paper}/decline', [ReviewerController::class, 'declineReview'])->name('reviewer.decline');
+    Route::get('/reviewer/review/{paper}', [ReviewerController::class, 'showReviewForm'])->name('reviewer.review');
+    Route::post('/reviewer/review/{paper}/submit', [ReviewerController::class, 'submitReview'])->name('reviewer.submitReview');
     Route::get('/author/kirim-artikel', [AuthorController::class, 'paper'])->name('author.kirim');
 
     // User Management Routes

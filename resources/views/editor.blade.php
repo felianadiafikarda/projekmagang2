@@ -193,8 +193,10 @@
                         <div class="flex-grow">
                             <select id="editorSelect" name="section_editors[]" multiple placeholder="Select Section Editor...">
                                 @foreach($all_section_editors as $se)
-                                <option value="{{ $se->id }}" @if(in_array($se->id, $assignedSectionEditors->pluck('id')->toArray())) selected @endif>
-                                    {{ $se->first_name . ' ' . $se->last_name }}
+                                <option value="{{ $se->id }}" 
+                                    data-assigned="{{ $se->assigned_papers }}"
+                                    @if(in_array($se->id, $assignedSectionEditors->pluck('id')->toArray())) selected @endif>
+                                    {{ $se->first_name . ' ' . $se->last_name }} (Active Papers : {{ $se->assigned_papers }})
                                 </option>
                                 @endforeach
                             </select>
@@ -255,8 +257,11 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Select Reviewers</label>
                             <select id="reviewerSelect" name="reviewers[]" multiple placeholder="Cari dan pilih Reviewer..." autocomplete="off">
                                 @foreach($all_reviewers as $rev)
-                                <option value="{{ $rev->id }}" @if(in_array($rev->id, $assignedReviewers->pluck('id')->toArray())) selected @endif>
-                                    {{ $rev->first_name . ' ' . $rev->last_name }}
+                                <option value="{{ $rev->id }}" 
+                                    data-active="{{ $rev->active_papers }}"
+                                    data-total="{{ $rev->total_papers }}"
+                                    @if(in_array($rev->id, $assignedReviewers->pluck('id')->toArray())) selected @endif>
+                                    {{ $rev->first_name . ' ' . $rev->last_name }} (Active Reviews : {{ $rev->active_papers }})
                                 </option>
                                 @endforeach
                             </select>
@@ -411,15 +416,17 @@ document.addEventListener('DOMContentLoaded', function() {
             placeholder: 'Cari dan pilih Reviewer...',
             render: {
                 option: function(data, escape) {
+                    const activePapers = data.$option?.dataset?.active || '0';
+                    
                     return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
-                                    <div class="font-medium text-gray-800">${escape(data.text)}</div>
-                                    <div class="text-xs text-green-600">Available Reviewer</div>
-                                </div>`;
+                                <div class="font-medium text-gray-800">${escape(data.text.split(' (')[0])}</div>
+                                <div class="text-xs text-green-600">Active Reviews : ${activePapers}</div>
+                            </div>`;
                 },
                 item: function(data, escape) {
                     return `<div class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full mr-1 flex items-center shadow-sm border border-blue-200">
-                                    ${escape(data.text)}
-                                </div>`;
+                                ${escape(data.text)}
+                            </div>`;
                 }
             }
         });
@@ -431,6 +438,20 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: ['remove_button'],
             maxItems: null,
             placeholder: 'Pilih Section Editor...',
+            render: {
+                option: function(data, escape) {
+                    const assignedPapers = data.$option?.dataset?.assigned || '0';
+                    return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
+                                <div class="font-medium text-gray-800">${escape(data.text.split(' (')[0])}</div>
+                                <div class="text-xs text-blue-600">Active Papers : ${assignedPapers}</div>
+                            </div>`;
+                },
+                item: function(data, escape) {
+                    return `<div class="px-3 py-1 bg-green-100 text-green-800 rounded-full mr-1 flex items-center shadow-sm border border-green-200">
+                                ${escape(data.text)}
+                            </div>`;
+                }
+            }
         });
     }
 });
@@ -465,8 +486,11 @@ function openAssignModal() {
         return;
     }
 
-    // Gabungkan nama reviewer
-    let names = selectedItems.map(id => selectedOptions[id].text).join(", ");
+    // Gabungkan nama reviewer (ambil hanya nama, tanpa info jumlah pekerjaan)
+    let names = selectedItems.map(id => {
+        const text = selectedOptions[id].text;
+        return text.split(' (')[0]; // Ambil hanya nama sebelum tanda kurung
+    }).join(", ");
 
     // Set isi modal
     modalTitle.innerText = "Assign Reviewer & Send Invitation";
