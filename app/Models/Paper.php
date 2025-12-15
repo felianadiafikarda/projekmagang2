@@ -22,7 +22,7 @@ class Paper extends Model
 
     public function reviewers()
     {
-        return $this->belongsToMany(User::class, 'paper_reviewer')->withPivot('deadline', 'status', 'recommendation', 'invitation_token')->withTimestamps();
+        return $this->belongsToMany(User::class, 'paper_reviewer')->withPivot('deadline', 'status', 'recommendation')->withTimestamps();
     }
 
     public function sectionEditors()

@@ -45,22 +45,40 @@ class EditorController extends Controller
 
             $articleUrl = $paper->file_path ? asset('storage/' . $paper->file_path) : '#';
 
-            // Ambil semua user sebagai reviewer dengan info jumlah paper aktif
-            $all_reviewers = User::all()->map(function($reviewer) {
+            // Ambil semua user yang memiliki role reviewer dengan info jumlah paper aktif
+            $all_reviewers = User::whereHas('roles', function($q) {
+                $q->where('name', 'reviewer');
+            })->get()->map(function($reviewer) {
                 // Hitung jumlah paper aktif (yang sudah di-accept atau sedang di-review)
                 $activePapers = DB::table('paper_reviewer')
                     ->where('user_id', $reviewer->id)
                     ->whereIn('status', ['accept_to_review', 'completed'])
                     ->count();
 
+                // Hitung total paper yang di-assign (termasuk yang belum di-accept)
+                $totalPapers = DB::table('paper_reviewer')
+                    ->where('user_id', $reviewer->id)
+                    ->count();
+
                 $reviewer->active_papers = $activePapers;
-                $reviewer->can_assign = $activePapers < 5;
+                $reviewer->total_papers = $totalPapers;
 
                 return $reviewer;
             });
 
-            // Ambil semua user sebagai section editor
-            $all_section_editors = User::all();
+            // Ambil semua user yang memiliki role section_editor dengan info jumlah paper aktif
+            $all_section_editors = User::whereHas('roles', function($q) {
+                $q->where('name', 'section_editor');
+            })->get()->map(function($sectionEditor) {
+                // Hitung jumlah paper yang di-assign ke section editor ini
+                $assignedPapers = DB::table('paper_section_editor')
+                    ->where('user_id', $sectionEditor->id)
+                    ->count();
+
+                $sectionEditor->assigned_papers = $assignedPapers;
+
+                return $sectionEditor;
+            });
 
             return view('editor', [
                 'page'                  => 'assign',

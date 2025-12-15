@@ -52,16 +52,23 @@ class SectionEditorController extends Controller
 
             $articleUrl = $paper->file_path ? asset('storage/' . $paper->file_path) : '#';
 
-            // Ambil semua user sebagai reviewer dengan info jumlah paper aktif
-            $all_reviewers = User::all()->map(function($reviewer) {
+            // Ambil semua user yang memiliki role reviewer dengan info jumlah paper aktif
+            $all_reviewers = User::whereHas('roles', function($q) {
+                $q->where('name', 'reviewer');
+            })->get()->map(function($reviewer) {
                 // Hitung jumlah paper aktif (yang sudah di-accept atau sedang di-review)
                 $activePapers = DB::table('paper_reviewer')
                     ->where('user_id', $reviewer->id)
                     ->whereIn('status', ['accept_to_review', 'completed'])
                     ->count();
                 
+                // Hitung total paper yang di-assign (termasuk yang belum di-accept)
+                $totalPapers = DB::table('paper_reviewer')
+                    ->where('user_id', $reviewer->id)
+                    ->count();
+                
                 $reviewer->active_papers = $activePapers;
-                $reviewer->can_assign = $activePapers < 5;
+                $reviewer->total_papers = $totalPapers;
                 
                 return $reviewer;
             });
@@ -79,7 +86,7 @@ class SectionEditorController extends Controller
     }
 
     /**
-     * Assign reviewers ke paper dengan validasi max 5 paper per reviewer
+     * Assign reviewers ke paper
      */
     public function assignReviewers(Request $request, Paper $paper)
     {
@@ -92,24 +99,6 @@ class SectionEditorController extends Controller
         $reviewerIds = $request->reviewers;
         $deadline    = $request->deadline;
         $sendEmail   = $request->send_email;
-
-        // Validasi: cek setiap reviewer tidak melebihi 5 paper aktif (yang sudah di-accept)
-        $overLimitReviewers = [];
-        foreach ($reviewerIds as $reviewerId) {
-            $activePapers = DB::table('paper_reviewer')
-                ->where('user_id', $reviewerId)
-                ->whereIn('status', ['accept_to_review', 'completed'])
-                ->count();
-            
-            if ($activePapers >= 5) {
-                $reviewer = User::find($reviewerId);
-                $overLimitReviewers[] = $reviewer->first_name . ' ' . $reviewer->last_name;
-            }
-        }
-
-        if (!empty($overLimitReviewers)) {
-            return back()->with('error', 'Reviewer berikut sudah memegang 5 paper: ' . implode(', ', $overLimitReviewers));
-        }
 
         // Generate tokens dan assign reviewers
         $pivotData = [];
@@ -253,8 +242,3 @@ class SectionEditorController extends Controller
         ]);
     }
 }
-
-
-
-
-

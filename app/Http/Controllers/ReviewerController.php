@@ -11,7 +11,41 @@ class ReviewerController extends Controller
 {
     public function index()
     {
-        return view('reviewer');
+        $currentUser = auth()->user();
+        
+        // Ambil semua paper yang di-assign ke reviewer ini
+        $assignedPapers = Paper::with(['authors'])
+            ->whereHas('reviewers', function($q) use ($currentUser) {
+                $q->where('user_id', $currentUser->id);
+            })
+            ->get()
+            ->map(function($paper) use ($currentUser) {
+                // Ambil data pivot untuk reviewer ini
+                $pivot = DB::table('paper_reviewer')
+                    ->where('paper_id', $paper->id)
+                    ->where('user_id', $currentUser->id)
+                    ->first();
+                
+                $paper->review_status = $pivot->status ?? 'assigned';
+                $paper->review_deadline = $pivot->deadline ?? null;
+                $paper->invitation_token = $pivot->invitation_token ?? null;
+                
+                return $paper;
+            });
+
+        // Hitung statistik
+        $stats = [
+            'pending' => $assignedPapers->where('review_status', 'assigned')->count(),
+            'in_progress' => $assignedPapers->where('review_status', 'accept_to_review')->count(),
+            'completed' => $assignedPapers->where('review_status', 'completed')->count(),
+            'declined' => $assignedPapers->where('review_status', 'decline_to_review')->count(),
+            'total' => $assignedPapers->count(),
+        ];
+
+        return view('reviewer', [
+            'papers' => $assignedPapers,
+            'stats' => $stats,
+        ]);
     }
 
     /**
@@ -100,5 +134,135 @@ class ReviewerController extends Controller
 
 
         return redirect()->route('login')->with('info', 'You have declined the review invitation. Thank you for your response.');
+    }
+
+    /**
+     * Accept review from dashboard
+     */
+    public function acceptReview(Paper $paper)
+    {
+        $currentUser = auth()->user();
+        
+        // Get invitation token if exists
+        $pivot = DB::table('paper_reviewer')
+            ->where('paper_id', $paper->id)
+            ->where('user_id', $currentUser->id)
+            ->first();
+        
+        // Update status
+        DB::table('paper_reviewer')
+            ->where('paper_id', $paper->id)
+            ->where('user_id', $currentUser->id)
+            ->update(['status' => 'accept_to_review']);
+
+        // Update notification if exists
+        if ($pivot && $pivot->invitation_token) {
+            DB::table('notifications')
+                ->where('type', 'invite_review')
+                ->where('data->token', $pivot->invitation_token)
+                ->update([
+                    'status' => 'accepted',
+                    'is_read' => true,
+                    'updated_at' => now(),
+                ]);
+        }
+
+        return back()->with('success', 'Review accepted successfully! You can now start reviewing the manuscript.');
+    }
+
+    /**
+     * Decline review from dashboard
+     */
+    public function declineReview(Paper $paper)
+    {
+        $currentUser = auth()->user();
+        
+        // Get invitation token if exists
+        $pivot = DB::table('paper_reviewer')
+            ->where('paper_id', $paper->id)
+            ->where('user_id', $currentUser->id)
+            ->first();
+        
+        // Update status
+        DB::table('paper_reviewer')
+            ->where('paper_id', $paper->id)
+            ->where('user_id', $currentUser->id)
+            ->update(['status' => 'decline_to_review']);
+
+        // Update notification if exists
+        if ($pivot && $pivot->invitation_token) {
+            DB::table('notifications')
+                ->where('type', 'invite_review')
+                ->where('data->token', $pivot->invitation_token)
+                ->update([
+                    'status' => 'declined',
+                    'is_read' => true,
+                    'updated_at' => now(),
+                ]);
+        }
+
+        return back()->with('info', 'Review declined. Thank you for your response.');
+    }
+
+    /**
+     * Show review form
+     */
+    public function showReviewForm(Paper $paper)
+    {
+        $currentUser = auth()->user();
+        
+        // Pastikan reviewer ini di-assign ke paper ini
+        $pivot = DB::table('paper_reviewer')
+            ->where('paper_id', $paper->id)
+            ->where('user_id', $currentUser->id)
+            ->first();
+
+        if (!$pivot) {
+            abort(403, 'You are not assigned to review this paper.');
+        }
+
+        $paper->load('authors');
+
+        return view('review', [
+            'paper' => $paper,
+            'deadline' => $pivot->deadline,
+            'status' => $pivot->status,
+        ]);
+    }
+
+    /**
+     * Submit review
+     */
+    public function submitReview(Request $request, Paper $paper)
+    {
+        $request->validate([
+            'recommendation' => 'required|in:accept,minor_revision,major_revision,reject',
+            'comments_for_author' => 'required|string',
+            'comments_for_editor' => 'nullable|string',
+            'review_file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+        ]);
+
+        $currentUser = auth()->user();
+
+        // Handle file upload
+        $filePath = null;
+        if ($request->hasFile('review_file')) {
+            $filePath = $request->file('review_file')->store('reviews', 'public');
+        }
+
+        // Update paper_reviewer pivot
+        DB::table('paper_reviewer')
+            ->where('paper_id', $paper->id)
+            ->where('user_id', $currentUser->id)
+            ->update([
+                'status' => 'completed',
+                'recommendation' => $request->recommendation,
+                'comments_for_author' => $request->comments_for_author,
+                'comments_for_editor' => $request->comments_for_editor,
+                'review_file' => $filePath,
+                'reviewed_at' => now(),
+            ]);
+
+        return redirect()->route('reviewer.index')->with('success', 'Review submitted successfully! Thank you for your contribution.');
     }
 }
