@@ -13,7 +13,7 @@
 
     {{-- === HEADER: NAVIGASI, FILTER & SEARCH === --}}
     <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
-        
+
         {{-- Kiri: Tombol Navigasi --}}
         <div class="flex gap-2">
             <a href="{{ url()->current().'?page=list' }}"
@@ -24,30 +24,33 @@
 
         {{-- Kanan: Filter Status & Search Input --}}
         @if($page === 'list')
-        <form action="{{ url()->current() }}" method="GET" class="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
+        <form action="{{ url()->current() }}" method="GET"
+            class="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
             <input type="hidden" name="page" value="list">
-            
+
             {{-- Dropdown Filter --}}
-            <select name="filter_status" onchange="this.form.submit()" 
+            <select name="filter_status" onchange="this.form.submit()"
                 class="w-full md:w-48 border-gray-300 focus:border-gray-900 focus:ring-gray-900 rounded-md shadow-sm text-sm px-3 py-2 cursor-pointer bg-white text-gray-700">
                 <option value="">All Status</option>
                 @foreach(['Unassign', 'In Review', 'Rejected', 'Accept with Review', 'Accepted'] as $status)
-                    <option value="{{ $status }}" {{ request('filter_status') == $status ? 'selected' : '' }}>
-                        {{ $status }}
-                    </option>
+                <option value="{{ $status }}" {{ request('filter_status') == $status ? 'selected' : '' }}>
+                    {{ $status }}
+                </option>
                 @endforeach
             </select>
 
             {{-- Input Search --}}
             <div class="relative w-full md:w-64">
-                <input type="text" name="search" value="{{ request('search') }}" 
-                    placeholder="Search..." 
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search..."
                     class="w-full border-gray-300 focus:border-gray-900 focus:ring-gray-900 rounded-md shadow-sm text-sm px-3 py-2 pr-10">
-                
+
                 {{-- Tombol Search --}}
-                <button type="submit" class="absolute inset-y-0 right-0 flex items-center px-3 text-white bg-gray-900 hover:bg-gray-700 rounded-r-md transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <button type="submit"
+                    class="absolute inset-y-0 right-0 flex items-center px-3 text-white bg-gray-900 hover:bg-gray-700 rounded-r-md transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </button>
             </div>
@@ -88,11 +91,11 @@
                 @php
                 $authors = $p->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ');
                 $statusColor = [
-                    'Unassign' => 'bg-gray-300 text-gray-800',
-                    'In Review' => 'bg-yellow-300 text-yellow-900',
-                    'Rejected' => 'bg-red-300 text-red-900',
-                    'Accept with Review' => 'bg-yellow-300 text-yellow-900',
-                    'Accepted' => 'bg-green-300 text-green-900',
+                'Unassign' => 'bg-gray-300 text-gray-800',
+                'In Review' => 'bg-yellow-300 text-yellow-900',
+                'Rejected' => 'bg-red-300 text-red-900',
+                'Accept with Review' => 'bg-yellow-300 text-yellow-900',
+                'Accepted' => 'bg-green-300 text-green-900',
                 ];
                 @endphp
 
@@ -100,10 +103,11 @@
                     <td class="p-2 border text-center">{{ $loop->iteration }}</td>
                     <td class="p-2 border font-semibold text-gray-800">{{ $p->judul }}</td>
                     <td class="p-2 border">{{ $authors ?: '-' }}</td>
-                    
+
                     {{-- STATUS (TEXT LABEL BIASA) --}}
                     <td class="p-2 border text-center">
-                        <span class="px-2 py-1 rounded text-sm font-semibold {{ $statusColor[$p->status] ?? 'bg-gray-200 text-gray-700' }}">
+                        <span
+                            class="px-2 py-1 rounded text-sm font-semibold {{ $statusColor[$p->status] ?? 'bg-gray-200 text-gray-700' }}">
                             {{ ucfirst(str_replace('_',' ', $p->status)) }}
                         </span>
                     </td>
@@ -152,7 +156,7 @@
                 <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
                     @csrf
                     @method('PATCH')
-                    
+
                     <div class="flex flex-col gap-2">
                         {{-- 1. Request Revisions (Abu-abu) --}}
                         <button type="submit" name="status" value="Accept with Review"
@@ -185,23 +189,24 @@
             <h4 class="font-semibold mb-4 text-lg">Assign Section Editor</h4>
 
             <div class="bg-gray-50 border rounded-lg p-4">
-                
+
                 {{-- Form --}}
                 <form method="POST" action="{{ route('editor.assignSectionEditor', $paper->id) }}" class="mb-4">
                     @csrf
                     <div class="flex gap-2">
                         <div class="flex-grow">
-                            <select id="editorSelect" name="section_editors[]" multiple placeholder="Select Section Editor...">
+                            <select id="editorSelect" name="section_editors[]" multiple
+                                placeholder="Select Section Editor...">
                                 @foreach($all_section_editors as $se)
-                                <option value="{{ $se->id }}" 
-                                    data-assigned="{{ $se->assigned_papers }}"
-                                    @if(in_array($se->id, $assignedSectionEditors->pluck('id')->toArray())) selected @endif>
-                                    {{ $se->first_name . ' ' . $se->last_name }} (Active Papers : {{ $se->assigned_papers }})
+                                <option value="{{ $se->id }}" data-assigned="{{ $se->assigned_papers }}">
+                                    {{ $se->first_name . ' ' . $se->last_name }} (Active Papers :
+                                    {{ $se->assigned_papers }})
                                 </option>
                                 @endforeach
                             </select>
                         </div>
-                        <button class="bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700 text-sm font-medium whitespace-nowrap h-[38px] mt-[1px]">
+                        <button
+                            class="bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700 text-sm font-medium whitespace-nowrap h-[38px] mt-[1px]">
                             Assign Selected
                         </button>
                     </div>
@@ -209,13 +214,15 @@
 
                 {{-- List Assigned --}}
                 <div class="mt-2 border-t border-gray-200 pt-3">
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Assigned Section Editors List</label>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Assigned Section
+                        Editors List</label>
                     <div class="space-y-2">
                         @forelse($assignedSectionEditors as $ase)
                         <div class="flex justify-between items-center bg-white p-2.5 rounded border shadow-sm">
                             <div class="flex items-center gap-2">
                                 <div class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-full">SE</div>
-                                <span class="font-medium text-gray-700">{{$ase->first_name . ' ' . $ase->last_name}}</span>
+                                <span
+                                    class="font-medium text-gray-700">{{$ase->first_name . ' ' . $ase->last_name}}</span>
                             </div>
                             <form method="POST" action="{{ route('editor.unassignSectionEditor', $paper->id) }}">
                                 @csrf
@@ -240,9 +247,9 @@
         {{-- ========================================================== --}}
         <div class="mt-8 border-t pt-6">
             <h4 class="font-semibold mb-4 text-lg">Assign Reviewer</h4>
-            
+
             <div class="bg-gray-50 border rounded-lg p-4">
-                
+
                 {{-- Form --}}
                 <form id="assignForm" method="POST" action="{{ route('editor.assignReviewers', $paper->id) }}">
                     @csrf
@@ -251,17 +258,17 @@
                     <input type="hidden" id="reviewersInput" name="reviewers">
                     <input type="hidden" id="deadlineInput" name="deadline">
                     <input type="hidden" id="sendEmailInput" name="send_email" value="1">
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Select Reviewers</label>
-                            <select id="reviewerSelect" name="reviewers[]" multiple placeholder="Cari dan pilih Reviewer..." autocomplete="off">
+                            <select id="reviewerSelect" name="reviewers[]" multiple
+                                placeholder="Cari dan pilih Reviewer..." autocomplete="off">
                                 @foreach($all_reviewers as $rev)
-                                <option value="{{ $rev->id }}" 
-                                    data-active="{{ $rev->active_papers }}"
-                                    data-total="{{ $rev->total_papers }}"
-                                    @if(in_array($rev->id, $assignedReviewers->pluck('id')->toArray())) selected @endif>
-                                    {{ $rev->first_name . ' ' . $rev->last_name }} (Active Reviews : {{ $rev->active_papers }})
+                                <option value="{{ $rev->id }}" data-active="{{ $rev->active_papers }}"
+                                    data-total="{{ $rev->total_papers }}">
+                                    {{ $rev->first_name . ' ' . $rev->last_name }} (Active Reviews :
+                                    {{ $rev->active_papers }})
                                 </option>
                                 @endforeach
                             </select>
@@ -275,8 +282,10 @@
 
                     <button type="button" onclick="openAssignModal()"
                         class="bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-700 shadow-sm transition duration-200 flex items-center gap-2 text-sm font-medium">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                         Send Request & Assign Reviewers
                     </button>
@@ -284,7 +293,8 @@
 
                 {{-- List Assigned --}}
                 <div class="mt-4 border-t border-gray-200 pt-4">
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Assigned Reviewers List</label>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Assigned Reviewers
+                        List</label>
                     <div class="space-y-4">
                         @forelse($assignedReviewers as $ar)
                         <div class="border rounded-lg p-4 shadow-sm bg-white hover:shadow-md transition duration-200">
@@ -294,7 +304,8 @@
                                         {{ $ar->first_name . ' ' . $ar->last_name }}
                                     </div>
                                     <div class="text-sm text-gray-500">
-                                        Deadline: <span class="font-medium">{{ date('d M Y', strtotime($ar->pivot->deadline)) }}</span>
+                                        Deadline: <span
+                                            class="font-medium">{{ date('d M Y', strtotime($ar->pivot->deadline)) }}</span>
                                     </div>
                                     <div class="text-sm mt-1 flex items-center gap-2">
                                         Status:
@@ -308,7 +319,8 @@
                                         </span>
                                     </div>
                                     @if($status === 'completed' && $ar->pivot->recommendation)
-                                    <div class="text-sm mt-2 p-2 bg-gray-50 rounded text-gray-700 border border-gray-200">
+                                    <div
+                                        class="text-sm mt-2 p-2 bg-gray-50 rounded text-gray-700 border border-gray-200">
                                         Recommendation: <strong>{{ $ar->pivot->recommendation }}</strong>
                                     </div>
                                     @endif
@@ -316,22 +328,29 @@
 
                                 <div class="flex flex-col gap-2 items-end">
                                     @if(in_array($status, ['assigned', 'accept_to_review', 'decline_to_review']))
-                                    <button type="button" onclick="openReminderModal('{{ $ar->id }}', '{{ $ar->first_name . ' ' . $ar->last_name }}', '{{ $ar->pivot->deadline }}')" 
+                                    <button type="button"
+                                        onclick="openReminderModal('{{ $ar->id }}', '{{ $ar->first_name . ' ' . $ar->last_name }}', '{{ $ar->pivot->deadline }}')"
                                         class="text-sm bg-yellow-500 text-white px-3 py-1.5 rounded hover:bg-yellow-600 transition shadow-sm flex items-center gap-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path
+                                                d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
                                         </svg> Send Reminder
                                     </button>
                                     @endif
 
                                     @if($status === 'completed')
-                                    <button class="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700 transition shadow-sm">Read Review</button>
+                                    <button
+                                        class="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700 transition shadow-sm">Read
+                                        Review</button>
                                     @endif
 
                                     @if($assignedReviewers->contains('id', $ar->id))
-                                    <button onclick="unassignReviewer('{{ $ar->id }}')" class="text-sm text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition">Unassign</button>
+                                    <button onclick="unassignReviewer('{{ $ar->id }}')"
+                                        class="text-sm text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition">Unassign</button>
                                     @else
-                                    <button onclick="assignReviewer('{{ $ar->id }}')" class="text-sm text-green-600 hover:text-green-800 hover:bg-green-50 px-3 py-1 rounded transition">Assign</button>
+                                    <button onclick="assignReviewer('{{ $ar->id }}')"
+                                        class="text-sm text-green-600 hover:text-green-800 hover:bg-green-50 px-3 py-1 rounded transition">Assign</button>
                                     @endif
                                 </div>
                             </div>
@@ -363,7 +382,8 @@
         <div class="bg-gray-900 px-6 py-4 flex justify-between items-center">
             <h3 class="text-white text-lg font-semibold" id="modalTitle">Add Reviewer & Send Email</h3>
             <button onclick="closeModal()" class="text-white hover:text-gray-200 focus:outline-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
@@ -371,27 +391,36 @@
         <div class="p-6 space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Selected Reviewer(s)</label>
-                <input type="text" id="modalRecipient" readonly class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-gray-600 focus:outline-none">
+                <input type="text" id="modalRecipient" readonly
+                    class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-gray-600 focus:outline-none">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                <input type="text" id="emailSubject" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-gray-900 focus:border-gray-900">
+                <input type="text" id="emailSubject"
+                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-gray-900 focus:border-gray-900">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email Content</label>
-                <textarea id="emailBody" rows="8" class="w-full border border-gray-300 rounded px-3 py-2 font-mono text-sm focus:ring-gray-900 focus:border-gray-900"></textarea>
+                <textarea id="emailBody" rows="8"
+                    class="w-full border border-gray-300 rounded px-3 py-2 font-mono text-sm focus:ring-gray-900 focus:border-gray-900"></textarea>
                 <p class="text-xs text-gray-500 mt-1">You can edit the message above before sending.</p>
             </div>
             @if(isset($modalType) && $modalType === 'assign')
             <div class="flex items-center mb-4">
-                <input type="checkbox" id="skipEmail" name="send_email" value="0" class="h-4 w-4 text-blue-600 border-gray-300 rounded" onclick="document.getElementById('sendEmailInput').value = this.checked ? 0 : 1">
-                <label for="skipEmail" class="ml-2 block text-sm text-gray-900">Do not send email to Reviewer (Assign only).</label>
+                <input type="checkbox" id="skipEmail" name="send_email" value="0"
+                    class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                    onclick="document.getElementById('sendEmailInput').value = this.checked ? 0 : 1">
+                <label for="skipEmail" class="ml-2 block text-sm text-gray-900">Do not send email to Reviewer (Assign
+                    only).</label>
             </div>
             @endif
         </div>
         <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
-            <button onclick="closeModal()" class="px-4 py-2 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition">Cancel</button>
-            <button onclick="submitProcess()" class="px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-700 shadow-sm transition">Send & Process</button>
+            <button onclick="closeModal()"
+                class="px-4 py-2 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+            <button onclick="submitProcess()"
+                class="px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-700 shadow-sm transition">Send &
+                Process</button>
         </div>
     </div>
 </div>
@@ -417,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
             render: {
                 option: function(data, escape) {
                     const activePapers = data.$option?.dataset?.active || '0';
-                    
+
                     return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
                                 <div class="font-medium text-gray-800">${escape(data.text.split(' (')[0])}</div>
                                 <div class="text-xs text-green-600">Active Reviews : ${activePapers}</div>
