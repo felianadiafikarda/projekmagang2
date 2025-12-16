@@ -57,16 +57,17 @@
                     <span>Users</span>
                 </a>
 
-            {{-- CONFERENCE MANAGER: Hanya tampilkan Conference Manager --}}
-            @elseif($isConferenceManager)
+            {{-- USER BIASA: Tampilkan menu sesuai role yang dimiliki --}}
+            @else
+                {{-- CONFERENCE MANAGER: Hanya tampilkan Conference Manager --}}
+                @if($isConferenceManager)
                 <a href="{{ route('conference_manager.index') }}"
                     class="flex items-center gap-3 px-6 py-3 font-medium rounded-r-full
                     {{ Request::routeIs('conference_manager*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700' }}">
                     <span>Conference Manager</span>
                 </a>
-
-            {{-- USER BIASA: Tampilkan menu sesuai role yang dimiliki --}}
-            @else
+                @endif
+                
                 {{-- Editor --}}
                 @if($isEditor)
                 <a href="{{ route('editor.index') }}" 

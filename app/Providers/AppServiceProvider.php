@@ -28,7 +28,14 @@ class AppServiceProvider extends ServiceProvider
                     ->take(10)
                     ->get();
 
-                $view->with('navbar_notifications', $notifications);
+                $unreadCount = Notification::where('user_id', auth()->id())
+                    ->where('is_read', false)
+                    ->count();
+
+                $view->with([
+                    'navbar_notifications' => $notifications,
+                    'navbar_unread_count'  => $unreadCount,
+                ]);
             }
         });
     }

@@ -120,12 +120,6 @@
         {{-- ASSIGN REVIEWER SECTION --}}
         <div class="mt-6 border-t pt-6">
             <h4 class="font-semibold mb-4 text-lg">Assign Reviewer</h4>
-            
-            {{-- Info tentang batasan 5 paper --}}
-            <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-                <strong>ℹ️ Info:</strong> Setiap reviewer hanya bisa memegang maksimal <strong>5 paper aktif</strong> (yang sudah di-accept). 
-                Reviewer yang sudah mencapai batas akan ditandai dengan warna merah.
-            </div>
 
             <form id="assignForm" method="POST" action="{{ route('section_editor.assignReviewers', $paper->id) }}">
                 @csrf
@@ -142,10 +136,8 @@
                         @foreach($all_reviewers as $rev)
                         <option value="{{ $rev->id }}" 
                             data-active="{{ $rev->active_papers }}"
-                            data-can-assign="{{ $rev->can_assign ? '1' : '0' }}"
-                            @if(in_array($rev->id, $assignedReviewers->pluck('id')->toArray())) selected @endif
-                            @if(!$rev->can_assign) disabled @endif>
-                            {{ $rev->first_name . ' ' . $rev->last_name }} ({{ $rev->active_papers }}/5 accepted)
+                            @if(in_array($rev->id, $assignedReviewers->pluck('id')->toArray())) selected @endif>
+                            {{ $rev->first_name . ' ' . $rev->last_name }} (Active Reviews : {{ $rev->active_papers }})
                         </option>
                         @endforeach
                     </select>
@@ -350,13 +342,10 @@ document.addEventListener('DOMContentLoaded', function() {
             render: {
                 option: function(data, escape) {
                     const activePapers = data.$option?.dataset?.active || '0';
-                    const canAssign = data.$option?.dataset?.canAssign === '1';
-                    const colorClass = canAssign ? 'text-green-600' : 'text-red-600';
-                    const statusText = canAssign ? 'Available' : 'Full (5/5)';
                     
-                    return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0 ${!canAssign ? 'opacity-50' : ''}">
-                                <div class="font-medium text-gray-800">${escape(data.text)}</div>
-                                <div class="text-xs ${colorClass}">${statusText} - ${activePapers}/5 paper accepted</div>
+                    return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
+                                <div class="font-medium text-gray-800">${escape(data.text.split(' (')[0])}</div>
+                                <div class="text-xs text-green-600">Active Reviews : ${activePapers}</div>
                             </div>`;
                 },
                 item: function(data, escape) {
