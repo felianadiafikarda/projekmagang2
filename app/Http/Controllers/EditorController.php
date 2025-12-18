@@ -132,6 +132,7 @@ class EditorController extends Controller
 
         // Tambahkan reviewer ke pivot with tokens
         $paper->reviewers()->syncWithoutDetaching($pivotData);
+        
 
         // Tambahkan role reviewer ke user yang di-assign (jika belum punya)
         $reviewerRole = Role::where('name', 'reviewer')->first();
@@ -263,6 +264,8 @@ class EditorController extends Controller
         ]);
 
         $paper->reviewers()->detach($request->reviewer_id);
+        
+
 
         return back()->with('success', 'Reviewer unassigned successfully!');
     }
@@ -281,6 +284,7 @@ class EditorController extends Controller
 
     // Sync section editor
     $paper->sectionEditors()->sync($editorIds);
+    
 
     // Assign role
     $role = Role::where('name', 'section_editor')->first();
@@ -335,6 +339,7 @@ class EditorController extends Controller
     {
         $paper = Paper::findOrFail($paperId);
         $paper->sectionEditors()->detach($request->editor_id);
+        
 
         return back()->with('success', 'Section editor removed!');
     }

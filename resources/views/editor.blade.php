@@ -86,27 +86,32 @@
             <tbody>
                 @forelse($papers as $p)
                 @php
-                $authors = $p->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ');
                 $statusColor = [
                 'Unassign' => 'bg-gray-300 text-gray-800',
+                'Awaiting Responses from Reviewers' => 'bg-blue-300 text-blue-900',
                 'In Review' => 'bg-yellow-300 text-yellow-900',
-                'Rejected' => 'bg-red-300 text-red-900',
                 'Accept with Review' => 'bg-yellow-300 text-yellow-900',
+                'Rejected' => 'bg-red-300 text-red-900',
                 'Accepted' => 'bg-green-300 text-green-900',
                 ];
                 @endphp
 
+
                 <tr class="odd:bg-white even:bg-gray-50">
                     <td class="p-2 border text-center">{{ $loop->iteration }}</td>
                     <td class="p-2 border font-semibold text-gray-800">{{ $p->judul }}</td>
-                    <td class="p-2 border">{{ $authors ?: '-' }}</td>
+                    <td class="p-2 border">
+                        {{ $p->authors->map(fn($a) => $a->first_name.' '.$a->last_name)->implode(', ') ?: '-' }}
+                    </td>
+
 
                     {{-- STATUS (TEXT LABEL BIASA) --}}
                     <td class="p-2 border text-center">
                         <span
-                            class="px-2 py-1 rounded text-sm font-semibold {{ $statusColor[$p->status] ?? 'bg-gray-200 text-gray-700' }}">
-                            {{ ucfirst(str_replace('_',' ', $p->status)) }}
+                            class="px-2 py-1 rounded text-sm font-semibold {{ $statusColor[$p->editor_status] ?? 'bg-gray-200 text-gray-700' }}">
+                            {{ $p->editor_status ?? '-' }}
                         </span>
+
                     </td>
 
                     <td class="p-2 border text-center">{{ $p->created_at->format('d M Y') }}</td>
