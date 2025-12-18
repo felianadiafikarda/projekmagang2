@@ -82,10 +82,10 @@
                         Status:
                         @php $status = $ar->pivot->status; @endphp
                         <span class="px-2 py-0.5 rounded text-xs font-semibold
-                            @if($status === 'completed') bg-green-100 text-green-700 @endif
-                            @if($status === 'assigned') bg-blue-100 text-blue-700 @endif
-                            @if($status === 'accept_to_review') bg-indigo-100 text-indigo-700 @endif
-                            @if($status === 'decline_to_review') bg-red-100 text-red-700 @endif">
+                                            @if($status === 'completed') bg-green-100 text-green-700 @endif
+                                            @if($status === 'assigned') bg-blue-100 text-blue-700 @endif
+                                            @if($status === 'accept_to_review') bg-indigo-100 text-indigo-700 @endif
+                                            @if($status === 'decline_to_review') bg-red-100 text-red-700 @endif">
                             {{ ucwords(str_replace('_',' ', $status)) }}
                         </span>
                     </div>
