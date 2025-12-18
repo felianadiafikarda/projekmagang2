@@ -46,8 +46,8 @@ class UserSeeder extends Seeder
             [
                 'first_name' => 'Felia',
                 'last_name' => 'Nadia',
-                'email' => 'section_editor2@gmail.com',
-                'username' => 'section_editor2',
+                'email' => 'felianadiafikarda@gmail.com',
+                'username' => 'yayaaa',
                 'password' => Hash::make('password'),
                 'affiliation' => 'Institut Teknologi Sumatra',
                 'photo_path' => null,

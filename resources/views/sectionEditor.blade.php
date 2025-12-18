@@ -53,11 +53,11 @@
                 @php
                 $authors = $p->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ');
                 $statusColor = [
-                    'Unassign' => 'bg-gray-300 text-gray-800',
-                    'In Review' => 'bg-yellow-300 text-yellow-900',
-                    'Rejected' => 'bg-red-300 text-red-900',
-                    'Accept with Review' => 'bg-yellow-300 text-yellow-900',
-                    'Accepted' => 'bg-green-300 text-green-900',
+                'Unassign' => 'bg-gray-300 text-gray-800',
+                'In Review' => 'bg-yellow-300 text-yellow-900',
+                'Rejected' => 'bg-red-300 text-red-900',
+                'Accept with Review' => 'bg-yellow-300 text-yellow-900',
+                'Accepted' => 'bg-green-300 text-green-900',
                 ];
                 @endphp
 
@@ -66,7 +66,8 @@
                     <td class="p-2 border font-semibold text-gray-800">{{ $p->judul }}</td>
                     <td class="p-2 border">{{ $authors ?: '-' }}</td>
                     <td class="p-2 border text-center">
-                        <span class="px-2 py-1 rounded text-sm font-semibold {{ $statusColor[$p->status] ?? 'bg-gray-200 text-gray-700' }}">
+                        <span
+                            class="px-2 py-1 rounded text-sm font-semibold {{ $statusColor[$p->status] ?? 'bg-gray-200 text-gray-700' }}">
                             {{ ucfirst(str_replace('_',' ', $p->status)) }}
                         </span>
                     </td>
@@ -78,7 +79,7 @@
                         </a>
 
                         <a href="{{ route('section_editor.index') }}?page=assign&id={{ $p->id }}"
-                            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            class="px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-700">
                             Edit
                         </a>
                     </td>
@@ -110,7 +111,8 @@
             </div>
 
             <div class="text-right mt-1">
-                <span class="text-sm font-medium px-3 py-1 rounded 
+                <span
+                    class="text-sm font-medium px-3 py-1 rounded 
                     {{ $paper->status == 'in_review' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-50 text-blue-700' }}">
                     {{ ucfirst(str_replace('_',' ',$paper->status ?? 'unassigned')) }}
                 </span>
@@ -132,11 +134,11 @@
                 {{-- Multiselect Reviewer Dropdown --}}
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Select Reviewers</label>
-                    <select id="reviewerSelect" name="reviewers[]" multiple placeholder="Cari dan pilih Reviewer..." autocomplete="off">
+                    <select id="reviewerSelect" name="reviewers[]" multiple placeholder="Cari dan pilih Reviewer..."
+                        autocomplete="off">
                         @foreach($all_reviewers as $rev)
-                        <option value="{{ $rev->id }}" 
-                            data-active="{{ $rev->active_papers }}"
-                            @if(in_array($rev->id, $assignedReviewers->pluck('id')->toArray())) selected @endif>
+                        <option value="{{ $rev->id }}" data-active="{{ $rev->active_papers }}" @if(in_array($rev->id,
+                            $assignedReviewers->pluck('id')->toArray())) selected @endif>
                             {{ $rev->first_name . ' ' . $rev->last_name }} (Active Reviews : {{ $rev->active_papers }})
                         </option>
                         @endforeach
@@ -152,7 +154,8 @@
                 {{-- TOMBOL UPDATE: Memicu Modal Assign --}}
                 <button type="button" onclick="openAssignModal()"
                     class="mt-2 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 shadow-sm transition duration-200 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
@@ -216,8 +219,10 @@
                             <button type="button"
                                 onclick="openReminderModal('{{ $ar->id }}', '{{ $ar->first_name . ' ' . $ar->last_name }}', '{{ $ar->pivot->deadline }}')"
                                 class="text-sm bg-yellow-500 text-white px-3 py-1.5 rounded hover:bg-yellow-600 transition shadow-sm flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path
+                                        d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
                                 </svg>
                                 Send Reminder
                             </button>
@@ -225,7 +230,8 @@
 
                             {{-- TOMBOL READ REVIEW --}}
                             @if($status === 'completed')
-                            <button class="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700 transition shadow-sm">
+                            <button
+                                class="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700 transition shadow-sm">
                                 Read Review
                             </button>
                             @endif
@@ -267,7 +273,8 @@
         <div class="bg-blue-600 px-6 py-4 flex justify-between items-center">
             <h3 class="text-white text-lg font-semibold" id="modalTitle">Add Reviewer & Send Email</h3>
             <button onclick="closeModal()" class="text-white hover:text-gray-200 focus:outline-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
@@ -316,7 +323,8 @@
             <button onclick="closeModal()"
                 class="px-4 py-2 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition">Cancel</button>
             <button onclick="submitProcess()"
-                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition">Send & Process</button>
+                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition">Send &
+                Process</button>
         </div>
     </div>
 </div>
@@ -342,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
             render: {
                 option: function(data, escape) {
                     const activePapers = data.$option?.dataset?.active || '0';
-                    
+
                     return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
                                 <div class="font-medium text-gray-800">${escape(data.text.split(' (')[0])}</div>
                                 <div class="text-xs text-green-600">Active Reviews : ${activePapers}</div>
@@ -413,7 +421,7 @@ ${editorName}`;
 function openReminderModal(reviewerId, reviewerName, deadline) {
     window.selectedReviewerId = reviewerId;
     modalMode = "reminder";
-    
+
     modalTitle.innerText = "Send Reminder to Reviewer";
     modalRecipient.value = reviewerName;
     emailSubject.value = "Review Reminder: " + articleTitle;

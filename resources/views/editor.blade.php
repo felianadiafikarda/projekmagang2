@@ -16,10 +16,7 @@
 
         {{-- Kiri: Tombol Navigasi --}}
         <div class="flex gap-2">
-            <a href="{{ url()->current().'?page=list' }}"
-                class="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 transition font-medium text-gray-700">
-                All Submissions
-            </a>
+
         </div>
 
         {{-- Kanan: Filter Status & Search Input --}}
@@ -155,9 +152,9 @@
             <div class="text-right w-56">
                 {{-- Form Wrapper (Optional, karena sekarang semua pakai modal) --}}
                 <form action="#" method="POST" onsubmit="return false;">
-                    
+
                     <div class="flex flex-col gap-2">
-                        
+
                         {{-- 1. Request Revisions (MODAL) --}}
                         <button type="button" onclick="openRevisionModal()"
                             class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded shadow-sm text-sm transition text-left border border-gray-300">
@@ -190,8 +187,13 @@
             <div class="bg-gray-50 border rounded-lg p-4">
 
                 {{-- Form --}}
-                <form method="POST" action="{{ route('editor.assignSectionEditor', $paper->id) }}" class="mb-4">
+                <form id="assignSectionEditorForm" method="POST"
+                    action="{{ route('editor.assignSectionEditor', $paper->id) }}" class="mb-4">
                     @csrf
+                    <input type="hidden" name="subject" id="seSubjectInput">
+                    <input type="hidden" name="email_body" id="seBodyInput">
+                    <input type="hidden" name="section_editors" id="seEditorsInput">
+                    <input type="hidden" name="send_email" id="seSendEmailInput" value="1">
                     <div class="flex gap-2">
                         <div class="flex-grow">
                             <select id="editorSelect" name="section_editors[]" multiple
@@ -204,9 +206,9 @@
                                 @endforeach
                             </select>
                         </div>
-                        <button
-                            class="bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700 text-sm font-medium whitespace-nowrap h-[38px] mt-[1px]">
-                            Assign Selected
+                        <button type="button" onclick="openAssignSectionEditorModal()"
+                            class="bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-700 shadow-sm transition duration-200 flex items-center gap-2 text-sm font-medium">
+                            Assign & Send Email
                         </button>
                     </div>
                 </form>
@@ -381,112 +383,135 @@
 {{-- ========================================================== --}}
 @if($paper)
 
-    {{-- MODAL 1: EMAIL (OLD - FOR ASSIGN REVIEWER) --}}
-    <div id="emailModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden transform transition-all">
-            <div class="bg-gray-900 px-6 py-4 flex justify-between items-center">
-                <h3 class="text-white text-lg font-semibold" id="modalTitle">Add Reviewer & Send Email</h3>
-                <button onclick="closeModal()" class="text-white hover:text-gray-200 focus:outline-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+{{-- MODAL 1: EMAIL (OLD - FOR ASSIGN REVIEWER) --}}
+<div id="emailModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden transform transition-all">
+        <div class="bg-gray-900 px-6 py-4 flex justify-between items-center">
+            <h3 class="text-white text-lg font-semibold" id="modalTitle">Add Reviewer & Send Email</h3>
+            <button onclick="closeModal()" class="text-white hover:text-gray-200 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Selected Reviewer(s)</label>
+                <input type="text" id="modalRecipient" readonly
+                    class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-gray-600 focus:outline-none">
             </div>
-            <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Selected Reviewer(s)</label>
-                    <input type="text" id="modalRecipient" readonly class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-gray-600 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                    <input type="text" id="emailSubject" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-gray-900 focus:border-gray-900">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Content</label>
-                    <textarea id="emailBody" rows="8" class="w-full border border-gray-300 rounded px-3 py-2 font-mono text-sm focus:ring-gray-900 focus:border-gray-900"></textarea>
-                    <p class="text-xs text-gray-500 mt-1">You can edit the message above before sending.</p>
-                </div>
-                @if(isset($modalType) && $modalType === 'assign')
-                <div class="flex items-center mb-4">
-                    <input type="checkbox" id="skipEmail" name="send_email" value="0" class="h-4 w-4 text-blue-600 border-gray-300 rounded" onclick="document.getElementById('sendEmailInput').value = this.checked ? 0 : 1">
-                    <label for="skipEmail" class="ml-2 block text-sm text-gray-900">Do not send email to Reviewer (Assign only).</label>
-                </div>
-                @endif
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                <input type="text" id="emailSubject"
+                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-gray-900 focus:border-gray-900">
             </div>
-            <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
-                <button onclick="closeModal()" class="px-4 py-2 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition">Cancel</button>
-                <button onclick="submitProcess()" class="px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-700 shadow-sm transition">Send & Process</button>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email Content</label>
+                <textarea id="emailBody" rows="8"
+                    class="w-full border border-gray-300 rounded px-3 py-2 font-mono text-sm focus:ring-gray-900 focus:border-gray-900"></textarea>
+                <p class="text-xs text-gray-500 mt-1">You can edit the message above before sending.</p>
             </div>
+            @if(isset($modalType) && $modalType === 'assign')
+            <div class="flex items-center mb-4">
+                <input type="checkbox" id="skipEmail" name="send_email" value="0"
+                    class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                    onclick="document.getElementById('sendEmailInput').value = this.checked ? 0 : 1">
+                <label for="skipEmail" class="ml-2 block text-sm text-gray-900">Do not send email to Reviewer (Assign
+                    only).</label>
+            </div>
+            @endif
+        </div>
+        <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+            <button onclick="closeModal()"
+                class="px-4 py-2 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+            <button onclick="submitProcess()"
+                class="px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-700 shadow-sm transition">Send &
+                Process</button>
         </div>
     </div>
+</div>
 
-    {{-- MODAL 2: REQUEST REVISIONS --}}
-    <div id="revisionModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
-            
-            {{-- Header Modal --}}
-            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                <h3 class="text-xl font-bold text-gray-800">Request Revisions</h3>
-                <button onclick="closeRevisionModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
+{{-- MODAL 2: REQUEST REVISIONS --}}
+<div id="revisionModal"
+    class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
 
-            {{-- Form Pembungkus --}}
-            <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
-                @csrf
-                @method('PATCH')
-                <input type="hidden" name="status" value="Accept with Review">
+        {{-- Header Modal --}}
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800">Request Revisions</h3>
+            <button onclick="closeRevisionModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
 
-                <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-                    
-                    {{-- A. Require New Review Round --}}
-                    <div>
-                        <h4 class="font-bold text-gray-800 mb-2">Require New Review Round</h4>
-                        <div class="space-y-2">
-                            <label class="flex items-start cursor-pointer">
-                                <input type="radio" name="new_review_round" value="0" class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked>
-                                <span class="text-gray-700 text-sm">Revisions will <strong>not</strong> be subject to a new round of peer reviews.</span>
-                            </label>
-                            <label class="flex items-start cursor-pointer">
-                                <input type="radio" name="new_review_round" value="1" class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500">
-                                <span class="text-gray-700 text-sm">Revisions will be subject to a new round of peer reviews.</span>
-                            </label>
-                        </div>
+        {{-- Form Pembungkus --}}
+        <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="status" value="Accept with Review">
+
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+
+                {{-- A. Require New Review Round --}}
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">Require New Review Round</h4>
+                    <div class="space-y-2">
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="new_review_round" value="0"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked>
+                            <span class="text-gray-700 text-sm">Revisions will <strong>not</strong> be subject to a new
+                                round of peer reviews.</span>
+                        </label>
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="new_review_round" value="1"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500">
+                            <span class="text-gray-700 text-sm">Revisions will be subject to a new round of peer
+                                reviews.</span>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- B. Send Email Option --}}
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">Send Email</h4>
+                    <div class="space-y-2 mb-3">
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="send_email_decision" value="1"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked
+                                onclick="toggleEmailEditor(true, 'revisionEmailContainer')">
+                            <div class="text-sm text-gray-700">
+                                <span>Send an email notification to the author(s): </span>
+                                <span class="text-gray-500">
+                                    {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?? 'Author' }}
+                                </span>
+                            </div>
+                        </label>
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="send_email_decision" value="0"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                onclick="toggleEmailEditor(false, 'revisionEmailContainer')">
+                            <span class="text-gray-700 text-sm">Do not send an email notification</span>
+                        </label>
                     </div>
 
-                    {{-- B. Send Email Option --}}
-                    <div>
-                        <h4 class="font-bold text-gray-800 mb-2">Send Email</h4>
-                        <div class="space-y-2 mb-3">
-                            <label class="flex items-start cursor-pointer">
-                                <input type="radio" name="send_email_decision" value="1" class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked onclick="toggleEmailEditor(true, 'revisionEmailContainer')">
-                                <div class="text-sm text-gray-700">
-                                    <span>Send an email notification to the author(s): </span>
-                                    <span class="text-gray-500">
-                                        {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?? 'Author' }}
-                                    </span>
-                                </div>
-                            </label>
-                            <label class="flex items-start cursor-pointer">
-                                <input type="radio" name="send_email_decision" value="0" class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" onclick="toggleEmailEditor(false, 'revisionEmailContainer')">
-                                <span class="text-gray-700 text-sm">Do not send an email notification</span>
-                            </label>
+                    {{-- Text Editor Area --}}
+                    <div id="revisionEmailContainer"
+                        class="border border-gray-300 rounded shadow-sm transition-opacity duration-200">
+                        {{-- Toolbar Dummy --}}
+                        <div class="bg-gray-50 border-b border-gray-300 px-3 py-2 flex gap-3 text-gray-600">
+                            <button type="button" class="hover:text-black font-bold">B</button>
+                            <button type="button" class="hover:text-black italic">I</button>
+                            <button type="button" class="hover:text-black underline">U</button>
                         </div>
 
-                        {{-- Text Editor Area --}}
-                        <div id="revisionEmailContainer" class="border border-gray-300 rounded shadow-sm transition-opacity duration-200">
-                            {{-- Toolbar Dummy --}}
-                            <div class="bg-gray-50 border-b border-gray-300 px-3 py-2 flex gap-3 text-gray-600">
-                                <button type="button" class="hover:text-black font-bold">B</button>
-                                <button type="button" class="hover:text-black italic">I</button>
-                                <button type="button" class="hover:text-black underline">U</button>
-                            </div>
-                            
-                            {{-- Textarea --}}
-                            <textarea name="email_body" rows="6" class="w-full p-4 text-sm text-gray-800 focus:outline-none border-0 rounded-b" spellcheck="false">
+                        {{-- Textarea --}}
+                        <textarea name="email_body" rows="6"
+                            class="w-full p-4 text-sm text-gray-800 focus:outline-none border-0 rounded-b"
+                            spellcheck="false">
 {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
 
 We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
@@ -498,89 +523,102 @@ Please revise your manuscript based on the reviewers' comments and resubmit it f
 Best regards,
 {{ $editors->first()->name ?? 'Editor' }}
                             </textarea>
-                        </div>
                     </div>
-
-                    {{-- C. Select Review Files --}}
-                    <div class="border-t pt-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <h4 class="font-bold text-gray-800">Select review files to share with the author(s)</h4>
-                            <div class="flex gap-2">
-                                <button type="button" class="text-blue-600 text-sm hover:underline font-semibold flex items-center">Search</button>
-                                <button type="button" class="text-blue-600 text-sm hover:underline font-semibold">Upload File</button>
-                            </div>
-                        </div>
-                        <div class="border rounded-md overflow-hidden bg-gray-50 p-4 text-center text-sm text-gray-500">
-                            No review files available (Mockup).
-                        </div>
-                    </div>
-
                 </div>
 
-                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
-                    <button type="button" onclick="closeRevisionModal()" class="px-4 py-2 border border-pink-500 text-pink-600 font-semibold rounded hover:bg-pink-50 transition">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded shadow transition">
-                        Record Editorial Decision
-                    </button>
+                {{-- C. Select Review Files --}}
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-gray-800">Select review files to share with the author(s)</h4>
+                        <div class="flex gap-2">
+                            <button type="button"
+                                class="text-blue-600 text-sm hover:underline font-semibold flex items-center">Search</button>
+                            <button type="button" class="text-blue-600 text-sm hover:underline font-semibold">Upload
+                                File</button>
+                        </div>
+                    </div>
+                    <div class="border rounded-md overflow-hidden bg-gray-50 p-4 text-center text-sm text-gray-500">
+                        No review files available (Mockup).
+                    </div>
                 </div>
-            </form>
-        </div>
-    </div>
 
-    {{-- MODAL 3: ACCEPT SUBMISSION --}}
-    <div id="acceptModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
-            
-            {{-- Header Modal --}}
-            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                <h3 class="text-xl font-bold text-gray-800">Accept Submission</h3>
-                <button onclick="closeAcceptModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
             </div>
 
-            {{-- Form Pembungkus --}}
-            <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
-                @csrf
-                @method('PATCH')
-                <input type="hidden" name="status" value="Accepted">
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
+                <button type="button" onclick="closeRevisionModal()"
+                    class="px-4 py-2 border border-pink-500 text-pink-600 font-semibold rounded hover:bg-pink-50 transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded shadow transition">
+                    Record Editorial Decision
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
-                <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-                    
-                    {{-- A. Send Email Option --}}
-                    <div>
-                        <h4 class="font-bold text-gray-800 mb-2">Send Email</h4>
-                        <div class="space-y-2 mb-3">
-                            <label class="flex items-start cursor-pointer">
-                                <input type="radio" name="send_email_decision" value="1" class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked onclick="toggleEmailEditor(true, 'acceptEmailContainer')">
-                                <div class="text-sm text-gray-700">
-                                    <span>Send an email notification to the author(s): </span>
-                                    <span class="text-gray-500">
-                                        {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?? 'Author' }}
-                                    </span>
-                                </div>
-                            </label>
-                            <label class="flex items-start cursor-pointer">
-                                <input type="radio" name="send_email_decision" value="0" class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" onclick="toggleEmailEditor(false, 'acceptEmailContainer')">
-                                <span class="text-gray-700 text-sm">Do not send an email notification</span>
-                            </label>
+{{-- MODAL 3: ACCEPT SUBMISSION --}}
+<div id="acceptModal"
+    class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
+
+        {{-- Header Modal --}}
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800">Accept Submission</h3>
+            <button onclick="closeAcceptModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        {{-- Form Pembungkus --}}
+        <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="status" value="Accepted">
+
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+
+                {{-- A. Send Email Option --}}
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">Send Email</h4>
+                    <div class="space-y-2 mb-3">
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="send_email_decision" value="1"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked
+                                onclick="toggleEmailEditor(true, 'acceptEmailContainer')">
+                            <div class="text-sm text-gray-700">
+                                <span>Send an email notification to the author(s): </span>
+                                <span class="text-gray-500">
+                                    {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?? 'Author' }}
+                                </span>
+                            </div>
+                        </label>
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="send_email_decision" value="0"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                onclick="toggleEmailEditor(false, 'acceptEmailContainer')">
+                            <span class="text-gray-700 text-sm">Do not send an email notification</span>
+                        </label>
+                    </div>
+
+                    {{-- Text Editor Area (Accept Template) --}}
+                    <div id="acceptEmailContainer"
+                        class="border border-gray-300 rounded shadow-sm transition-opacity duration-200">
+                        {{-- Toolbar Dummy --}}
+                        <div class="bg-gray-50 border-b border-gray-300 px-3 py-2 flex gap-3 text-gray-600">
+                            <button type="button" class="hover:text-black font-bold">B</button>
+                            <button type="button" class="hover:text-black italic">I</button>
+                            <button type="button" class="hover:text-black underline">U</button>
                         </div>
 
-                        {{-- Text Editor Area (Accept Template) --}}
-                        <div id="acceptEmailContainer" class="border border-gray-300 rounded shadow-sm transition-opacity duration-200">
-                            {{-- Toolbar Dummy --}}
-                            <div class="bg-gray-50 border-b border-gray-300 px-3 py-2 flex gap-3 text-gray-600">
-                                <button type="button" class="hover:text-black font-bold">B</button>
-                                <button type="button" class="hover:text-black italic">I</button>
-                                <button type="button" class="hover:text-black underline">U</button>
-                            </div>
-                            
-                            {{-- Textarea Isi Email ACCEPT --}}
-                            <textarea name="email_body" rows="6" class="w-full p-4 text-sm text-gray-800 focus:outline-none border-0 rounded-b" spellcheck="false">
+                        {{-- Textarea Isi Email ACCEPT --}}
+                        <textarea name="email_body" rows="6"
+                            class="w-full p-4 text-sm text-gray-800 focus:outline-none border-0 rounded-b"
+                            spellcheck="false">
 {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
 
 We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
@@ -589,107 +627,126 @@ Our decision is to: Accept
 
 {{ $editors->first()->name ?? 'Editor' }}
                             </textarea>
+                    </div>
+                </div>
+
+                {{-- B. Select Review Files --}}
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-gray-800">Select review files to share with the author(s)</h4>
+                        <div class="flex gap-2">
+                            <button type="button"
+                                class="text-blue-600 text-sm hover:underline font-semibold flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg> Search
+                            </button>
+                            <button type="button" class="text-blue-600 text-sm hover:underline font-semibold">Upload
+                                File</button>
                         </div>
                     </div>
 
-                    {{-- B. Select Review Files --}}
-                    <div class="border-t pt-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <h4 class="font-bold text-gray-800">Select review files to share with the author(s)</h4>
-                            <div class="flex gap-2">
-                                <button type="button" class="text-blue-600 text-sm hover:underline font-semibold flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg> Search
-                                </button>
-                                <button type="button" class="text-blue-600 text-sm hover:underline font-semibold">Upload File</button>
-                            </div>
-                        </div>
-
-                        <div class="border rounded-md overflow-hidden">
-                            <table class="w-full text-sm text-left">
-                                <tbody class="divide-y divide-gray-100">
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-3 w-10 text-center"><input type="checkbox" name="files[]" value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"></td>
-                                        <td class="px-4 py-3 text-blue-600 font-medium">📄 jurnl 2.docx</td>
-                                        <td class="px-4 py-3 text-right text-pink-600 text-xs">December 16, 2025</td>
-                                        <td class="px-4 py-3 text-right text-gray-500">Article Text</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <div class="p-3 border-t bg-gray-50">
-                                 <button type="button" class="text-blue-600 font-bold text-sm flex items-center gap-1 hover:underline">
-                                    <span class="text-lg leading-none">+</span> Select Library Files to attach
-                                 </button>
-                            </div>
+                    <div class="border rounded-md overflow-hidden">
+                        <table class="w-full text-sm text-left">
+                            <tbody class="divide-y divide-gray-100">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 w-10 text-center"><input type="checkbox" name="files[]"
+                                            value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    </td>
+                                    <td class="px-4 py-3 text-blue-600 font-medium">📄 jurnl 2.docx</td>
+                                    <td class="px-4 py-3 text-right text-pink-600 text-xs">December 16, 2025</td>
+                                    <td class="px-4 py-3 text-right text-gray-500">Article Text</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="p-3 border-t bg-gray-50">
+                            <button type="button"
+                                class="text-blue-600 font-bold text-sm flex items-center gap-1 hover:underline">
+                                <span class="text-lg leading-none">+</span> Select Library Files to attach
+                            </button>
                         </div>
                     </div>
-
                 </div>
 
-                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
-                    <button type="button" onclick="closeAcceptModal()" class="px-4 py-2 border border-pink-500 text-pink-600 font-semibold rounded hover:bg-pink-50 transition">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded shadow transition">
-                        Next: Select Files for Copyediting
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
-    {{-- MODAL 4: DECLINE SUBMISSION (BARU! - SESUAI SCREENSHOT PINK) --}}
-    <div id="declineModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
-            
-            {{-- Header Modal --}}
-            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                <h3 class="text-xl font-bold text-gray-800">Decline Submission</h3>
-                <button onclick="closeDeclineModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
             </div>
 
-            {{-- Form Pembungkus (Submit status = Rejected) --}}
-            <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
-                @csrf
-                @method('PATCH')
-                <input type="hidden" name="status" value="Rejected">
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
+                <button type="button" onclick="closeAcceptModal()"
+                    class="px-4 py-2 border border-pink-500 text-pink-600 font-semibold rounded hover:bg-pink-50 transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded shadow transition">
+                    Next: Select Files for Copyediting
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
-                <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-                    
-                    {{-- A. Send Email Option --}}
-                    <div>
-                        <h4 class="font-bold text-gray-800 mb-2">Send Email</h4>
-                        <div class="space-y-2 mb-3">
-                            <label class="flex items-start cursor-pointer">
-                                <input type="radio" name="send_email_decision" value="1" class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked onclick="toggleEmailEditor(true, 'declineEmailContainer')">
-                                <div class="text-sm text-gray-700">
-                                    <span>Send an email notification to the author(s): </span>
-                                    <span class="text-gray-500">
-                                        {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?? 'Author' }}
-                                    </span>
-                                </div>
-                            </label>
-                            <label class="flex items-start cursor-pointer">
-                                <input type="radio" name="send_email_decision" value="0" class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" onclick="toggleEmailEditor(false, 'declineEmailContainer')">
-                                <span class="text-gray-700 text-sm">Do not send an email notification</span>
-                            </label>
+
+{{-- MODAL 4: DECLINE SUBMISSION (BARU! - SESUAI SCREENSHOT PINK) --}}
+<div id="declineModal"
+    class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
+
+        {{-- Header Modal --}}
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800">Decline Submission</h3>
+            <button onclick="closeDeclineModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        {{-- Form Pembungkus (Submit status = Rejected) --}}
+        <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="status" value="Rejected">
+
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+
+                {{-- A. Send Email Option --}}
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">Send Email</h4>
+                    <div class="space-y-2 mb-3">
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="send_email_decision" value="1"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked
+                                onclick="toggleEmailEditor(true, 'declineEmailContainer')">
+                            <div class="text-sm text-gray-700">
+                                <span>Send an email notification to the author(s): </span>
+                                <span class="text-gray-500">
+                                    {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?? 'Author' }}
+                                </span>
+                            </div>
+                        </label>
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="send_email_decision" value="0"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                onclick="toggleEmailEditor(false, 'declineEmailContainer')">
+                            <span class="text-gray-700 text-sm">Do not send an email notification</span>
+                        </label>
+                    </div>
+
+                    {{-- Text Editor Area (Decline Template) --}}
+                    <div id="declineEmailContainer"
+                        class="border border-gray-300 rounded shadow-sm transition-opacity duration-200">
+                        {{-- Toolbar Dummy --}}
+                        <div class="bg-gray-50 border-b border-gray-300 px-3 py-2 flex gap-3 text-gray-600">
+                            <button type="button" class="hover:text-black font-bold">B</button>
+                            <button type="button" class="hover:text-black italic">I</button>
+                            <button type="button" class="hover:text-black underline">U</button>
                         </div>
 
-                        {{-- Text Editor Area (Decline Template) --}}
-                        <div id="declineEmailContainer" class="border border-gray-300 rounded shadow-sm transition-opacity duration-200">
-                            {{-- Toolbar Dummy --}}
-                            <div class="bg-gray-50 border-b border-gray-300 px-3 py-2 flex gap-3 text-gray-600">
-                                <button type="button" class="hover:text-black font-bold">B</button>
-                                <button type="button" class="hover:text-black italic">I</button>
-                                <button type="button" class="hover:text-black underline">U</button>
-                            </div>
-                            
-                            {{-- Textarea Isi Email DECLINE --}}
-                            <textarea name="email_body" rows="6" class="w-full p-4 text-sm text-gray-800 focus:outline-none border-0 rounded-b" spellcheck="false">
+                        {{-- Textarea Isi Email DECLINE --}}
+                        <textarea name="email_body" rows="6"
+                            class="w-full p-4 text-sm text-gray-800 focus:outline-none border-0 rounded-b"
+                            spellcheck="false">
 {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
 
 We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
@@ -698,49 +755,58 @@ Our decision is to: Decline Submission
 
 {{ $editors->first()->name ?? 'Editor' }}
                             </textarea>
+                    </div>
+                </div>
+
+                {{-- B. Select Review Files --}}
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-gray-800">Select review files to share with the author(s)</h4>
+                        <div class="flex gap-2">
+                            <button type="button"
+                                class="text-blue-600 text-sm hover:underline font-semibold flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg> Search
+                            </button>
+                            <button type="button" class="text-blue-600 text-sm hover:underline font-semibold">Upload
+                                File</button>
                         </div>
                     </div>
 
-                    {{-- B. Select Review Files --}}
-                    <div class="border-t pt-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <h4 class="font-bold text-gray-800">Select review files to share with the author(s)</h4>
-                            <div class="flex gap-2">
-                                <button type="button" class="text-blue-600 text-sm hover:underline font-semibold flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg> Search
-                                </button>
-                                <button type="button" class="text-blue-600 text-sm hover:underline font-semibold">Upload File</button>
-                            </div>
-                        </div>
-
-                        <div class="border rounded-md overflow-hidden">
-                            <table class="w-full text-sm text-left">
-                                <tbody class="divide-y divide-gray-100">
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-3 w-10 text-center"><input type="checkbox" name="files[]" value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"></td>
-                                        <td class="px-4 py-3 text-blue-600 font-medium">📄 jurnl 2.docx</td>
-                                        <td class="px-4 py-3 text-right text-pink-600 text-xs">December 16, 2025</td>
-                                        <td class="px-4 py-3 text-right text-gray-500">Article Text</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="border rounded-md overflow-hidden">
+                        <table class="w-full text-sm text-left">
+                            <tbody class="divide-y divide-gray-100">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 w-10 text-center"><input type="checkbox" name="files[]"
+                                            value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    </td>
+                                    <td class="px-4 py-3 text-blue-600 font-medium">📄 jurnl 2.docx</td>
+                                    <td class="px-4 py-3 text-right text-pink-600 text-xs">December 16, 2025</td>
+                                    <td class="px-4 py-3 text-right text-gray-500">Article Text</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-
                 </div>
 
-                {{-- Footer Tombol (Sesuai Screenshot: Cancel & Record Editorial Decision) --}}
-                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
-                    <button type="button" onclick="closeDeclineModal()" class="px-4 py-2 border border-pink-500 text-pink-600 font-semibold rounded hover:bg-pink-50 transition">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded shadow transition">
-                        Record Editorial Decision
-                    </button>
-                </div>
-            </form>
-        </div>
+            </div>
+
+            {{-- Footer Tombol (Sesuai Screenshot: Cancel & Record Editorial Decision) --}}
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
+                <button type="button" onclick="closeDeclineModal()"
+                    class="px-4 py-2 border border-pink-500 text-pink-600 font-semibold rounded hover:bg-pink-50 transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded shadow transition">
+                    Record Editorial Decision
+                </button>
+            </div>
+        </form>
     </div>
+</div>
 
 
 @endif {{-- END IF CHECK $paper --}}
@@ -811,36 +877,36 @@ const acceptModal = document.getElementById('acceptModal');
 const declineModal = document.getElementById('declineModal');
 
 function openRevisionModal() {
-    if(revisionModal) revisionModal.classList.remove('hidden');
+    if (revisionModal) revisionModal.classList.remove('hidden');
 }
 
 function closeRevisionModal() {
-    if(revisionModal) revisionModal.classList.add('hidden');
+    if (revisionModal) revisionModal.classList.add('hidden');
 }
 
 function openAcceptModal() {
-    if(acceptModal) acceptModal.classList.remove('hidden');
+    if (acceptModal) acceptModal.classList.remove('hidden');
 }
 
 function closeAcceptModal() {
-    if(acceptModal) acceptModal.classList.add('hidden');
+    if (acceptModal) acceptModal.classList.add('hidden');
 }
 
 function openDeclineModal() {
-    if(declineModal) declineModal.classList.remove('hidden');
+    if (declineModal) declineModal.classList.remove('hidden');
 }
 
 function closeDeclineModal() {
-    if(declineModal) declineModal.classList.add('hidden');
+    if (declineModal) declineModal.classList.add('hidden');
 }
 
 // Fungsi Generic untuk toggle editor email di modal manapun
 function toggleEmailEditor(enable, containerId) {
     const container = document.getElementById(containerId);
-    if(!container) return;
+    if (!container) return;
 
     const textarea = container.querySelector('textarea');
-    if(enable) {
+    if (enable) {
         container.classList.remove('opacity-50', 'pointer-events-none');
         textarea.disabled = false;
     } else {
@@ -937,6 +1003,43 @@ ${editorName}`;
     modal.classList.remove('hidden');
 }
 
+function openAssignSectionEditorModal() {
+    modalMode = "section_editor";
+
+    const editorSelect = document.getElementById('editorSelect');
+    const selected = Array.from(editorSelect.selectedOptions);
+
+    if (selected.length === 0) {
+        alert("Please select at least one Section Editor.");
+        return;
+    }
+
+    const names = selected
+        .map(opt => opt.text.split(' (')[0])
+        .join(', ');
+
+    modalTitle.innerText = "Assign Section Editor & Send Email";
+    modalRecipient.value = names;
+    emailSubject.value = "Section Editor Assignment";
+
+    const template = `Dear ${names},
+
+You have been assigned as a Section Editor for the manuscript:
+
+"${articleTitle}"
+
+Please log into the journal system to manage this submission.
+
+Submission URL:
+${articleUrl}
+
+Best regards,
+${editorName}`;
+
+    emailBody.value = template;
+
+    modal.classList.remove('hidden');
+}
 
 // 3. Fungsi Tutup Modal
 function closeModal() {
@@ -945,6 +1048,22 @@ function closeModal() {
 
 // 4. Simulasi Submit
 function submitProcess() {
+    if (modalMode === "section_editor") {
+
+        const editorSelect = document.getElementById('editorSelect');
+        const selectedIds = Array.from(editorSelect.selectedOptions)
+            .map(opt => opt.value);
+
+        document.getElementById('seEditorsInput').value = selectedIds.join(',');
+        document.getElementById('seSubjectInput').value = emailSubject.value;
+        document.getElementById('seBodyInput').value = emailBody.value;
+        document.getElementById('seSendEmailInput').value =
+            document.getElementById('skipEmail')?.checked ? 0 : 1;
+
+        document.getElementById('assignSectionEditorForm').submit();
+        return;
+    }
+
     if (modalMode === "assign") {
         const deadlineInputEl = document.querySelector('input[type="date"]');
         const deadlineValue = deadlineInputEl ? deadlineInputEl.value : '';
