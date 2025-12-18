@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Mail\ReviewerReminderMail;
 use Illuminate\Support\Facades\DB;
 use App\Mail\ReviewerAssignmentMail;
+use App\Mail\SectionEditorAssignmentMail;
 use Illuminate\Support\Facades\Mail;
 
 class EditorController extends Controller
@@ -46,39 +47,34 @@ class EditorController extends Controller
             $articleUrl = $paper->file_path ? asset('storage/' . $paper->file_path) : '#';
 
             // Ambil semua user yang memiliki role reviewer dengan info jumlah paper aktif
-            $all_reviewers = User::whereHas('roles', function($q) {
+            $assignedReviewerIds = $paper->reviewers()->pluck('users.id')->toArray();
+            $all_reviewers = User::whereHas('roles', function ($q) {
                 $q->where('name', 'reviewer');
-            })->get()->map(function($reviewer) {
-                // Hitung jumlah paper aktif (yang sudah di-accept atau sedang di-review)
-                $activePapers = DB::table('paper_reviewer')
+            })
+            ->whereNotIn('id', $assignedReviewerIds) // 🔥 DI SINI PAKAI ID
+            ->get()
+            ->map(function ($reviewer) {
+        
+                $reviewer->active_papers = DB::table('paper_reviewer')
                     ->where('user_id', $reviewer->id)
                     ->whereIn('status', ['accept_to_review', 'completed'])
                     ->count();
-
-                // Hitung total paper yang di-assign (termasuk yang belum di-accept)
-                $totalPapers = DB::table('paper_reviewer')
-                    ->where('user_id', $reviewer->id)
-                    ->count();
-
-                $reviewer->active_papers = $activePapers;
-                $reviewer->total_papers = $totalPapers;
-
+        
                 return $reviewer;
             });
+        
 
             // Ambil semua user yang memiliki role section_editor dengan info jumlah paper aktif
-            $all_section_editors = User::whereHas('roles', function($q) {
-                $q->where('name', 'section_editor');
-            })->get()->map(function($sectionEditor) {
-                // Hitung jumlah paper yang di-assign ke section editor ini
-                $assignedPapers = DB::table('paper_section_editor')
-                    ->where('user_id', $sectionEditor->id)
-                    ->count();
+            $assignedSectionEditorIds = $paper->sectionEditors()
+            ->pluck('users.id')
+            ->toArray();
 
-                $sectionEditor->assigned_papers = $assignedPapers;
+            $all_section_editors = User::whereHas('roles', function ($q) {  
+                    $q->where('name', 'section_editor');
+                })
+            ->whereNotIn('id', $assignedSectionEditorIds)
+            ->get();
 
-                return $sectionEditor;
-            });
 
             return view('editor', [
                 'page'                  => 'assign',
@@ -272,44 +268,69 @@ class EditorController extends Controller
     }
 
 
-    public function assignSectionEditor(Request $request, $paperId)
-    {
-        $paper = Paper::findOrFail($paperId);
-        $editorIds = $request->section_editors ?? [];
+    public function assignSectionEditorWithEmail(Request $request, $paperId)
+{
+    $request->validate([
+        'section_editors' => 'required|array',
+        'send_email'      => 'required|boolean',
+    ]);
 
-        // Sync section editors ke paper
-        $paper->sectionEditors()->sync($editorIds);
+    $paper     = Paper::findOrFail($paperId);
+    $editorIds = $request->section_editors;
+    $sendEmail = $request->send_email;
 
-        // Tambahkan role section_editor ke user yang di-assign (jika belum punya)
-        $sectionEditorRole = Role::where('name', 'section_editor')->first();
-        if ($sectionEditorRole) {
-            foreach ($editorIds as $userId) {
-                $user = User::find($userId);
-                if ($user && !$user->roles->contains($sectionEditorRole->id)) {
-                    $user->roles()->attach($sectionEditorRole->id);
-                }
+    // Sync section editor
+    $paper->sectionEditors()->sync($editorIds);
+
+    // Assign role
+    $role = Role::where('name', 'section_editor')->first();
+    if ($role) {
+        foreach ($editorIds as $id) {
+            $user = User::find($id);
+            if ($user && !$user->roles->contains($role->id)) {
+                $user->roles()->attach($role->id);
             }
         }
-
-        foreach ($editorIds as $editorId) {
-            Notification::create([
-                'user_id'  => $editorId,
-                'title'    => 'Assigned as Section Editor',
-                'message'  => 'You are assigned as a section editor for the paper: "' . $paper->judul . '"',
-                'type'     => 'assign_section_editor',
-                'status'   => null,
-                'data'     => [
-                    'paper_id'      => $paper->id,
-                    'paper_title'   => $paper->judul,
-                    'invited_by'    => auth()->id(),
-                ],
-            ]);
-        }
-
-        return back()->with('success', 'Section editor updated!');
     }
 
+    // Notification
+    foreach ($editorIds as $id) {
+        Notification::create([
+            'user_id' => $id,
+            'title'   => 'Section Editor Assignment',
+            'message' => 'You are assigned as section editor for "' . $paper->judul . '"',
+            'type'    => 'assign_section_editor',
+        ]);
+    }
 
+    // ================= EMAIL =================
+    if ($sendEmail) {
+        $editors     = User::whereIn('id', $editorIds)->get();
+        $editorName  = auth()->user()->first_name . ' ' . auth()->user()->last_name;
+
+        $subject = trim($request->subject) !== ''
+            ? $request->subject
+            : 'Assignment as Section Editor';
+
+        $emailBody = trim($request->email_body);
+
+        foreach ($editors as $editor) {
+            Mail::to($editor->email)->send(
+                new SectionEditorAssignmentMail(
+                    $paper,
+                    $editor,
+                    $editorName,
+                    $subject,
+                    $emailBody
+                )
+            );
+        }
+    }
+
+    return back()->with('success', 'Section editor assigned & email sent!');
+}
+
+    
     public function unassignSectionEditor(Request $request, $paperId)
     {
         $paper = Paper::findOrFail($paperId);

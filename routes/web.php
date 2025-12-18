@@ -73,10 +73,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/editor/paper/{paper}/assign-reviewers', [EditorController::class, 'assignReviewers'])->name('editor.assignReviewers');
     Route::post('/editor/{paperId}/send-reminder', [EditorController::class, 'sendReminder'])->name('editor.sendReminder');
     Route::post('/editor/{paper}/unassign-reviewer', [EditorController::class, 'unassignReviewer'])->name('editor.unassignReviewer');
-    Route::post('/editor/{paper}/assign-section-editor', [EditorController::class, 'assignSectionEditor'])->name('editor.assignSectionEditor');
+    Route::post( '/editor/{id}/assign-section-editor',[EditorController::class, 'assignSectionEditorWithEmail'])->name('editor.assignSectionEditor');
+    
     Route::post('/editor/{paper}/unassign-section-editor', [EditorController::class, 'unassignSectionEditor'])->name('editor.unassignSectionEditor');
     Route::patch('/editor/paper/{id}/status', [EditorController::class, 'updateStatus'])->name('editor.updateStatus');
+    
+    
 
+    
     Route::get('/reviewer', [ReviewerController::class, 'index'])->name('reviewer.index');
     Route::post('/reviewer/{paper}/accept', [ReviewerController::class, 'acceptReview'])->name('reviewer.accept');
     Route::post('/reviewer/{paper}/decline', [ReviewerController::class, 'declineReview'])->name('reviewer.decline');
