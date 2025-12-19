@@ -30,35 +30,42 @@ class Paper extends Model
         return $this->belongsToMany(User::class, 'paper_section_editor')->withTimestamps();
     }
 
-    public function getEditorStatusAttribute()
+    public function getDisplayStatusAttribute()
 {
-    $this->loadMissing(['reviewers', 'sectionEditors']);
-
-    if ($this->reviewers->isEmpty() && $this->sectionEditors->isEmpty()) {
-        return 'Unassign';
+    // 1. Kalau editor sudah memutuskan
+    if ($this->editor_status) {
+        return $this->editor_status;
     }
 
-    if ($this->reviewers->isNotEmpty() &&
-        !$this->reviewers->contains(fn($r) =>
-            in_array($r->pivot->status, ['accept_to_review', 'decline_to_review'])
-        )
-    ) {
-        return 'Awaiting Responses from Reviewers';
+    $reviewers = $this->reviewers;
+
+    if ($reviewers->isEmpty()) {
+        return 'Unassigned';
     }
 
-    if ($this->reviewers->contains(fn($r) => $r->pivot->status === 'accept_to_review')) {
+    // Hitung status reviewer
+    $statuses = $reviewers->pluck('pivot.status');
+
+    // 2. Jika ADA reviewer yang accept / assigned
+    if ($statuses->contains(fn ($s) =>
+        in_array($s, ['assigned', 'accept_to_review'])
+    )) {
         return 'In Review';
     }
 
-    if ($this->reviewers->contains(fn($r) =>
-        $r->pivot->status === 'completed' &&
-        $r->pivot->recommendation === 'revision'
-    )) {
-        return 'Accept with Review';
+    // 3. Jika SEMUA reviewer decline
+    if ($statuses->every(fn ($s) => $s === 'decline_to_review')) {
+        return 'Decline to Review';
     }
 
-    return '-';
+    // 4. Jika SEMUA reviewer completed
+    if ($statuses->every(fn ($s) => $s === 'completed')) {
+        return 'Completed Review';
+    }
+
+    return 'Pending';
 }
+
 
 
 

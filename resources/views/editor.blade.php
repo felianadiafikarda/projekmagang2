@@ -92,6 +92,7 @@
                 'Awaiting Responses from Reviewers' => 'bg-blue-300 text-blue-900',
                 'In Review' => 'bg-yellow-300 text-yellow-900',
                 'Accept with Review' => 'bg-yellow-300 text-yellow-900',
+                'Decline to Review' => 'bg-red-300 text-red-900',
                 'Rejected' => 'bg-red-300 text-red-900',
                 'Accepted' => 'bg-green-300 text-green-900',
                 ];
@@ -108,10 +109,11 @@
 
                     {{-- STATUS (TEXT LABEL BIASA) --}}
                     <td class="p-2 border text-center">
-                        <span
-                            class="px-2 py-1 rounded text-sm font-semibold {{ $statusColor[$p->editor_status] ?? 'bg-gray-200 text-gray-700' }}">
-                            {{ $p->editor_status ?? '-' }}
+                        <span class="px-2 py-1 rounded text-sm font-semibold
+    {{ $statusColor[$p->display_status] ?? 'bg-gray-200 text-gray-700' }}">
+                            {{ $p->display_status }}
                         </span>
+
 
                     </td>
 
