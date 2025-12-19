@@ -11,13 +11,7 @@
 
 <div class="max-w-7xl rounded-xl mx-auto space-y-6 py-6">
 
-    {{-- Header --}}
-    <div class="flex items-center justify-between">
-        <div class="flex gap-2">
-            <a href="{{ route('section_editor.index') }}?page=list"
-                class="px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 transition">All Submissions</a>
-        </div>
-    </div>
+
 
     {{-- Alert Messages --}}
     @if(session('success'))
@@ -110,159 +104,166 @@
                 </div>
             </div>
 
-            <div class="text-right mt-1">
-                <span
-                    class="text-sm font-medium px-3 py-1 rounded 
-                    {{ $paper->status == 'in_review' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-50 text-blue-700' }}">
-                    {{ ucfirst(str_replace('_',' ',$paper->status ?? 'unassigned')) }}
-                </span>
+            {{-- TOMBOL AKSI UTAMA --}}
+            <div class="text-right w-56">
+                {{-- Form Wrapper (Optional, karena sekarang semua pakai modal) --}}
+                <form action="#" method="POST" onsubmit="return false;">
+
+                    <div class="flex flex-col gap-2">
+
+                        {{-- 1. Request Revisions (MODAL) --}}
+                        <button type="button" onclick="openRevisionModal()"
+                            class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded shadow-sm text-sm transition text-left border border-gray-300">
+                            Request Revisions
+                        </button>
+
+                        {{-- 2. Accept Submission (MODAL) --}}
+                        <button type="button" onclick="openAcceptModal()"
+                            class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded shadow-sm text-sm transition text-left">
+                            Accept Submission
+                        </button>
+
+                        {{-- 3. Decline Submission (MODAL BARU) --}}
+                        <button type="button" onclick="openDeclineModal()"
+                            class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded shadow-sm text-sm transition text-left">
+                            Decline Submission
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
         {{-- ASSIGN REVIEWER SECTION --}}
-        <div class="mt-6 border-t pt-6">
+        <div class="mt-8 border-t pt-6">
             <h4 class="font-semibold mb-4 text-lg">Assign Reviewer</h4>
 
-            <form id="assignForm" method="POST" action="{{ route('section_editor.assignReviewers', $paper->id) }}">
-                @csrf
-                <input type="hidden" id="subjectInput" name="subject">
-                <input type="hidden" id="bodyInput" name="email_body">
-                <input type="hidden" id="reviewersInput" name="reviewers">
-                <input type="hidden" id="deadlineInput" name="deadline">
-                <input type="hidden" id="sendEmailInput" name="send_email" value="1">
+            <div class="bg-gray-50 border rounded-lg p-4">
 
-                {{-- Multiselect Reviewer Dropdown --}}
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Select Reviewers</label>
-                    <select id="reviewerSelect" name="reviewers[]" multiple placeholder="Cari dan pilih Reviewer..."
-                        autocomplete="off">
-                        @foreach($all_reviewers as $rev)
-                        <option value="{{ $rev->id }}" data-active="{{ $rev->active_papers }}" @if(in_array($rev->id,
-                            $assignedReviewers->pluck('id')->toArray())) selected @endif>
-                            {{ $rev->first_name . ' ' . $rev->last_name }} (Active Reviews : {{ $rev->active_papers }})
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
+                {{-- Form --}}
+                <form id="assignForm" method="POST" action="{{ route('editor.assignReviewers', $paper->id) }}">
+                    @csrf
+                    <input type="hidden" id="subjectInput" name="subject">
+                    <input type="hidden" id="bodyInput" name="email_body">
+                    <input type="hidden" id="reviewersInput" name="reviewers">
+                    <input type="hidden" id="deadlineInput" name="deadline">
+                    <input type="hidden" id="sendEmailInput" name="send_email" value="1">
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Deadline for selected reviewers</label>
-                    <input type="date" id="deadlineDate" name="deadline"
-                        class="border rounded p-2 w-full md:w-64 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-
-                {{-- TOMBOL UPDATE: Memicu Modal Assign --}}
-                <button type="button" onclick="openAssignModal()"
-                    class="mt-2 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 shadow-sm transition duration-200 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    Send Request & Assign Reviewers
-                </button>
-            </form>
-        </div>
-
-        {{-- LIST ASSIGNED REVIEWERS --}}
-        <div class="mt-10">
-            <h4 class="font-semibold mb-3 text-lg">Assigned Reviewers</h4>
-
-            <div class="space-y-4">
-                @forelse($assignedReviewers as $ar)
-                <div class="border rounded-lg p-4 shadow-sm bg-white hover:shadow-md transition duration-200">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            {{-- NAMA REVIEWER --}}
-                            <div class="font-medium text-lg text-gray-800">
-                                {{ $ar->first_name . ' ' . $ar->last_name }}
-                            </div>
-
-                            {{-- DEADLINE --}}
-                            <div class="text-sm text-gray-500">
-                                Deadline:
-                                <span class="font-medium">
-                                    {{ date('d M Y', strtotime($ar->pivot->deadline)) }}
-                                </span>
-                            </div>
-
-                            {{-- STATUS --}}
-                            <div class="text-sm mt-1 flex items-center gap-2">
-                                Status:
-
-                                @php $status = $ar->pivot->status; @endphp
-
-                                <span class="px-2 py-0.5 rounded text-xs font-semibold
-                                    @if($status === 'completed') bg-green-100 text-green-700 @endif
-                                    @if($status === 'assigned') bg-blue-100 text-blue-700 @endif
-                                    @if($status === 'accepted') bg-indigo-100 text-indigo-700 @endif
-                                    @if($status === 'declined') bg-red-100 text-red-700 @endif
-                                ">
-                                    {{ ucwords(str_replace('_',' ', $status)) }}
-                                </span>
-                            </div>
-
-                            {{-- RECOMMENDATION DARI REVIEWER --}}
-                            @if($status === 'completed' && $ar->pivot->recommendation)
-                            <div class="text-sm mt-2 p-2 bg-gray-50 rounded text-gray-700 border border-gray-200">
-                                Recommendation:
-                                <strong>{{ $ar->pivot->recommendation }}</strong>
-                            </div>
-                            @endif
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Select Reviewers</label>
+                            <select id="reviewerSelect" name="reviewers[]" multiple
+                                placeholder="Cari dan pilih Reviewer..." autocomplete="off">
+                                @foreach($all_reviewers as $rev)
+                                <option value="{{ $rev->id }}" data-active="{{ $rev->active_papers }}"
+                                    data-total="{{ $rev->total_papers }}">
+                                    {{ $rev->first_name . ' ' . $rev->last_name }} (Active Reviews :
+                                    {{ $rev->active_papers }})
+                                </option>
+                                @endforeach
+                            </select>
                         </div>
-
-                        {{-- ACTIONS --}}
-                        <div class="flex flex-col gap-2 items-end">
-
-                            {{-- TOMBOL REMINDER --}}
-                            @if(in_array($status, ['assigned', 'accepted', 'declined']))
-                            <button type="button"
-                                onclick="openReminderModal('{{ $ar->id }}', '{{ $ar->first_name . ' ' . $ar->last_name }}', '{{ $ar->pivot->deadline }}')"
-                                class="text-sm bg-yellow-500 text-white px-3 py-1.5 rounded hover:bg-yellow-600 transition shadow-sm flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path
-                                        d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                                </svg>
-                                Send Reminder
-                            </button>
-                            @endif
-
-                            {{-- TOMBOL READ REVIEW --}}
-                            @if($status === 'completed')
-                            <button
-                                class="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700 transition shadow-sm">
-                                Read Review
-                            </button>
-                            @endif
-
-                            {{-- TOMBOL UNASSIGN --}}
-                            <button onclick="unassignReviewer('{{ $ar->id }}')"
-                                class="text-sm text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition">
-                                Unassign
-                            </button>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
+                            <input type="date" id="deadlineDate" name="deadline"
+                                class="border border-gray-300 rounded p-1.5 w-full focus:ring-gray-900 focus:border-gray-900 h-[38px] mt-[1px]">
                         </div>
                     </div>
-                </div>
 
-                @empty
-                <div class="text-sm text-gray-500 p-4 border border-dashed rounded text-center">
-                    No reviewers assigned yet.
+                    <button type="button" onclick="openAssignModal()"
+                        class="bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-700 shadow-sm transition duration-200 flex items-center gap-2 text-sm font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        Send Request & Assign Reviewers
+                    </button>
+                </form>
+
+                {{-- List Assigned --}}
+                <div class="mt-4 border-t border-gray-200 pt-4">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Assigned Reviewers
+                        List</label>
+                    <div class="space-y-4">
+                        @forelse($assignedReviewers as $ar)
+                        <div class="border rounded-lg p-4 shadow-sm bg-white hover:shadow-md transition duration-200">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="font-medium text-lg text-gray-800">
+                                        {{ $ar->first_name . ' ' . $ar->last_name }}
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        Deadline: <span
+                                            class="font-medium">{{ date('d M Y', strtotime($ar->pivot->deadline)) }}</span>
+                                    </div>
+                                    <div class="text-sm mt-1 flex items-center gap-2">
+                                        Status:
+                                        @php $status = $ar->pivot->status; @endphp
+                                        <span class="px-2 py-0.5 rounded text-xs font-semibold
+                                            @if($status === 'completed') bg-green-100 text-green-700 @endif
+                                            @if($status === 'assigned') bg-blue-100 text-blue-700 @endif
+                                            @if($status === 'accept_to_review') bg-indigo-100 text-indigo-700 @endif
+                                            @if($status === 'decline_to_review') bg-red-100 text-red-700 @endif">
+                                            {{ ucwords(str_replace('_',' ', $status)) }}
+                                        </span>
+                                    </div>
+                                    @if($status === 'completed' && $ar->pivot->recommendation)
+                                    <div
+                                        class="text-sm mt-2 p-2 bg-gray-50 rounded text-gray-700 border border-gray-200">
+                                        Recommendation: <strong>{{ $ar->pivot->recommendation }}</strong>
+                                    </div>
+                                    @endif
+                                </div>
+
+                                <div class="flex flex-col gap-2 items-end">
+                                    @if(in_array($status, ['assigned', 'accept_to_review', 'decline_to_review']))
+                                    <button type="button"
+                                        onclick="openReminderModal('{{ $ar->id }}', '{{ $ar->first_name . ' ' . $ar->last_name }}', '{{ $ar->pivot->deadline }}')"
+                                        class="text-sm bg-yellow-500 text-white px-3 py-1.5 rounded hover:bg-yellow-600 transition shadow-sm flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path
+                                                d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                                        </svg> Send Reminder
+                                    </button>
+                                    @endif
+
+                                    @if($status === 'completed')
+                                    <button
+                                        class="text-sm bg-indigo-600 text-white px-3 py-1.5 rounded hover:bg-indigo-700 transition shadow-sm">Read
+                                        Review</button>
+                                    @endif
+
+                                    @if($assignedReviewers->contains('id', $ar->id))
+                                    <button onclick="unassignReviewer('{{ $ar->id }}')"
+                                        class="text-sm text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition">Unassign</button>
+                                    @else
+                                    <button onclick="assignReviewer('{{ $ar->id }}')"
+                                        class="text-sm text-green-600 hover:text-green-800 hover:bg-green-50 px-3 py-1 rounded transition">Assign</button>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <div class="text-sm text-gray-500 italic">No reviewers assigned yet.</div>
+                        @endforelse
+                    </div>
                 </div>
-                @endforelse
             </div>
         </div>
-
     </div>
-
     <div class="flex justify-end mt-6">
-        <a href="{{ route('section_editor.index') }}?page=list"
+        <a href="{{ url()->current() . '?page=list' }}"
             class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
             Back
         </a>
     </div>
+</div>
 
-    @endif
+</div>
+
+
+@endif
 
 </div>
 
@@ -270,7 +271,7 @@
 <div id="emailModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden transform transition-all">
         {{-- Modal Header --}}
-        <div class="bg-blue-600 px-6 py-4 flex justify-between items-center">
+        <div class="bg-gray-900 px-6 py-4 flex justify-between items-center">
             <h3 class="text-white text-lg font-semibold" id="modalTitle">Add Reviewer & Send Email</h3>
             <button onclick="closeModal()" class="text-white hover:text-gray-200 focus:outline-none">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
@@ -323,9 +324,388 @@
             <button onclick="closeModal()"
                 class="px-4 py-2 bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition">Cancel</button>
             <button onclick="submitProcess()"
-                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm transition">Send &
+                class="px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-700 shadow-sm transition">Send &
                 Process</button>
         </div>
+    </div>
+</div>
+
+{{-- MODAL 2: REQUEST REVISIONS --}}
+<div id="revisionModal"
+    class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
+
+        {{-- Header Modal --}}
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800">Request Revisions</h3>
+            <button onclick="closeRevisionModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        {{-- Form Pembungkus --}}
+        <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="status" value="Accept with Review">
+
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+
+                {{-- A. Require New Review Round --}}
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">Require New Review Round</h4>
+                    <div class="space-y-2">
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="new_review_round" value="0"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked>
+                            <span class="text-gray-700 text-sm">Revisions will <strong>not</strong> be subject to a new
+                                round of peer reviews.</span>
+                        </label>
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="new_review_round" value="1"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500">
+                            <span class="text-gray-700 text-sm">Revisions will be subject to a new round of peer
+                                reviews.</span>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- B. Send Email Option --}}
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">Send Email</h4>
+                    <div class="space-y-2 mb-3">
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="send_email_decision" value="1"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked
+                                onclick="toggleEmailEditor(true, 'revisionEmailContainer')">
+                            <div class="text-sm text-gray-700">
+                                <span>Send an email notification to the author(s): </span>
+                                <span class="text-gray-500">
+                                    {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?? 'Author' }}
+                                </span>
+                            </div>
+                        </label>
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="send_email_decision" value="0"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                onclick="toggleEmailEditor(false, 'revisionEmailContainer')">
+                            <span class="text-gray-700 text-sm">Do not send an email notification</span>
+                        </label>
+                    </div>
+
+                    {{-- Text Editor Area --}}
+                    <div id="revisionEmailContainer"
+                        class="border border-gray-300 rounded shadow-sm transition-opacity duration-200">
+                        {{-- Toolbar Dummy --}}
+                        <div class="bg-gray-50 border-b border-gray-300 px-3 py-2 flex gap-3 text-gray-600">
+                            <button type="button" class="hover:text-black font-bold">B</button>
+                            <button type="button" class="hover:text-black italic">I</button>
+                            <button type="button" class="hover:text-black underline">U</button>
+                        </div>
+
+                        {{-- Textarea --}}
+                        <textarea name="email_body" rows="6"
+                            class="w-full p-4 text-sm text-gray-800 focus:outline-none border-0 rounded-b"
+                            spellcheck="false">
+{{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
+
+We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
+
+Our decision is: **Revisions Required**
+
+Please revise your manuscript based on the reviewers' comments and resubmit it for further consideration.
+
+Best regards,
+{{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
+
+                            </textarea>
+                    </div>
+                </div>
+
+                {{-- C. Select Review Files --}}
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-gray-800">Select review files to share with the author(s)</h4>
+                        <div class="flex gap-2">
+                            <button type="button"
+                                class="text-blue-600 text-sm hover:underline font-semibold flex items-center">Search</button>
+                            <button type="button" class="text-blue-600 text-sm hover:underline font-semibold">Upload
+                                File</button>
+                        </div>
+                    </div>
+                    <div class="border rounded-md overflow-hidden bg-gray-50 p-4 text-center text-sm text-gray-500">
+                        No review files available (Mockup).
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
+                <button type="button" onclick="closeRevisionModal()"
+                    class="px-4 py-2 border border-pink-500 text-pink-600 font-semibold rounded hover:bg-pink-50 transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded shadow transition">
+                    Record Editorial Decision
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- MODAL 3: ACCEPT SUBMISSION --}}
+<div id="acceptModal"
+    class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
+
+        {{-- Header Modal --}}
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800">Accept Submission</h3>
+            <button onclick="closeAcceptModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        {{-- Form Pembungkus --}}
+        <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="status" value="Accepted">
+
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+
+                {{-- A. Send Email Option --}}
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">Send Email</h4>
+                    <div class="space-y-2 mb-3">
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="send_email_decision" value="1"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked
+                                onclick="toggleEmailEditor(true, 'acceptEmailContainer')">
+                            <div class="text-sm text-gray-700">
+                                <span>Send an email notification to the author(s): </span>
+                                <span class="text-gray-500">
+                                    {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?? 'Author' }}
+                                </span>
+                            </div>
+                        </label>
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="send_email_decision" value="0"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                onclick="toggleEmailEditor(false, 'acceptEmailContainer')">
+                            <span class="text-gray-700 text-sm">Do not send an email notification</span>
+                        </label>
+                    </div>
+
+                    {{-- Text Editor Area (Accept Template) --}}
+                    <div id="acceptEmailContainer"
+                        class="border border-gray-300 rounded shadow-sm transition-opacity duration-200">
+                        {{-- Toolbar Dummy --}}
+                        <div class="bg-gray-50 border-b border-gray-300 px-3 py-2 flex gap-3 text-gray-600">
+                            <button type="button" class="hover:text-black font-bold">B</button>
+                            <button type="button" class="hover:text-black italic">I</button>
+                            <button type="button" class="hover:text-black underline">U</button>
+                        </div>
+
+                        {{-- Textarea Isi Email ACCEPT --}}
+                        <textarea name="email_body" rows="6"
+                            class="w-full p-4 text-sm text-gray-800 focus:outline-none border-0 rounded-b"
+                            spellcheck="false">
+{{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
+
+We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
+
+Our decision is to: Accept
+
+{{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
+
+                            </textarea>
+                    </div>
+                </div>
+
+                {{-- B. Select Review Files --}}
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-gray-800">Select review files to share with the author(s)</h4>
+                        <div class="flex gap-2">
+                            <button type="button"
+                                class="text-blue-600 text-sm hover:underline font-semibold flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg> Search
+                            </button>
+                            <button type="button" class="text-blue-600 text-sm hover:underline font-semibold">Upload
+                                File</button>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-md overflow-hidden">
+                        <table class="w-full text-sm text-left">
+                            <tbody class="divide-y divide-gray-100">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 w-10 text-center"><input type="checkbox" name="files[]"
+                                            value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    </td>
+                                    <td class="px-4 py-3 text-blue-600 font-medium">📄 jurnl 2.docx</td>
+                                    <td class="px-4 py-3 text-right text-pink-600 text-xs">December 16, 2025</td>
+                                    <td class="px-4 py-3 text-right text-gray-500">Article Text</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="p-3 border-t bg-gray-50">
+                            <button type="button"
+                                class="text-blue-600 font-bold text-sm flex items-center gap-1 hover:underline">
+                                <span class="text-lg leading-none">+</span> Select Library Files to attach
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
+                <button type="button" onclick="closeAcceptModal()"
+                    class="px-4 py-2 border border-pink-500 text-pink-600 font-semibold rounded hover:bg-pink-50 transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded shadow transition">
+                    Next: Select Files for Copyediting
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{{-- MODAL 4: DECLINE SUBMISSION (BARU! - SESUAI SCREENSHOT PINK) --}}
+<div id="declineModal"
+    class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
+
+        {{-- Header Modal --}}
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800">Decline Submission</h3>
+            <button onclick="closeDeclineModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        {{-- Form Pembungkus (Submit status = Rejected) --}}
+        <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="status" value="Rejected">
+
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+
+                {{-- A. Send Email Option --}}
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">Send Email</h4>
+                    <div class="space-y-2 mb-3">
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="send_email_decision" value="1"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked
+                                onclick="toggleEmailEditor(true, 'declineEmailContainer')">
+                            <div class="text-sm text-gray-700">
+                                <span>Send an email notification to the author(s): </span>
+                                <span class="text-gray-500">
+                                    {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?? 'Author' }}
+                                </span>
+                            </div>
+                        </label>
+                        <label class="flex items-start cursor-pointer">
+                            <input type="radio" name="send_email_decision" value="0"
+                                class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                onclick="toggleEmailEditor(false, 'declineEmailContainer')">
+                            <span class="text-gray-700 text-sm">Do not send an email notification</span>
+                        </label>
+                    </div>
+
+                    {{-- Text Editor Area (Decline Template) --}}
+                    <div id="declineEmailContainer"
+                        class="border border-gray-300 rounded shadow-sm transition-opacity duration-200">
+                        {{-- Toolbar Dummy --}}
+                        <div class="bg-gray-50 border-b border-gray-300 px-3 py-2 flex gap-3 text-gray-600">
+                            <button type="button" class="hover:text-black font-bold">B</button>
+                            <button type="button" class="hover:text-black italic">I</button>
+                            <button type="button" class="hover:text-black underline">U</button>
+                        </div>
+
+                        {{-- Textarea Isi Email DECLINE --}}
+                        <textarea name="email_body" rows="6"
+                            class="w-full p-4 text-sm text-gray-800 focus:outline-none border-0 rounded-b"
+                            spellcheck="false">
+{{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
+
+We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
+
+Our decision is to: Decline Submission
+
+{{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
+
+                            </textarea>
+                    </div>
+                </div>
+
+                {{-- B. Select Review Files --}}
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-gray-800">Select review files to share with the author(s)</h4>
+                        <div class="flex gap-2">
+                            <button type="button"
+                                class="text-blue-600 text-sm hover:underline font-semibold flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg> Search
+                            </button>
+                            <button type="button" class="text-blue-600 text-sm hover:underline font-semibold">Upload
+                                File</button>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-md overflow-hidden">
+                        <table class="w-full text-sm text-left">
+                            <tbody class="divide-y divide-gray-100">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 w-10 text-center"><input type="checkbox" name="files[]"
+                                            value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    </td>
+                                    <td class="px-4 py-3 text-blue-600 font-medium">📄 jurnl 2.docx</td>
+                                    <td class="px-4 py-3 text-right text-pink-600 text-xs">December 16, 2025</td>
+                                    <td class="px-4 py-3 text-right text-gray-500">Article Text</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Footer Tombol (Sesuai Screenshot: Cancel & Record Editorial Decision) --}}
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
+                <button type="button" onclick="closeDeclineModal()"
+                    class="px-4 py-2 border border-pink-500 text-pink-600 font-semibold rounded hover:bg-pink-50 transition">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded shadow transition">
+                    Record Editorial Decision
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -365,6 +745,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// --- LOGIKA MODAL REVISION, ACCEPT & DECLINE ---
+const revisionModal = document.getElementById('revisionModal');
+const acceptModal = document.getElementById('acceptModal');
+const declineModal = document.getElementById('declineModal');
+
+function openRevisionModal() {
+    if (revisionModal) revisionModal.classList.remove('hidden');
+}
+
+function closeRevisionModal() {
+    if (revisionModal) revisionModal.classList.add('hidden');
+}
+
+function openAcceptModal() {
+    if (acceptModal) acceptModal.classList.remove('hidden');
+}
+
+function closeAcceptModal() {
+    if (acceptModal) acceptModal.classList.add('hidden');
+}
+
+function openDeclineModal() {
+    if (declineModal) declineModal.classList.remove('hidden');
+}
+
+function closeDeclineModal() {
+    if (declineModal) declineModal.classList.add('hidden');
+}
+
+// Fungsi Generic untuk toggle editor email di modal manapun
+function toggleEmailEditor(enable, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const textarea = container.querySelector('textarea');
+    if (enable) {
+        container.classList.remove('opacity-50', 'pointer-events-none');
+        textarea.disabled = false;
+    } else {
+        container.classList.add('opacity-50', 'pointer-events-none');
+        textarea.disabled = true;
+    }
+}
 
 // --- LOGIKA MODAL EMAIL ---
 const modal = document.getElementById('emailModal');
