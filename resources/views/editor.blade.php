@@ -29,7 +29,8 @@
             <select name="filter_status" onchange="this.form.submit()"
                 class="w-full md:w-48 border-gray-300 focus:border-gray-900 focus:ring-gray-900 rounded-md shadow-sm text-sm px-3 py-2 cursor-pointer bg-white text-gray-700">
                 <option value="">All Status</option>
-                @foreach(['Unassign', 'In Review', 'Rejected', 'Accept with Review', 'Accepted'] as $status)
+                @foreach(['Unassign', 'In Review', 'Rejected', 'Awaiting Responses from Reviewers','Accept with Review',
+                'Accepted'] as $status)
                 <option value="{{ $status }}" {{ request('filter_status') == $status ? 'selected' : '' }}>
                     {{ $status }}
                 </option>
