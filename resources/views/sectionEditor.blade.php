@@ -347,7 +347,8 @@
         </div>
 
         {{-- Form Pembungkus --}}
-        <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
+        @if($paper)
+        <form id="requestRevision" action=" {{ route('editor.updateStatus', $paper->id) }}" method="POST">
             @csrf
             @method('PATCH')
             <input type="hidden" name="status" value="Accept with Review">
@@ -454,6 +455,7 @@ Best regards,
                 </button>
             </div>
         </form>
+        @endif
     </div>
 </div>
 
@@ -474,7 +476,8 @@ Best regards,
         </div>
 
         {{-- Form Pembungkus --}}
-        <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
+        @if($paper)
+        <form id="acceptModal" action=" {{ route('editor.updateStatus', $paper->id) }}" method="POST">
             @csrf
             @method('PATCH')
             <input type="hidden" name="status" value="Accepted">
@@ -582,6 +585,7 @@ Our decision is to: Accept
                 </button>
             </div>
         </form>
+        @endif
     </div>
 </div>
 
@@ -603,7 +607,8 @@ Our decision is to: Accept
         </div>
 
         {{-- Form Pembungkus (Submit status = Rejected) --}}
-        <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
+        @if($paper)
+        <form id="declineModal" action=" {{ route('editor.updateStatus', $paper->id) }}" method="POST">
             @csrf
             @method('PATCH')
             <input type="hidden" name="status" value="Rejected">
@@ -706,6 +711,7 @@ Our decision is to: Decline Submission
                 </button>
             </div>
         </form>
+        @endif
     </div>
 </div>
 
