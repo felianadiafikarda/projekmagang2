@@ -30,7 +30,7 @@
     <p class="text-3xl font-bold text-yellow-600">{{ $stats['pending'] }}</p>
   </div>
   <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
-    <p class="text-sm text-gray-500 mb-1">In Progress</p>
+    <p class="text-sm text-gray-500 mb-1">In Review</p>
     <p class="text-3xl font-bold text-blue-600">{{ $stats['in_progress'] }}</p>
   </div>
   <div class="bg-white p-6 rounded-lg shadow border border-gray-200">
@@ -59,7 +59,7 @@
     ];
     $statusLabels = [
       'assigned' => 'Awaiting Response',
-      'accept_to_review' => 'In Progress',
+      'accept_to_review' => 'In Review',
       'completed' => 'Completed',
       'decline_to_review' => 'Declined',
     ];
@@ -78,66 +78,85 @@
     
     {{-- HEADER --}}
     <div class="flex justify-between items-start mb-4">
-      <h3 class="text-xl font-semibold text-gray-900">{{ $paper->judul }}</h3>
-      @php
-        $badgeDisplay = [
-          'assigned' => ['class' => 'bg-yellow-200 text-yellow-800', 'text' => 'Awaiting Response'],
-          'accept_to_review' => ['class' => 'bg-green-200 text-green-800', 'text' => 'Accepted'],
-          'decline_to_review' => ['class' => 'bg-red-200 text-red-800', 'text' => 'Declined'],
-          'completed' => ['class' => 'bg-blue-200 text-blue-800', 'text' => 'Completed'],
-        ];
-        $currentBadge = $badgeDisplay[$paper->review_status] ?? ['class' => 'bg-gray-200 text-gray-800', 'text' => ucfirst($paper->review_status)];
-      @endphp
-      <span class="{{ $currentBadge['class'] }} text-xs px-3 py-1 rounded-full ml-2">{{ $currentBadge['text'] }}</span>
+      <div class="flex-1">
+        <h3 class="text-xl font-semibold text-gray-900">{{ $paper->judul }}</h3>
+        <p class="text-sm text-gray-500 mt-1">
+          <strong>Authors:</strong> {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?: 'N/A' }}
+        </p>
+      </div>
+      <div class="flex gap-2 ml-4">
+        {{-- Review Status --}}
+        <span class="text-xs px-3 py-1 rounded-full {{ $statusColors[$paper->review_status] ?? 'bg-gray-200 text-gray-800' }}">
+          {{ $statusLabels[$paper->review_status] ?? ucfirst($paper->review_status) }}
+        </span>
+      </div>
     </div>
     
     {{-- ABSTRACT --}}
     <div class="mb-4 pb-4 border-b border-gray-200">
-      <p class="text-sm text-gray-700 mb-3"><strong>Abstract:</strong></p>
-      <div class="text-sm text-gray-600 leading-relaxed">
-        <span id="abstract-short-{{ $paper->id }}" class="abstract-short">
-          {{ Str::limit($paper->abstrak, 300) }}
-        </span>
-        <span id="abstract-full-{{ $paper->id }}" class="abstract-full hidden">
-          {{ $paper->abstrak }}
-        </span>
+      <div class="flex items-start justify-between mb-2">
+        <p class="text-sm text-gray-700"><strong>Abstract:</strong></p>
         @if(strlen($paper->abstrak) > 300)
-        <button onclick="toggleAbstract({{ $paper->id }})" id="abstract-btn-{{ $paper->id }}" class="text-blue-600 hover:text-blue-800 hover:underline ml-1 font-medium">
-          details
+        <button onclick="toggleAbstractDetails({{ $paper->id }})" 
+                id="detailsBtn{{ $paper->id }}"
+                class="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium ml-2 flex items-center gap-1">
+          <span id="detailsBtnText{{ $paper->id }}">Details</span>
+          <svg id="detailsIcon{{ $paper->id }}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
         </button>
         @endif
       </div>
-    </div>
-    
-    {{-- AUTHORS --}}
-    <div class="mb-4 pb-4 border-b border-gray-200">
-      <p class="text-sm text-gray-700"><strong>Authors:</strong> {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?: 'N/A' }}</p>
+      <div id="abstractContainer{{ $paper->id }}" class="text-sm text-gray-600 leading-relaxed">
+        <span id="abstractShort{{ $paper->id }}">{{ Str::limit($paper->abstrak, 300) }}</span>
+        <span id="abstractFull{{ $paper->id }}" class="hidden">{{ $paper->abstrak }}</span>
+      </div>
+      @if($paper->keywords)
+      <p class="text-sm text-gray-500 mt-2"><strong>Keywords:</strong> {{ $paper->keywords }}</p>
+      @endif
     </div>
     
     {{-- DATE INFO & ACTIONS --}}
-    <div class="flex flex-col md:flex-row gap-4 mt-6">
+    <div class="flex flex-col md:flex-row gap-4">
       {{-- Dates Column --}}
-      <div class="flex-1 grid grid-cols-1 gap-3">
+      <div class="flex-1 grid grid-cols-2 md:grid-cols-3 gap-4">
         <div>
           <p class="text-xs text-gray-500 mb-1">Submitted</p>
-          <p class="text-sm font-medium text-gray-900">{{ $paper->created_at->format('F d, Y') }}</p>
+          <p class="text-sm font-medium text-gray-900">{{ $paper->created_at->format('d M Y') }}</p>
         </div>
         <div>
           <p class="text-xs text-gray-500 mb-1">Review Due Date</p>
-          <p class="text-sm font-medium text-red-600">
-            {{ $paper->review_deadline ? \Carbon\Carbon::parse($paper->review_deadline)->format('F d, Y') : '-' }}
+          <p class="text-sm font-medium {{ \Carbon\Carbon::parse($paper->review_deadline)->isPast() ? 'text-red-600' : 'text-gray-900' }}">
+            {{ $paper->review_deadline ? \Carbon\Carbon::parse($paper->review_deadline)->format('d M Y') : '-' }}
+          </p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 mb-1">Days Left</p>
+          @php
+            $daysLeft = $paper->review_deadline ? (int) now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($paper->review_deadline)->startOfDay(), false) : null;
+          @endphp
+          <p class="text-sm font-medium {{ $daysLeft !== null && $daysLeft < 0 ? 'text-red-600' : ($daysLeft !== null && $daysLeft <= 3 ? 'text-yellow-600' : 'text-gray-900') }}">
+            @if($daysLeft === null)
+              -
+            @elseif($daysLeft < 0)
+              Overdue ({{ abs($daysLeft) }} days)
+            @elseif($daysLeft == 0)
+              Today
+            @else
+              {{ $daysLeft }} days
+            @endif
           </p>
         </div>
       </div>
       
       {{-- Actions Column --}}
-      <div class="flex flex-col gap-3 md:w-64">
+      <div class="flex flex-col gap-2 md:w-48">
         @if($paper->review_status === 'assigned')
           {{-- Accept/Decline buttons for pending reviews --}}
           <form action="{{ route('reviewer.accept', $paper->id) }}" method="POST">
             @csrf
-            <button type="submit" class="w-full bg-green-600 text-white px-6 py-3 rounded-md text-sm font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
               </svg>
               Accept Review
@@ -146,8 +165,8 @@
           <form action="{{ route('reviewer.decline', $paper->id) }}" method="POST">
             @csrf
             <button type="submit" onclick="return confirm('Are you sure you want to decline this review?')" 
-                    class="w-full bg-red-600 text-white px-6 py-3 rounded-md text-sm font-semibold hover:bg-red-700 transition flex items-center justify-center gap-2">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    class="w-full bg-red-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-red-700 transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
               </svg>
               Decline Review
@@ -156,7 +175,7 @@
         @elseif($paper->review_status === 'accept_to_review')
           {{-- Start Review button for accepted reviews --}}
           <a href="{{ route('reviewer.review', $paper->id) }}" 
-             class="w-full bg-gray-800 text-white px-6 py-3 rounded-md text-sm font-semibold hover:bg-gray-700 transition flex items-center justify-center gap-2">
+             class="w-full bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-gray-700 transition flex items-center justify-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
             </svg>
@@ -165,7 +184,7 @@
         @elseif($paper->review_status === 'completed')
           {{-- View Review button for completed reviews --}}
           <a href="{{ route('reviewer.review', $paper->id) }}" 
-             class="w-full bg-blue-600 text-white px-6 py-3 rounded-md text-sm font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2">
+             class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -174,7 +193,7 @@
           </a>
         @elseif($paper->review_status === 'decline_to_review')
           {{-- Declined status --}}
-          <div class="w-full bg-gray-100 text-gray-500 px-6 py-3 rounded-md text-sm text-center">
+          <div class="w-full bg-gray-100 text-gray-500 px-4 py-2 rounded-md text-sm text-center">
             Review Declined
           </div>
         @endif
@@ -193,25 +212,28 @@
 </div>
 
 <script>
-  function toggleAbstract(paperId) {
-    const shortAbstract = document.getElementById('abstract-short-' + paperId);
-    const fullAbstract = document.getElementById('abstract-full-' + paperId);
-    const btn = document.getElementById('abstract-btn-' + paperId);
+function toggleAbstractDetails(paperId) {
+    const shortText = document.getElementById('abstractShort' + paperId);
+    const fullText = document.getElementById('abstractFull' + paperId);
+    const btnText = document.getElementById('detailsBtnText' + paperId);
+    const btnIcon = document.getElementById('detailsIcon' + paperId);
+    const container = document.getElementById('abstractContainer' + paperId);
     
-    if (shortAbstract && fullAbstract && btn) {
-      if (shortAbstract.classList.contains('hidden')) {
-        // Collapse
-        shortAbstract.classList.remove('hidden');
-        fullAbstract.classList.add('hidden');
-        btn.textContent = 'details';
-      } else {
-        // Expand
-        shortAbstract.classList.add('hidden');
-        fullAbstract.classList.remove('hidden');
-        btn.textContent = 'hide';
-      }
+    if (fullText.classList.contains('hidden')) {
+        // Expand: show full text
+        shortText.classList.add('hidden');
+        fullText.classList.remove('hidden');
+        btnText.textContent = 'Hide Details';
+        btnIcon.classList.add('rotate-180');
+        container.classList.add('transition-all', 'duration-300');
+    } else {
+        // Collapse: show short text
+        shortText.classList.remove('hidden');
+        fullText.classList.add('hidden');
+        btnText.textContent = 'Details';
+        btnIcon.classList.remove('rotate-180');
     }
-  }
+}
 </script>
 
 @endsection

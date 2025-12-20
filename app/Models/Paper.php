@@ -13,6 +13,7 @@ class Paper extends Model
         'keywords',
         'file_path',
         'status',
+        'editor_status',
     ];
 
     public function authors()

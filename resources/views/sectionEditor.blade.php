@@ -736,15 +736,16 @@ document.addEventListener('DOMContentLoaded', function() {
             render: {
                 option: function(data, escape) {
                     const activePapers = data.$option?.dataset?.active || '0';
-
                     return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
-                                <div class="font-medium text-gray-800">${escape(data.text.split(' (')[0])}</div>
-                                <div class="text-xs text-green-600">Active Reviews : ${activePapers}</div>
+                                <div class="font-medium text-gray-800">${escape(data.text)}</div>
+                                <div class="text-xs text-gray-600">Active Review: ${activePapers} paper(s)</div>
                             </div>`;
                 },
                 item: function(data, escape) {
+                    const activePapers = data.$option?.dataset?.active || '0';
+                    const reviewerName = escape(data.text);
                     return `<div class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full mr-1 flex items-center shadow-sm border border-blue-200">
-                                ${escape(data.text)}
+                                ${reviewerName} (Active Review: ${activePapers})
                             </div>`;
                 }
             }
