@@ -156,8 +156,7 @@
                                 @foreach($all_reviewers as $rev)
                                 <option value="{{ $rev->id }}" data-active="{{ $rev->active_papers }}"
                                     data-total="{{ $rev->total_papers }}">
-                                    {{ $rev->first_name . ' ' . $rev->last_name }} (Active Reviews :
-                                    {{ $rev->active_papers }})
+                                    {{ $rev->first_name . ' ' . $rev->last_name }}
                                 </option>
                                 @endforeach
                             </select>
@@ -736,8 +735,9 @@ document.addEventListener('DOMContentLoaded', function() {
             render: {
                 option: function(data, escape) {
                     const activePapers = data.$option?.dataset?.active || '0';
+                    const reviewerName = escape(data.text);
                     return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
-                                <div class="font-medium text-gray-800">${escape(data.text)}</div>
+                                <div class="font-medium text-gray-800">${reviewerName}</div>
                                 <div class="text-xs text-gray-600">Active Review: ${activePapers} paper(s)</div>
                             </div>`;
                 },
