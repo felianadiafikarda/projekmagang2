@@ -199,7 +199,7 @@
                                 <option value="{{ $se->id }}" 
                                     data-active="{{ $se->active_papers }}"
                                     @if(in_array($se->id, $assignedSectionEditors->pluck('id')->toArray())) selected @endif>
-                                    {{ $se->first_name }}
+                                    {{ $se->first_name . ' ' . $se->last_name }}
                                 </option>
                                 @endforeach
                             </select>
@@ -263,7 +263,7 @@
                                 <option value="{{ $rev->id }}" 
                                     data-active="{{ $rev->active_papers }}"
                                     @if(in_array($rev->id, $assignedReviewers->pluck('id')->toArray())) selected @endif>
-                                    {{ $rev->first_name }}
+                                    {{ $rev->first_name . ' ' . $rev->last_name }}
                                 </option>
                                 @endforeach
                             </select>
@@ -804,14 +804,18 @@ document.addEventListener('DOMContentLoaded', function() {
             placeholder: 'Cari dan pilih Reviewer...',
             render: {
                 option: function(data, escape) {
+                    const activePapers = data.$option?.dataset?.active || '0';
+                    const reviewerName = escape(data.text);
                     return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
-                                    <div class="font-medium text-gray-800">${escape(data.text)}</div>
-                                    <div class="text-xs text-green-600">Available Reviewer</div>
+                                    <div class="font-medium text-gray-800">${reviewerName}</div>
+                                    <div class="text-xs text-gray-600">Active Review: ${activePapers} paper(s)</div>
                                 </div>`;
                 },
                 item: function(data, escape) {
+                    const activePapers = data.$option?.dataset?.active || '0';
+                    const reviewerName = escape(data.text);
                     return `<div class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full mr-1 flex items-center shadow-sm border border-blue-200">
-                                    ${escape(data.text)}
+                                    ${reviewerName} (Active Review: ${activePapers})
                                 </div>`;
                 }
             }
@@ -824,6 +828,23 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: ['remove_button'],
             maxItems: null,
             placeholder: 'Pilih Section Editor...',
+            render: {
+                option: function(data, escape) {
+                    const activePapers = data.$option?.dataset?.active || '0';
+                    const editorName = escape(data.text);
+                    return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
+                                <div class="font-medium text-gray-800">${editorName}</div>
+                                <div class="text-xs text-gray-600">Active Papers: ${activePapers}</div>
+                            </div>`;
+                },
+                item: function(data, escape) {
+                    const activePapers = data.$option?.dataset?.active || '0';
+                    const editorName = escape(data.text);
+                    return `<div class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full mr-1 flex items-center shadow-sm border border-blue-200">
+                                ${editorName} (Active Papers: ${activePapers})
+                            </div>`;
+                }
+            }
         });
     }
 });
@@ -968,7 +989,7 @@ function openAssignSectionEditorModal() {
     }
 
     const names = selected
-        .map(opt => opt.text.split(' (')[0])
+        .map(opt => opt.text)
         .join(', ');
 
     modalTitle.innerText = "Assign Section Editor & Send Email";
