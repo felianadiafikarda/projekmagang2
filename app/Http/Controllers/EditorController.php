@@ -73,7 +73,17 @@ class EditorController extends Controller
                     $q->where('name', 'section_editor');
                 })
             ->whereNotIn('id', $assignedSectionEditorIds)
-            ->get();
+            ->get()
+            ->map(function($se) {
+                // Hitung jumlah paper aktif (yang di-assign ke section editor ini)
+                $activePapers = DB::table('paper_section_editor')
+                    ->where('user_id', $se->id)
+                    ->count();
+                
+                $se->active_papers = $activePapers;
+                
+                return $se;
+            });
 
 
             return view('editor', [
@@ -334,6 +344,24 @@ class EditorController extends Controller
     return back()->with('success', 'Section editor assigned & email sent!');
 }
 
+    /**
+     * Update paper status (Accept with Review, Accepted, Rejected)
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:Accept with Review,Accepted,Rejected',
+        ]);
+
+        $paper = Paper::findOrFail($id);
+        
+        // Update status paper (menggunakan status karena view menggunakan $p->status)
+        $paper->status = $request->status;
+        $paper->save();
+
+        return redirect()->route('editor.index', ['page' => 'assign', 'id' => $id])
+            ->with('success', 'Paper status updated successfully.');
+    }
     
     public function unassignSectionEditor(Request $request, $paperId)
     {

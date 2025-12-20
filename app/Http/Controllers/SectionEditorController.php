@@ -53,22 +53,18 @@ class SectionEditorController extends Controller
             $articleUrl = $paper->file_path ? asset('storage/' . $paper->file_path) : '#';
 
             // Ambil semua user yang memiliki role reviewer dengan info jumlah paper aktif
-            $all_reviewers = User::whereHas('roles', function($q) {
+            $all_reviewers = User::whereHas('roles', function ($q) {
                 $q->where('name', 'reviewer');
-            })->get()->map(function($reviewer) {
+            })
+            ->get()
+            ->map(function($reviewer) {
                 // Hitung jumlah paper aktif (yang sudah di-accept atau sedang di-review)
                 $activePapers = DB::table('paper_reviewer')
                     ->where('user_id', $reviewer->id)
                     ->whereIn('status', ['accept_to_review', 'completed'])
                     ->count();
                 
-                // Hitung total paper yang di-assign (termasuk yang belum di-accept)
-                $totalPapers = DB::table('paper_reviewer')
-                    ->where('user_id', $reviewer->id)
-                    ->count();
-                
                 $reviewer->active_papers = $activePapers;
-                $reviewer->total_papers = $totalPapers;
                 
                 return $reviewer;
             });
@@ -86,7 +82,7 @@ class SectionEditorController extends Controller
     }
 
     /**
-     * Assign reviewers ke paper
+     * Assign reviewers ke paper dengan validasi max 5 paper per reviewer
      */
     public function assignReviewers(Request $request, Paper $paper)
     {

@@ -86,6 +86,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/reviewer/{paper}/decline', [ReviewerController::class, 'declineReview'])->name('reviewer.decline');
     Route::get('/reviewer/review/{paper}', [ReviewerController::class, 'showReviewForm'])->name('reviewer.review');
     Route::post('/reviewer/review/{paper}/submit', [ReviewerController::class, 'submitReview'])->name('reviewer.submitReview');
+    Route::post('/reviewer/review/{paper}/save-draft', [ReviewerController::class, 'saveDraft'])->name('reviewer.saveDraft');
     Route::get('/author/kirim-artikel', [AuthorController::class, 'paper'])->name('author.kirim');
 
     // User Management Routes
