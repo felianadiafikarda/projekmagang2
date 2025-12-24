@@ -73,11 +73,17 @@
 
 
                 <td class="p-2 border text-center">
-                    <button class="btn-detail px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
-                        data-id="{{ $p->id }}" data-title="{{ e($p->judul) }}" data-author="{{ e($allAuthors) }}"
-                        data-status="Unassigned" data-abstract="{{ e($p->abstrak) }}" data-file="{{ $p->file_path }}">
-                        Detail
-                    </button>
+                    <div class="flex gap-2 justify-center">
+                        <button class="btn-detail px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+                            data-id="{{ $p->id }}" data-title="{{ e($p->judul) }}" data-author="{{ e($allAuthors) }}"
+                            data-status="Unassigned" data-abstract="{{ e($p->abstrak) }}" data-file="{{ $p->file_path }}">
+                            Detail
+                        </button>
+                        <a href="{{ route('author.revision', $p->id) }}" 
+                            class="px-3 py-1 rounded bg-orange-600 text-white hover:bg-orange-700">
+                            Revision
+                        </a>
+                    </div>
                 </td>
 
             </tr>

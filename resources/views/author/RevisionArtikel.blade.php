@@ -1,16 +1,15 @@
 @extends('layouts.app')
 
-@section('page_title', 'Send Article')
-@section('page_subtitle', 'Submit new articles for review and publication')
+@section('page_title', 'Article Revision')
+@section('page_subtitle', 'Submit revised article based on reviewer feedback')
 
 @section('content')
 
 <section class="space-y-8">
-    <h2 class="text-2xl font-semibold mb-6">Send Article</h2>
+    <h2 class="text-2xl font-semibold mb-6">Article Revision</h2>
 
     <form action="{{ route('author.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
         @csrf
-
 
         <!-- DETAIL ARTIKEL -->
         <div class="border p-4 rounded-lg shadow-sm">
@@ -21,7 +20,7 @@
                 <!-- JUDUL -->
                 <div>
                     <label class="block mb-1">Title <span class="text-red-500">*</span></label>
-                    <input type="text" name="judul" required
+                    <input type="text" name="judul" value="{{ $paper->judul }}" required
                         class="w-full border rounded p-2 focus:ring-2 focus:ring-gray-400">
                     @error('judul')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -32,17 +31,16 @@
                 <div>
                     <label class="block mb-1">Abstract<span class="text-red-500">*</span></label>
                     <textarea name="abstrak" rows="4" required
-                        class="w-full border rounded p-2 focus:ring-2 focus:ring-gray-400"></textarea>
+                        class="w-full border rounded p-2 focus:ring-2 focus:ring-gray-400">{{ $paper->abstrak }}</textarea>
                     @error('abstrak')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
-
                 </div>
 
                 <!-- KATA KUNCI -->
                 <div>
                     <label class="block mb-1">Keywords<span class="text-red-500">*</span></label>
-                    <input type="text" name="keywords"
+                    <input type="text" name="keywords" value="{{ $paper->keywords }}"
                         placeholder="Examples: networks, prediction, machine learning, data mining" required
                         class="w-full border rounded p-2 focus:ring-2 focus:ring-gray-400">
                     <p class="text-xs text-gray-500 mt-1">Separate with commas(,)</p>
@@ -56,7 +54,7 @@
                     <label class="block mb-1">References</label>
                     <textarea name="references" rows="6"
                         placeholder="List your references here (APA, IEEE, or other citation format)&#10;Example:&#10;[1] Smith, J. (2023). Title of Paper. Journal Name, 10(2), 123-145.&#10;[2] Doe, J. et al. (2024). Another Paper Title. Conference Proceedings."
-                        class="w-full border rounded p-2 focus:ring-2 focus:ring-gray-400"></textarea>
+                        class="w-full border rounded p-2 focus:ring-2 focus:ring-gray-400">{{ $paper->references }}</textarea>
                     <p class="text-xs text-gray-500 mt-1">Enter each reference on a new line</p>
                     @error('references')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -67,7 +65,7 @@
         </div>
 
 
-        <!-- AUTHORS SECTION (DIPINDAH KE BAWAH KATA KUNCI) -->
+        <!-- AUTHORS SECTION -->
         <div class="border p-4 rounded-lg shadow-sm">
             <h3 class="font-semibold mb-3">Authors <span class="text-red-500">*</span></h3>
 
@@ -90,80 +88,44 @@
                 </thead>
 
                 <tbody>
-
-                    @php
-                    $authors = old('authors', [
-                    [
-                    'email' => $user->email,
-                    'first_name' => $user->first_name,
-                    'last_name' => $user->last_name,
-                    'organization' => $user->affiliation,
-                    'country' => '',
-                    ]
-                    ]);
-
-                    @endphp
-
-                    @foreach ($authors as $i => $author)
+                    @foreach ($paper->authors as $i => $author)
                     <tr>
                         <td class="p-2 text-center">
                             <input type="radio" name="primary" value="{{ $i }}" required
-                                {{ old('primary', 0) == $i ? 'checked' : '' }}>
+                                {{ $author->is_primary ? 'checked' : '' }}>
                         </td>
 
                         <td class="p-2">
-                            <input type="email" name="authors[{{ $i }}][email]" value="{{ $author['email'] ?? '' }}"
-                                required class="border rounded p-1 w-full" @if($i==0) readonly @endif
-                                style="{{ $i == 0 ? 'background:#e5e7eb; cursor:not-allowed;' : '' }}">
-
-                            @error("authors.$i.email")
-                            <p class="text-red-500 text-sm">{{ $message }}</p>
-                            @enderror
+                            <input type="email" name="authors[{{ $i }}][email]" value="{{ $author->email }}"
+                                required class="border rounded p-1 w-full">
                         </td>
 
                         <td class="p-2">
                             <input type="text" name="authors[{{ $i }}][first_name]"
-                                value="{{ $author['first_name'] ?? '' }}" required
-                                class="border rounded p-1 w-full @error(" authors.$i.first_name") border-red-500
-                                @enderror">
-                            @error("authors.$i.first_name")
-                            <p class="text-red-500 text-sm">{{ $message }}</p>
-                            @enderror
+                                value="{{ $author->first_name }}" required
+                                class="border rounded p-1 w-full">
                         </td>
 
                         <td class="p-2">
                             <input type="text" name="authors[{{ $i }}][last_name]"
-                                value="{{ $author['last_name'] ?? '' }}" required
-                                class="border rounded p-1 w-full @error(" authors.$i.last_name") border-red-500
-                                @enderror">
-                            @error("authors.$i.last_name")
-                            <p class="text-red-500 text-sm">{{ $message }}</p>
-                            @enderror
+                                value="{{ $author->last_name }}" required
+                                class="border rounded p-1 w-full">
                         </td>
 
                         <td class="p-2">
                             <input type="text" name="authors[{{ $i }}][orcid]"
-                                value="{{ $author['orcid'] ?? '' }}"
-                                class="border rounded p-1 w-full @error(" authors.$i.orcid") border-red-500
-                                @enderror">
-                            @error("authors.$i.orcid")
-                            <p class="text-red-500 text-sm">{{ $message }}</p>
-                            @enderror
+                                value="{{ $author->orcid ?? '' }}"
+                                class="border rounded p-1 w-full">
                         </td>
 
                         <td class="p-2">
                             <input type="text" name="authors[{{ $i }}][organization]"
-                                value="{{ $author['organization'] ?? '' }}" required
-                                class="border rounded p-1 w-full @error(" authors.$i.organization") border-red-500
-                                @enderror">
-                            @error("authors.$i.organization")
-                            <p class="text-red-500 text-sm">{{ $message }}</p>
-                            @enderror
+                                value="{{ $author->organization }}" required
+                                class="border rounded p-1 w-full">
                         </td>
 
                         <td class="p-2">
-                            <select name="authors[{{ $i }}][country]" required class="border rounded p-1 w-full @error("
-                                authors.$i.country") border-red-500 @enderror">
+                            <select name="authors[{{ $i }}][country]" required class="border rounded p-1 w-full">
                                 <option value="">-- Pilih Negara --</option>
 
                                 @php
@@ -192,15 +154,11 @@
                                 @endphp
 
                                 @foreach ($negaraList as $n)
-                                <option value="{{ $n }}" {{ ($author['country'] ?? '') == $n ? 'selected' : '' }}>
+                                <option value="{{ $n }}" {{ $author->country == $n ? 'selected' : '' }}>
                                     {{ $n }}
                                 </option>
                                 @endforeach
                             </select>
-
-                            @error("authors.$i.country")
-                            <p class="text-red-500 text-sm">{{ $message }}</p>
-                            @enderror
                         </td>
 
                         <td class="p-2 text-center">
@@ -208,7 +166,6 @@
                         </td>
                     </tr>
                     @endforeach
-
                 </tbody>
             </table>
 
@@ -220,28 +177,38 @@
 
         <!-- UPLOAD FILE -->
         <div class="border p-4 rounded-lg shadow-sm">
-            <h3 class="font-semibold mb-3">Upload File</h3>
+            <h3 class="font-semibold mb-3">Upload Revised File</h3>
 
             <div class="space-y-4">
-                <label class="block mb-1">Upload File(PDF/DOC/DOCX) <span class="text-red-500">*</span></label>
-                <input type="file" name="file_artikel" accept=".pdf,.doc,.docx" required
-                    class="w-full border rounded p-2 bg-gray-50">
-                @error('file_artikel')
-                <p class="text-red-500 text-sm">{{ $message }}</p>
-                @enderror
+                <div>
+                    <label class="block mb-1">Upload New File (PDF/DOC/DOCX) <span class="text-red-500">*</span></label>
+                    <input type="file" name="file_artikel" accept=".pdf,.doc,.docx" required
+                        class="w-full border rounded p-2 bg-gray-50">
+                    @error('file_artikel')
+                    <p class="text-red-500 text-sm">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block mb-1">Revision Notes</label>
+                    <textarea name="revision_notes" rows="4" 
+                        placeholder="Describe the changes you made based on reviewer feedback..."
+                        class="w-full border rounded p-2 focus:ring-2 focus:ring-gray-400"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Optional: Explain what you have revised</p>
+                </div>
             </div>
         </div>
 
 
         <!-- BUTTON -->
         <div class="flex space-x-4">
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                Submit Article
+            <button type="submit" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">
+                Submit Revision
             </button>
 
-            <button type="reset" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
-                Reset
-            </button>
+            <a href="{{ route('author.index') }}" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
+                Cancel
+            </a>
         </div>
 
     </form>
