@@ -110,14 +110,22 @@
                     <td class="p-2 border text-center">{{ $p->created_at->format('d M Y') }}</td>
                     <td class="p-2 border text-center">
                         <a href="{{ route('editor.detail', $p->id) }}"
-                            class="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-500 mr-2">
+                            class="inline-block px-3 py-1 border-2 border-gray-300 bg-gray-300 text-gray-800 rounded hover:bg-gray-500 hover:border-gray-500 mr-2 font-medium transition">
                             Detail
                         </a>
 
                         <a href="{{ url()->current().'?page=assign&id='.$p->id }}"
-                            class="px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-700">
+                            class="inline-block px-3 py-1 border-2 border-gray-900 bg-gray-900 text-white rounded hover:bg-gray-700 hover:border-gray-700 mr-2 font-medium transition">
                             Edit
                         </a>
+
+                        <button type="button"
+                            class="inline-block px-3 py-1 border-2 rounded font-medium transition"
+                            style="border-color: #FFDE63; color: #FFDE63;"
+                            onmouseover="this.style.backgroundColor='#FFFBEA'"
+                            onmouseout="this.style.backgroundColor='transparent'">
+                            Appreciate
+                        </button>
                     </td>
                 </tr>
 
@@ -155,19 +163,22 @@
 
                         {{-- 1. Request Revisions (MODAL) --}}
                         <button type="button" onclick="openRevisionModal()"
-                            class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded shadow-sm text-sm transition text-left border border-gray-300">
+                            style="background-color: #828180; border-color: #828180;"
+                            class="w-full hover:opacity-90 text-white font-bold py-2 px-4 rounded shadow-sm text-sm transition text-center">
                             Request Revisions
                         </button>
 
                         {{-- 2. Accept Submission (MODAL) --}}
                         <button type="button" onclick="openAcceptModal()"
-                            class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded shadow-sm text-sm transition text-left">
+                            style="background-color: #ABE7B2; border-color: #ABE7B2;"
+                            class="w-full hover:opacity-90 text-white font-bold py-2 px-4 rounded shadow-sm text-sm transition text-center">
                             Accept Submission
                         </button>
 
                         {{-- 3. Decline Submission (MODAL) --}}
                         <button type="button" onclick="openDeclineModal()"
-                            class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded shadow-sm text-sm transition text-left">
+                            style="background-color: #FF2F00; border-color: #FF2F00;"
+                            class="w-full hover:opacity-90 text-white font-bold py-2 px-4 rounded shadow-sm text-sm transition text-center">
                             Decline Submission
                         </button>
                     </div>
@@ -404,9 +415,9 @@
     <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
 
         {{-- Header Modal --}}
-        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h3 class="text-xl font-bold text-gray-800">Request Revisions</h3>
-            <button onclick="closeRevisionModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+        <div class="bg-gray-800 px-6 py-5 flex justify-between items-center rounded-t-lg">
+            <h3 class="text-xl font-semibold text-white">Request Revisions</h3>
+            <button onclick="closeRevisionModal()" class="text-white hover:text-gray-300 focus:outline-none transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -421,19 +432,19 @@
             @method('PATCH')
             <input type="hidden" name="status" value="Accept with Review">
 
-            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto bg-white">
 
                 {{-- A. Require New Review Round --}}
                 <div>
-                    <h4 class="font-bold text-gray-800 mb-2">Require New Review Round</h4>
-                    <div class="space-y-2">
-                        <label class="flex items-start cursor-pointer">
+                    <h4 class="font-bold text-gray-800 mb-3 text-base">Require New Review Round</h4>
+                    <div class="space-y-3 bg-gray-50 p-4 rounded-md">
+                        <label class="flex items-start cursor-pointer hover:bg-white p-2 rounded transition">
                             <input type="radio" name="new_review_round" value="0"
                                 class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked>
                             <span class="text-gray-700 text-sm">Revisions will <strong>not</strong> be subject to a new
                                 round of peer reviews.</span>
                         </label>
-                        <label class="flex items-start cursor-pointer">
+                        <label class="flex items-start cursor-pointer hover:bg-white p-2 rounded transition">
                             <input type="radio" name="new_review_round" value="1"
                                 class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500">
                             <span class="text-gray-700 text-sm">Revisions will be subject to a new round of peer
@@ -444,20 +455,20 @@
 
                 {{-- B. Send Email Option --}}
                 <div>
-                    <h4 class="font-bold text-gray-800 mb-2">Send Email</h4>
-                    <div class="space-y-2 mb-3">
-                        <label class="flex items-start cursor-pointer">
+                    <h4 class="font-bold text-gray-800 mb-3 text-base">Send Email</h4>
+                    <div class="space-y-3 mb-4 bg-gray-50 p-4 rounded-md">
+                        <label class="flex items-start cursor-pointer hover:bg-white p-2 rounded transition">
                             <input type="radio" name="send_email_decision" value="1"
                                 class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked
                                 onclick="toggleEmailEditor(true, 'revisionEmailContainer')">
                             <div class="text-sm text-gray-700">
                                 <span>Send an email notification to the author(s): </span>
-                                <span class="text-gray-500">
+                                <span class="font-medium text-gray-900">
                                     {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?? 'Author' }}
                                 </span>
                             </div>
                         </label>
-                        <label class="flex items-start cursor-pointer">
+                        <label class="flex items-start cursor-pointer hover:bg-white p-2 rounded transition">
                             <input type="radio" name="send_email_decision" value="0"
                                 class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500"
                                 onclick="toggleEmailEditor(false, 'revisionEmailContainer')">
@@ -467,17 +478,17 @@
 
                     {{-- Text Editor Area --}}
                     <div id="revisionEmailContainer"
-                        class="border border-gray-300 rounded shadow-sm transition-opacity duration-200">
-                        {{-- Toolbar Dummy --}}
-                        <div class="bg-gray-50 border-b border-gray-300 px-3 py-2 flex gap-3 text-gray-600">
-                            <button type="button" class="hover:text-black font-bold">B</button>
-                            <button type="button" class="hover:text-black italic">I</button>
-                            <button type="button" class="hover:text-black underline">U</button>
+                        class="border border-gray-300 rounded-md shadow-sm transition-opacity duration-200 bg-white">
+                        {{-- Toolbar --}}
+                        <div class="bg-gray-100 border-b border-gray-300 px-4 py-2 flex gap-4 text-gray-600">
+                            <button type="button" class="hover:text-gray-900 font-bold text-sm transition">B</button>
+                            <button type="button" class="hover:text-gray-900 italic text-sm transition">/</button>
+                            <button type="button" class="hover:text-gray-900 underline text-sm transition">U</button>
                         </div>
 
                         {{-- Textarea --}}
-                        <textarea name="email_body" rows="6"
-                            class="w-full p-4 text-sm text-gray-800 focus:outline-none border-0 rounded-b"
+                        <textarea name="email_body" rows="8"
+                            class="w-full p-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-b-md"
                             spellcheck="false">
 {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
 
@@ -489,36 +500,36 @@ Please revise your manuscript based on the reviewers' comments and resubmit it f
 
 Best regards,
 {{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
-
                             </textarea>
                     </div>
+                    <p class="text-xs text-gray-500 mt-2">You can edit the message above before sending.</p>
                 </div>
 
                 {{-- C. Select Review Files --}}
-                <div class="border-t pt-4">
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-gray-800">Select review files to share with the author(s)</h4>
-                        <div class="flex gap-2">
+                <div class="border-t pt-5">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-bold text-gray-800 text-base">Select review files to share with the author(s)</h4>
+                        <div class="flex gap-3">
                             <button type="button"
-                                class="text-blue-600 text-sm hover:underline font-semibold flex items-center">Search</button>
+                                class="text-blue-600 text-sm hover:underline font-semibold">Search</button>
                             <button type="button" class="text-blue-600 text-sm hover:underline font-semibold">Upload
                                 File</button>
                         </div>
                     </div>
-                    <div class="border rounded-md overflow-hidden bg-gray-50 p-4 text-center text-sm text-gray-500">
+                    <div class="border border-gray-300 rounded-md overflow-hidden bg-gray-50 p-6 text-center text-sm text-gray-500">
                         No review files available (Mockup).
                     </div>
                 </div>
 
             </div>
 
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
+            <div class="px-6 py-4 bg-white border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
                 <button type="button" onclick="closeRevisionModal()"
-                    class="px-4 py-2 border border-pink-500 text-pink-600 font-semibold rounded hover:bg-pink-50 transition">
+                    class="px-5 py-2 border-2 border-red-500 text-red-600 font-semibold rounded hover:bg-red-50 transition">
                     Cancel
                 </button>
                 <button type="submit"
-                    class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded shadow transition">
+                    class="px-5 py-2 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded shadow transition">
                     Record Editorial Decision
                 </button>
             </div>
@@ -533,9 +544,9 @@ Best regards,
     <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
 
         {{-- Header Modal --}}
-        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h3 class="text-xl font-bold text-gray-800">Accept Submission</h3>
-            <button onclick="closeAcceptModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+        <div class="bg-gray-800 px-6 py-5 flex justify-between items-center rounded-t-lg">
+            <h3 class="text-xl font-semibold text-white">Accept Submission</h3>
+            <button onclick="closeAcceptModal()" class="text-white hover:text-gray-300 focus:outline-none transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -550,24 +561,24 @@ Best regards,
             @method('PATCH')
             <input type="hidden" name="status" value="Accepted">
 
-            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto bg-white">
 
                 {{-- A. Send Email Option --}}
                 <div>
-                    <h4 class="font-bold text-gray-800 mb-2">Send Email</h4>
-                    <div class="space-y-2 mb-3">
-                        <label class="flex items-start cursor-pointer">
+                    <h4 class="font-bold text-gray-800 mb-3 text-base">Send Email</h4>
+                    <div class="space-y-3 mb-4 bg-gray-50 p-4 rounded-md">
+                        <label class="flex items-start cursor-pointer hover:bg-white p-2 rounded transition">
                             <input type="radio" name="send_email_decision" value="1"
                                 class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked
                                 onclick="toggleEmailEditor(true, 'acceptEmailContainer')">
                             <div class="text-sm text-gray-700">
                                 <span>Send an email notification to the author(s): </span>
-                                <span class="text-gray-500">
+                                <span class="font-medium text-gray-900">
                                     {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?? 'Author' }}
                                 </span>
                             </div>
                         </label>
-                        <label class="flex items-start cursor-pointer">
+                        <label class="flex items-start cursor-pointer hover:bg-white p-2 rounded transition">
                             <input type="radio" name="send_email_decision" value="0"
                                 class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500"
                                 onclick="toggleEmailEditor(false, 'acceptEmailContainer')">
@@ -577,17 +588,17 @@ Best regards,
 
                     {{-- Text Editor Area (Accept Template) --}}
                     <div id="acceptEmailContainer"
-                        class="border border-gray-300 rounded shadow-sm transition-opacity duration-200">
-                        {{-- Toolbar Dummy --}}
-                        <div class="bg-gray-50 border-b border-gray-300 px-3 py-2 flex gap-3 text-gray-600">
-                            <button type="button" class="hover:text-black font-bold">B</button>
-                            <button type="button" class="hover:text-black italic">I</button>
-                            <button type="button" class="hover:text-black underline">U</button>
+                        class="border border-gray-300 rounded-md shadow-sm transition-opacity duration-200 bg-white">
+                        {{-- Toolbar --}}
+                        <div class="bg-gray-100 border-b border-gray-300 px-4 py-2 flex gap-4 text-gray-600">
+                            <button type="button" class="hover:text-gray-900 font-bold text-sm transition">B</button>
+                            <button type="button" class="hover:text-gray-900 italic text-sm transition">/</button>
+                            <button type="button" class="hover:text-gray-900 underline text-sm transition">U</button>
                         </div>
 
                         {{-- Textarea Isi Email ACCEPT --}}
-                        <textarea name="email_body" rows="6"
-                            class="w-full p-4 text-sm text-gray-800 focus:outline-none border-0 rounded-b"
+                        <textarea name="email_body" rows="8"
+                            class="w-full p-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-b-md"
                             spellcheck="false">
 {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
 
@@ -596,29 +607,24 @@ We have reached a decision regarding your submission to {{ config('app.name', 'J
 Our decision is to: Accept
 
 {{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
-
                             </textarea>
                     </div>
+                    <p class="text-xs text-gray-500 mt-2">You can edit the message above before sending.</p>
                 </div>
 
                 {{-- B. Select Review Files --}}
-                <div class="border-t pt-4">
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-gray-800">Select review files to share with the author(s)</h4>
-                        <div class="flex gap-2">
+                <div class="border-t pt-5">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-bold text-gray-800 text-base">Select review files to share with the author(s)</h4>
+                        <div class="flex gap-3">
                             <button type="button"
-                                class="text-blue-600 text-sm hover:underline font-semibold flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg> Search
-                            </button>
+                                class="text-blue-600 text-sm hover:underline font-semibold">Search</button>
                             <button type="button" class="text-blue-600 text-sm hover:underline font-semibold">Upload
                                 File</button>
                         </div>
                     </div>
 
-                    <div class="border rounded-md overflow-hidden">
+                    <div class="border border-gray-300 rounded-md overflow-hidden">
                         <table class="w-full text-sm text-left">
                             <tbody class="divide-y divide-gray-100">
                                 <tr class="hover:bg-gray-50">
@@ -626,7 +632,7 @@ Our decision is to: Accept
                                             value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                     </td>
                                     <td class="px-4 py-3 text-blue-600 font-medium">📄 jurnl 2.docx</td>
-                                    <td class="px-4 py-3 text-right text-pink-600 text-xs">December 16, 2025</td>
+                                    <td class="px-4 py-3 text-right text-red-600 text-xs">December 16, 2025</td>
                                     <td class="px-4 py-3 text-right text-gray-500">Article Text</td>
                                 </tr>
                             </tbody>
@@ -642,13 +648,13 @@ Our decision is to: Accept
 
             </div>
 
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
+            <div class="px-6 py-4 bg-white border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
                 <button type="button" onclick="closeAcceptModal()"
-                    class="px-4 py-2 border border-pink-500 text-pink-600 font-semibold rounded hover:bg-pink-50 transition">
+                    class="px-5 py-2 border-2 border-red-500 text-red-600 font-semibold rounded hover:bg-red-50 transition">
                     Cancel
                 </button>
                 <button type="submit"
-                    class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded shadow transition">
+                    class="px-5 py-2 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded shadow transition">
                     Next: Select Files for Copyediting
                 </button>
             </div>
@@ -664,9 +670,9 @@ Our decision is to: Accept
     <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
 
         {{-- Header Modal --}}
-        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h3 class="text-xl font-bold text-gray-800">Decline Submission</h3>
-            <button onclick="closeDeclineModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+        <div class="bg-gray-800 px-6 py-5 flex justify-between items-center rounded-t-lg">
+            <h3 class="text-xl font-semibold text-white">Decline Submission</h3>
+            <button onclick="closeDeclineModal()" class="text-white hover:text-gray-300 focus:outline-none transition">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -681,24 +687,24 @@ Our decision is to: Accept
             @method('PATCH')
             <input type="hidden" name="status" value="Rejected">
 
-            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto bg-white">
 
                 {{-- A. Send Email Option --}}
                 <div>
-                    <h4 class="font-bold text-gray-800 mb-2">Send Email</h4>
-                    <div class="space-y-2 mb-3">
-                        <label class="flex items-start cursor-pointer">
+                    <h4 class="font-bold text-gray-800 mb-3 text-base">Send Email</h4>
+                    <div class="space-y-3 mb-4 bg-gray-50 p-4 rounded-md">
+                        <label class="flex items-start cursor-pointer hover:bg-white p-2 rounded transition">
                             <input type="radio" name="send_email_decision" value="1"
                                 class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500" checked
                                 onclick="toggleEmailEditor(true, 'declineEmailContainer')">
                             <div class="text-sm text-gray-700">
                                 <span>Send an email notification to the author(s): </span>
-                                <span class="text-gray-500">
+                                <span class="font-medium text-gray-900">
                                     {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?? 'Author' }}
                                 </span>
                             </div>
                         </label>
-                        <label class="flex items-start cursor-pointer">
+                        <label class="flex items-start cursor-pointer hover:bg-white p-2 rounded transition">
                             <input type="radio" name="send_email_decision" value="0"
                                 class="mt-1 mr-3 text-blue-600 border-gray-300 focus:ring-blue-500"
                                 onclick="toggleEmailEditor(false, 'declineEmailContainer')">
@@ -708,17 +714,17 @@ Our decision is to: Accept
 
                     {{-- Text Editor Area (Decline Template) --}}
                     <div id="declineEmailContainer"
-                        class="border border-gray-300 rounded shadow-sm transition-opacity duration-200">
-                        {{-- Toolbar Dummy --}}
-                        <div class="bg-gray-50 border-b border-gray-300 px-3 py-2 flex gap-3 text-gray-600">
-                            <button type="button" class="hover:text-black font-bold">B</button>
-                            <button type="button" class="hover:text-black italic">I</button>
-                            <button type="button" class="hover:text-black underline">U</button>
+                        class="border border-gray-300 rounded-md shadow-sm transition-opacity duration-200 bg-white">
+                        {{-- Toolbar --}}
+                        <div class="bg-gray-100 border-b border-gray-300 px-4 py-2 flex gap-4 text-gray-600">
+                            <button type="button" class="hover:text-gray-900 font-bold text-sm transition">B</button>
+                            <button type="button" class="hover:text-gray-900 italic text-sm transition">/</button>
+                            <button type="button" class="hover:text-gray-900 underline text-sm transition">U</button>
                         </div>
 
                         {{-- Textarea Isi Email DECLINE --}}
-                        <textarea name="email_body" rows="6"
-                            class="w-full p-4 text-sm text-gray-800 focus:outline-none border-0 rounded-b"
+                        <textarea name="email_body" rows="8"
+                            class="w-full p-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-b-md"
                             spellcheck="false">
 {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
 
@@ -727,29 +733,24 @@ We have reached a decision regarding your submission to {{ config('app.name', 'J
 Our decision is to: Decline Submission
 
 {{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
-
                             </textarea>
                     </div>
+                    <p class="text-xs text-gray-500 mt-2">You can edit the message above before sending.</p>
                 </div>
 
                 {{-- B. Select Review Files --}}
-                <div class="border-t pt-4">
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-gray-800">Select review files to share with the author(s)</h4>
-                        <div class="flex gap-2">
+                <div class="border-t pt-5">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-bold text-gray-800 text-base">Select review files to share with the author(s)</h4>
+                        <div class="flex gap-3">
                             <button type="button"
-                                class="text-blue-600 text-sm hover:underline font-semibold flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg> Search
-                            </button>
+                                class="text-blue-600 text-sm hover:underline font-semibold">Search</button>
                             <button type="button" class="text-blue-600 text-sm hover:underline font-semibold">Upload
                                 File</button>
                         </div>
                     </div>
 
-                    <div class="border rounded-md overflow-hidden">
+                    <div class="border border-gray-300 rounded-md overflow-hidden bg-gray-50 p-6 text-center text-sm text-gray-500">
                         <table class="w-full text-sm text-left">
                             <tbody class="divide-y divide-gray-100">
                                 <tr class="hover:bg-gray-50">
@@ -757,7 +758,7 @@ Our decision is to: Decline Submission
                                             value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                                     </td>
                                     <td class="px-4 py-3 text-blue-600 font-medium">📄 jurnl 2.docx</td>
-                                    <td class="px-4 py-3 text-right text-pink-600 text-xs">December 16, 2025</td>
+                                    <td class="px-4 py-3 text-right text-red-600 text-xs">December 16, 2025</td>
                                     <td class="px-4 py-3 text-right text-gray-500">Article Text</td>
                                 </tr>
                             </tbody>
@@ -768,13 +769,13 @@ Our decision is to: Decline Submission
             </div>
 
             {{-- Footer Tombol (Sesuai Screenshot: Cancel & Record Editorial Decision) --}}
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
+            <div class="px-6 py-4 bg-white border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
                 <button type="button" onclick="closeDeclineModal()"
-                    class="px-4 py-2 border border-pink-500 text-pink-600 font-semibold rounded hover:bg-pink-50 transition">
+                    class="px-5 py-2 border-2 border-red-500 text-red-600 font-semibold rounded hover:bg-red-50 transition">
                     Cancel
                 </button>
                 <button type="submit"
-                    class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded shadow transition">
+                    class="px-5 py-2 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded shadow transition">
                     Record Editorial Decision
                 </button>
             </div>
