@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class PreparedEmail extends Model
 {
     protected $table = 'prepared_email';
-    
+
     protected $fillable = [
         'email_template',
         'sender',
@@ -16,4 +16,8 @@ class PreparedEmail extends Model
         'body',
     ];
 
+    protected $casts = [
+        'sender'    => 'array',
+        'recipient' => 'array',
+    ];
 }

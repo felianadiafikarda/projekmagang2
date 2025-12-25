@@ -37,8 +37,8 @@
                 @foreach($templates as $t)
                 <tr class="border-t hover:bg-gray-50 transition">
                     <td class="p-3">{{ $t->email_template }}</td>
-                    <td class="p-3 text-sm text-gray-700">{{ $t->sender }}</td>
-                    <td class="p-3 text-sm text-gray-700">{{ $t->recipient }}</td>
+                    <td class="p-3 text-sm text-gray-700">{{ implode(', ', $t->sender ?? []) }}</td>
+                    <td class="p-3 text-sm text-gray-700">{{ implode(', ', $t->recipient ?? []) }}</td>
                     <td class="p-3">{{ $t->subject }}</td>
 
                     <td class="p-3">

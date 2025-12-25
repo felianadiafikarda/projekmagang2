@@ -3,6 +3,10 @@
 @section('page_title', 'Add Prepared Email')
 
 @section('content')
+
+<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+
 <div class="max-w-7xl mx-auto space-y-6">
 
     {{-- HEADER --}}
@@ -25,18 +29,38 @@
                     placeholder="e.g. Reviewer Invitation">
             </div>
 
-            {{-- SENDER --}}
-            <div>
-                <label class="font-medium">Sender</label>
-                <input type="text" name="sender" class="mt-1 w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200"
-                    placeholder="editor / chiefeditor / system">
-            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {{-- SENDER --}}
+                <div>
+                    <label class="font-medium">Select Sender</label>
+                    <select id="senderSelect"
+                        name="sender[]"
+                        multiple
+                        placeholder="Cari dan pilih sender..."
+                        autocomplete="off">
+                        @foreach ($roles as $role)
+                        <option value="{{ $role->name }}">
+                            {{ ucfirst($role->name) }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
 
-            {{-- RECIPIENT --}}
-            <div>
-                <label class="font-medium">Recipient</label>
-                <input type="text" name="recipient" class="mt-1 w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200"
-                    placeholder="Author, Reviewer, Editor...">
+                {{-- RECIPIENT --}}
+                <div>
+                    <label class="font-medium">Select Recipient</label>
+                    <select id="recipientSelect"
+                        name="recipient[]"
+                        multiple
+                        placeholder="Cari dan pilih recipient..."
+                        autocomplete="off">
+                        @foreach ($roles as $role)
+                        <option value="{{ $role->name }}">
+                            {{ ucfirst($role->name) }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
             {{-- SUBJECT --}}
@@ -63,4 +87,17 @@
         </form>
     </div>
 </div>
+<script>
+    new TomSelect('#senderSelect', {
+        plugins: ['remove_button'],
+        persist: false,
+        create: false
+    });
+    new TomSelect('#recipientSelect', {
+        plugins: ['remove_button'],
+        persist: false,
+        create: false
+    });
+</script>
+
 @endsection
