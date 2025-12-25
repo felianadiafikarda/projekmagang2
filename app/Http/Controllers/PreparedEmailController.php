@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PreparedEmail;
+use App\Models\Role;
 use Illuminate\Http\Request;
+use App\Models\PreparedEmail;
 
 class PreparedEmailController extends Controller
 {
@@ -17,20 +18,39 @@ class PreparedEmailController extends Controller
     // Show create form
     public function create()
     {
-        return view('prepared_email.add');
+        $roles = Role::orderBy('name')->get();
+
+        return view('prepared_email.add', compact('roles'));
     }
 
     // Store new template
     public function store(Request $request)
     {
         $request->validate([
-            'email_template'    => 'required|string|max:255',
-            'sender'            => 'nullable|string|max:255',
-            'recipient'         => 'nullable|string|max:255',
-            'subject'           => 'required|string|max:255'
+            'email_template' => 'required|string|max:255',
+
+            'sender'         => 'nullable|array',
+            'sender.*'       => 'exists:roles,name',
+
+            'recipient'      => 'nullable|array',
+            'recipient.*'    => 'exists:roles,name',
+
+            'subject'        => 'required|string|max:255',
         ]);
 
-        PreparedEmail::create($request->all());
+        PreparedEmail::create([
+            'email_template' => $request->email_template,
+            'sender' => $request->sender
+                ? implode(',', $request->sender)
+                : null,
+
+            'recipient' => $request->recipient
+                ? implode(',', $request->recipient)
+                : null,
+            'subject'        => $request->subject,
+            'body'           => $request->body,
+        ]);
+
 
         return redirect()->route('prepared_email.index')
             ->with('success', 'Email template created successfully.');
@@ -69,5 +89,15 @@ class PreparedEmailController extends Controller
 
         return redirect()->route('email-templates.index')
             ->with('success', 'Email template deleted.');
+    }
+
+    public function getTemplate($code)
+    {
+        $email = PreparedEmail::where('email_template', $code)->first();
+
+        return response()->json([
+            'subject' => $email->subject ?? '',
+            'body'    => $email->body ?? '',
+        ]);
     }
 }

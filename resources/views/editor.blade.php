@@ -13,7 +13,7 @@
 
     {{-- === HEADER: NAVIGASI, FILTER & SEARCH === --}}
     <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
-        
+
         {{-- Kiri: Tombol Navigasi --}}
         <div class="flex gap-2">
 
@@ -23,24 +23,24 @@
         @if($page === 'list')
         <form action="{{ url()->current() }}" method="GET" class="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
             <input type="hidden" name="page" value="list">
-            
+
             {{-- Dropdown Filter --}}
-            <select name="filter_status" onchange="this.form.submit()" 
+            <select name="filter_status" onchange="this.form.submit()"
                 class="w-full md:w-48 border-gray-300 focus:border-gray-900 focus:ring-gray-900 rounded-md shadow-sm text-sm px-3 py-2 cursor-pointer bg-white text-gray-700">
                 <option value="">All Status</option>
                 @foreach(['Unassign', 'In Review', 'Rejected', 'Accept with Review', 'Accepted'] as $status)
-                    <option value="{{ $status }}" {{ request('filter_status') == $status ? 'selected' : '' }}>
-                        {{ $status }}
-                    </option>
+                <option value="{{ $status }}" {{ request('filter_status') == $status ? 'selected' : '' }}>
+                    {{ $status }}
+                </option>
                 @endforeach
             </select>
 
             {{-- Input Search --}}
             <div class="relative w-full md:w-64">
-                <input type="text" name="search" value="{{ request('search') }}" 
-                    placeholder="Search..." 
+                <input type="text" name="search" value="{{ request('search') }}"
+                    placeholder="Search..."
                     class="w-full border-gray-300 focus:border-gray-900 focus:ring-gray-900 rounded-md shadow-sm text-sm px-3 py-2 pr-10">
-                
+
                 {{-- Tombol Search --}}
                 <button type="submit" class="absolute inset-y-0 right-0 flex items-center px-3 text-white bg-gray-900 hover:bg-gray-700 rounded-r-md transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -84,11 +84,11 @@
                 @forelse($papers as $p)
                 @php
                 $statusColor = [
-                    'Unassign' => 'bg-gray-300 text-gray-800',
-                    'In Review' => 'bg-yellow-300 text-yellow-900',
-                    'Rejected' => 'bg-red-300 text-red-900',
-                    'Accept with Review' => 'bg-yellow-300 text-yellow-900',
-                    'Accepted' => 'bg-green-300 text-green-900',
+                'Unassign' => 'bg-gray-300 text-gray-800',
+                'In Review' => 'bg-yellow-300 text-yellow-900',
+                'Rejected' => 'bg-red-300 text-red-900',
+                'Accept with Review' => 'bg-yellow-300 text-yellow-900',
+                'Accepted' => 'bg-green-300 text-green-900',
                 ];
                 @endphp
 
@@ -97,7 +97,7 @@
                     <td class="p-2 border text-center">{{ $loop->iteration }}</td>
                     <td class="p-2 border font-semibold text-gray-800">{{ $p->judul }}</td>
                     <td class="p-2 border">{{ $p->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?: '-' }}</td>
-                    
+
                     {{-- STATUS (TEXT LABEL BIASA) --}}
                     <td class="p-2 border text-center">
                         <span class="px-2 py-1 rounded text-sm font-semibold {{ $statusColor[$p->status] ?? 'bg-gray-200 text-gray-700' }}">
@@ -194,7 +194,7 @@
             <h4 class="font-semibold mb-4 text-lg">Assign Section Editor</h4>
 
             <div class="bg-gray-50 border rounded-lg p-4">
-                
+
                 {{-- Form --}}
                 <form id="assignSectionEditorForm" method="POST"
                     action="{{ route('editor.assignSectionEditor', $paper->id) }}" class="mb-4">
@@ -207,7 +207,7 @@
                         <div class="flex-grow">
                             <select id="editorSelect" name="section_editors[]" multiple placeholder="Select Section Editor...">
                                 @foreach($all_section_editors as $se)
-                                <option value="{{ $se->id }}" 
+                                <option value="{{ $se->id }}"
                                     data-active="{{ $se->active_papers }}"
                                     @if(in_array($se->id, $assignedSectionEditors->pluck('id')->toArray())) selected @endif>
                                     {{ $se->first_name . ' ' . $se->last_name }}
@@ -254,9 +254,9 @@
         {{-- ========================================================== --}}
         <div class="mt-8 border-t pt-6">
             <h4 class="font-semibold mb-4 text-lg">Assign Reviewer</h4>
-            
+
             <div class="bg-gray-50 border rounded-lg p-4">
-                
+
                 {{-- Form --}}
                 <form id="assignForm" method="POST" action="{{ route('editor.assignReviewers', $paper->id) }}">
                     @csrf
@@ -265,13 +265,13 @@
                     <input type="hidden" id="reviewersInput" name="reviewers">
                     <input type="hidden" id="deadlineInput" name="deadline">
                     <input type="hidden" id="sendEmailInput" name="send_email" value="1">
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Select Reviewers</label>
                             <select id="reviewerSelect" name="reviewers[]" multiple placeholder="Cari dan pilih Reviewer..." autocomplete="off">
                                 @foreach($all_reviewers as $rev)
-                                <option value="{{ $rev->id }}" 
+                                <option value="{{ $rev->id }}"
                                     data-active="{{ $rev->active_papers }}"
                                     @if(in_array($rev->id, $assignedReviewers->pluck('id')->toArray())) selected @endif>
                                     {{ $rev->first_name . ' ' . $rev->last_name }}
@@ -329,7 +329,7 @@
 
                                 <div class="flex flex-col gap-2 items-end">
                                     @if(in_array($status, ['assigned', 'accept_to_review', 'decline_to_review']))
-                                    <button type="button" onclick="openReminderModal('{{ $ar->id }}', '{{ $ar->first_name . ' ' . $ar->last_name }}', '{{ $ar->pivot->deadline }}')" 
+                                    <button type="button" onclick="openReminderModal('{{ $ar->id }}', '{{ $ar->first_name . ' ' . $ar->last_name }}', '{{ $ar->pivot->deadline }}')"
                                         class="text-sm bg-yellow-500 text-white px-3 py-1.5 rounded hover:bg-yellow-600 transition shadow-sm flex items-center gap-1">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                                             <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
@@ -370,7 +370,13 @@
 
 @endif
 
-{{-- MODAL EMAIL (Hidden by default) --}}
+
+{{-- ========================================================== --}}
+{{-- MODALS SECTION - WRAPPED WITH IF $PAPER CHECK --}}
+{{-- ========================================================== --}}
+@if($paper)
+
+{{-- MODAL 1: EMAIL (OLD - FOR ASSIGN REVIEWER) --}}
 <div id="emailModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden transform transition-all">
         <div class="bg-gray-900 px-6 py-4 flex justify-between items-center">
@@ -410,8 +416,7 @@
 </div>
 
 {{-- MODAL 2: REQUEST REVISIONS --}}
-<div id="revisionModal"
-    class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
+<div id="revisionModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
 
         {{-- Header Modal --}}
@@ -426,8 +431,7 @@
         </div>
 
         {{-- Form Pembungkus --}}
-        @if($paper)
-        <form id="requestRevision" action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
+        <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
             @csrf
             @method('PATCH')
             <input type="hidden" name="status" value="Accept with Review">
@@ -490,17 +494,17 @@
                         <textarea name="email_body" rows="8"
                             class="w-full p-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-b-md"
                             spellcheck="false">
-{{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
+                        {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
 
-We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
+                        We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
 
-Our decision is: **Revisions Required**
+                        Our decision is: **Revisions Required**
 
-Please revise your manuscript based on the reviewers' comments and resubmit it for further consideration.
+                        Please revise your manuscript based on the reviewers' comments and resubmit it for further consideration.
 
-Best regards,
-{{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
-                            </textarea>
+                        Best regards,
+                        {{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
+                        </textarea>
                     </div>
                     <p class="text-xs text-gray-500 mt-2">You can edit the message above before sending.</p>
                 </div>
@@ -534,13 +538,11 @@ Best regards,
                 </button>
             </div>
         </form>
-        @endif
     </div>
 </div>
 
 {{-- MODAL 3: ACCEPT SUBMISSION --}}
-<div id="acceptModal"
-    class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
+<div id="acceptModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
 
         {{-- Header Modal --}}
@@ -555,8 +557,7 @@ Best regards,
         </div>
 
         {{-- Form Pembungkus --}}
-        @if($paper)
-        <form id="acceptModal" action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
+        <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
             @csrf
             @method('PATCH')
             <input type="hidden" name="status" value="Accepted">
@@ -600,14 +601,14 @@ Best regards,
                         <textarea name="email_body" rows="8"
                             class="w-full p-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-b-md"
                             spellcheck="false">
-{{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
+                        {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
 
-We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
+                        We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
 
-Our decision is to: Accept
+                        Our decision is to: Accept
 
-{{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
-                            </textarea>
+                        {{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
+                        </textarea>
                     </div>
                     <p class="text-xs text-gray-500 mt-2">You can edit the message above before sending.</p>
                 </div>
@@ -628,9 +629,7 @@ Our decision is to: Accept
                         <table class="w-full text-sm text-left">
                             <tbody class="divide-y divide-gray-100">
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-4 py-3 w-10 text-center"><input type="checkbox" name="files[]"
-                                            value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                    </td>
+                                    <td class="px-4 py-3 w-10 text-center"><input type="checkbox" name="files[]" value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"></td>
                                     <td class="px-4 py-3 text-blue-600 font-medium">📄 jurnl 2.docx</td>
                                     <td class="px-4 py-3 text-right text-red-600 text-xs">December 16, 2025</td>
                                     <td class="px-4 py-3 text-right text-gray-500">Article Text</td>
@@ -638,8 +637,7 @@ Our decision is to: Accept
                             </tbody>
                         </table>
                         <div class="p-3 border-t bg-gray-50">
-                            <button type="button"
-                                class="text-blue-600 font-bold text-sm flex items-center gap-1 hover:underline">
+                            <button type="button" class="text-blue-600 font-bold text-sm flex items-center gap-1 hover:underline">
                                 <span class="text-lg leading-none">+</span> Select Library Files to attach
                             </button>
                         </div>
@@ -659,14 +657,12 @@ Our decision is to: Accept
                 </button>
             </div>
         </form>
-        @endif
     </div>
 </div>
 
 
-{{-- MODAL 4: DECLINE SUBMISSION --}}
-<div id="declineModal"
-    class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
+{{-- MODAL 4: DECLINE SUBMISSION (BARU! - SESUAI SCREENSHOT PINK) --}}
+<div id="declineModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-[60] flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl my-8 transform transition-all">
 
         {{-- Header Modal --}}
@@ -681,8 +677,7 @@ Our decision is to: Accept
         </div>
 
         {{-- Form Pembungkus (Submit status = Rejected) --}}
-        @if($paper)
-        <form id="declineModal" action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
+        <form action="{{ route('editor.updateStatus', $paper->id) }}" method="POST">
             @csrf
             @method('PATCH')
             <input type="hidden" name="status" value="Rejected">
@@ -726,14 +721,14 @@ Our decision is to: Accept
                         <textarea name="email_body" rows="8"
                             class="w-full p-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-b-md"
                             spellcheck="false">
-{{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
+                        {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
 
-We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
+                        We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
 
-Our decision is to: Decline Submission
+                        Our decision is to: Decline Submission
 
-{{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
-                            </textarea>
+                        {{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
+                        </textarea>
                     </div>
                     <p class="text-xs text-gray-500 mt-2">You can edit the message above before sending.</p>
                 </div>
@@ -754,9 +749,7 @@ Our decision is to: Decline Submission
                         <table class="w-full text-sm text-left">
                             <tbody class="divide-y divide-gray-100">
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-4 py-3 w-10 text-center"><input type="checkbox" name="files[]"
-                                            value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                    </td>
+                                    <td class="px-4 py-3 w-10 text-center"><input type="checkbox" name="files[]" value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"></td>
                                     <td class="px-4 py-3 text-blue-600 font-medium">📄 jurnl 2.docx</td>
                                     <td class="px-4 py-3 text-right text-red-600 text-xs">December 16, 2025</td>
                                     <td class="px-4 py-3 text-right text-gray-500">Article Text</td>
@@ -780,224 +773,234 @@ Our decision is to: Decline Submission
                 </button>
             </div>
         </form>
-        @endif
     </div>
 </div>
+
+
+@endif {{-- END IF CHECK $paper --}}
 
 </div>
 
 {{-- JAVASCRIPT LOGIC --}}
 <script>
-// --- Variabel Data dari PHP ke JS ---
-const articleTitle = "{{ $paper->judul ?? 'Judul Artikel' }}";
-const articleUrl = "{{ $articleUrl ?? '#' }}"
-const editorName = "{{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}";
-const paperId = "{{ $paper->id ?? '' }}";
-let reviewerSelectInstance;
-let modalMode = "assign";
+    // --- Variabel Data dari PHP ke JS ---
+    const articleTitle = "{{ $paper->judul ?? 'Judul Artikel' }}";
+    const articleUrl = "{{ $articleUrl ?? '#' }}"
+    const editorName = "{{ $editors->first()->name ?? 'Editor' }}";
+    const paperId = "{{ $paper->id ?? '' }}";
+    let reviewerSelectInstance;
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Init TomSelect Reviewer
-    if (document.getElementById("reviewerSelect")) {
-        reviewerSelectInstance = new TomSelect("#reviewerSelect", {
-            plugins: ['remove_button'],
-            maxItems: null,
-            placeholder: 'Cari dan pilih Reviewer...',
-            render: {
-                option: function(data, escape) {
-                    const activePapers = data.$option?.dataset?.active || '0';
-                    const reviewerName = escape(data.text);
-                    return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
-                                    <div class="font-medium text-gray-800">${reviewerName}</div>
-                                    <div class="text-xs text-gray-600">Active Review: ${activePapers} paper(s)</div>
-                                </div>`;
-                },
-                item: function(data, escape) {
-                    const activePapers = data.$option?.dataset?.active || '0';
-                    const reviewerName = escape(data.text);
-                    return `<div class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full mr-1 flex items-center shadow-sm border border-blue-200">
-                                    ${reviewerName} (Active Review: ${activePapers})
-                                </div>`;
-                }
-            }
-        });
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        // Init TomSelect Reviewer
+        if (document.getElementById("reviewerSelect")) {
+            reviewerSelectInstance = new TomSelect("#reviewerSelect", {
+                plugins: ['remove_button'],
+                maxItems: null,
+                placeholder: 'Cari dan pilih Reviewer...',
+                render: {
+                    option: function(data, escape) {
+                        const activePapers = data.$option?.dataset?.active || '0';
 
-    // Init TomSelect Editor
-    if (document.getElementById("editorSelect")) {
-        new TomSelect("#editorSelect", {
-            plugins: ['remove_button'],
-            maxItems: null,
-            placeholder: 'Pilih Section Editor...',
-            render: {
-                option: function(data, escape) {
-                    const activePapers = data.$option?.dataset?.active || '0';
-                    const editorName = escape(data.text);
-                    return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
-                                <div class="font-medium text-gray-800">${editorName}</div>
-                                <div class="text-xs text-gray-600">Active Papers: ${activePapers}</div>
+                        return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
+                                <div class="font-medium text-gray-800">${escape(data.text.split(' (')[0])}</div>
+                                <div class="text-xs text-green-600">Active Reviews : ${activePapers}</div>
                             </div>`;
-                },
-                item: function(data, escape) {
-                    const activePapers = data.$option?.dataset?.active || '0';
-                    const editorName = escape(data.text);
-                    return `<div class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full mr-1 flex items-center shadow-sm border border-blue-200">
-                                ${editorName} (Active Papers: ${activePapers})
+                    },
+                    item: function(data, escape) {
+                        return `<div class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full mr-1 flex items-center shadow-sm border border-blue-200">
+                                ${escape(data.text)}
                             </div>`;
+                    }
                 }
-            }
-        });
-    }
-});
+            });
+        }
 
-// --- LOGIKA MODAL REVISION, ACCEPT & DECLINE ---
-const revisionModal = document.getElementById('revisionModal');
-const acceptModal = document.getElementById('acceptModal');
-const declineModal = document.getElementById('declineModal');
+        // Init TomSelect Editor
+        if (document.getElementById("editorSelect")) {
+            new TomSelect("#editorSelect", {
+                plugins: ['remove_button'],
+                maxItems: null,
+                placeholder: 'Pilih Section Editor...',
+                render: {
+                    option: function(data, escape) {
+                        const assignedPapers = data.$option?.dataset?.assigned || '0';
+                        return `<div class="py-2 px-3 hover:bg-blue-50 border-b border-gray-100 last:border-0">
+                                <div class="font-medium text-gray-800">${escape(data.text.split(' (')[0])}</div>
+                                <div class="text-xs text-blue-600">Active Papers : ${assignedPapers}</div>
+                            </div>`;
+                    },
+                    item: function(data, escape) {
+                        return `<div class="px-3 py-1 bg-green-100 text-green-800 rounded-full mr-1 flex items-center shadow-sm border border-green-200">
+                                ${escape(data.text)}
+                            </div>`;
+                    }
+                }
+            });
+        }
+    });
 
-function openRevisionModal() {
-    if (revisionModal) revisionModal.classList.remove('hidden');
-}
+    // --- LOGIKA MODAL REVISION, ACCEPT & DECLINE ---
+    const revisionModal = document.getElementById('revisionModal');
+    const acceptModal = document.getElementById('acceptModal');
+    const declineModal = document.getElementById('declineModal');
 
-function closeRevisionModal() {
-    if (revisionModal) revisionModal.classList.add('hidden');
-}
-
-function openAcceptModal() {
-    if (acceptModal) acceptModal.classList.remove('hidden');
-}
-
-function closeAcceptModal() {
-    if (acceptModal) acceptModal.classList.add('hidden');
-}
-
-function openDeclineModal() {
-    if (declineModal) declineModal.classList.remove('hidden');
-}
-
-function closeDeclineModal() {
-    if (declineModal) declineModal.classList.add('hidden');
-}
-
-// Fungsi Generic untuk toggle editor email di modal manapun
-function toggleEmailEditor(enable, containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    const textarea = container.querySelector('textarea');
-    if (enable) {
-        container.classList.remove('opacity-50', 'pointer-events-none');
-        textarea.disabled = false;
-    } else {
-        container.classList.add('opacity-50', 'pointer-events-none');
-        textarea.disabled = true;
-    }
-}
-
-// --- LOGIKA MODAL EMAIL ---
-const modal = document.getElementById('emailModal');
-const modalTitle = document.getElementById('modalTitle');
-const modalRecipient = document.getElementById('modalRecipient');
-const emailSubject = document.getElementById('emailSubject');
-const emailBody = document.getElementById('emailBody');
-
-// 1. Fungsi Buka Modal Assign Reviewer
-function openAssignModal() {
-    modalMode = "assign";
-    if (!reviewerSelectInstance) return;
-
-    // Ambil data reviewer yang dipilih
-    const selectedItems = reviewerSelectInstance.items;
-    const selectedOptions = reviewerSelectInstance.options;
-
-    if (selectedItems.length === 0) {
-        alert("Please select at least one reviewer first.");
-        return;
+    function openRevisionModal() {
+        if (revisionModal) revisionModal.classList.remove('hidden');
     }
 
-    // Ambil deadline
-    const deadlineInputEl = document.getElementById('deadlineDate');
-    const deadline = deadlineInputEl ? deadlineInputEl.value : '';
-    if (!deadline) {
-        alert('Please set a deadline.');
-        deadlineInputEl.focus();
-        return;
+    function closeRevisionModal() {
+        if (revisionModal) revisionModal.classList.add('hidden');
     }
 
-    // Gabungkan nama reviewer
-    let names = selectedItems.map(id => selectedOptions[id].text).join(", ");
-
-    // Set isi modal
-    modalTitle.innerText = "Assign Reviewer & Send Invitation";
-    modalRecipient.value = names;
-    emailSubject.value = "Invitation to Review Manuscript";
-
-    // TEMPLATE PESAN ASLI (Multi-line)
-    const template = `Dear ${names},
-
-I believe that you would serve as an excellent reviewer of the manuscript, "${articleTitle},".
-
-Please log into the journal web site to indicate whether you will undertake the review or not.
-
-Submission URL: ${articleUrl}
-
-Thank you for considering this request.
-
-${editorName}`;
-
-    emailBody.value = template;
-
-    // Tampilkan modal
-    modal.classList.remove('hidden');
-}
-
-// 2. Fungsi Buka Modal Reminder
-function openReminderModal(reviewerId, reviewerName, deadline) {
-    window.selectedReviewerId = reviewerId;
-
-    modalMode = "reminder";
-    // Set Isi Modal
-    modalTitle.innerText = "Send Reminder to Reviewer";
-    modalRecipient.value = reviewerName;
-    emailSubject.value = "Review Reminder: " + articleTitle;
-
-    // TEMPLATE PESAN REMINDER ASLI (Multi-line)
-    const template = `Dear ${reviewerName},
-
-Just a gentle reminder regarding the manuscript "${articleTitle}" which is currently assigned to you for review.
-
-We noticed that the deadline is approaching (${deadline}). We would appreciate it if you could submit your review soon.
-
-
-
-Best regards,
-
-${editorName}`;
-
-    emailBody.value = template;
-    modal.classList.remove('hidden');
-}
-
-function openAssignSectionEditorModal() {
-    modalMode = "section_editor";
-
-    const editorSelect = document.getElementById('editorSelect');
-    const selected = Array.from(editorSelect.selectedOptions);
-
-    if (selected.length === 0) {
-        alert("Please select at least one Section Editor.");
-        return;
+    function openAcceptModal() {
+        if (acceptModal) acceptModal.classList.remove('hidden');
     }
 
-    const names = selected
-        .map(opt => opt.text)
-        .join(', ');
+    function closeAcceptModal() {
+        if (acceptModal) acceptModal.classList.add('hidden');
+    }
 
-    modalTitle.innerText = "Assign Section Editor & Send Email";
-    modalRecipient.value = names;
-    emailSubject.value = "Section Editor Assignment";
+    function openDeclineModal() {
+        if (declineModal) declineModal.classList.remove('hidden');
+    }
 
-    const template = `Dear ${names},
+    function closeDeclineModal() {
+        if (declineModal) declineModal.classList.add('hidden');
+    }
+
+    // Fungsi Generic untuk toggle editor email di modal manapun
+    function toggleEmailEditor(enable, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const textarea = container.querySelector('textarea');
+        if (enable) {
+            container.classList.remove('opacity-50', 'pointer-events-none');
+            textarea.disabled = false;
+        } else {
+            container.classList.add('opacity-50', 'pointer-events-none');
+            textarea.disabled = true;
+        }
+    }
+
+
+    // --- LOGIKA MODAL EMAIL (OLD - ASSIGN REVIEWER) ---
+    const modal = document.getElementById('emailModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalRecipient = document.getElementById('modalRecipient');
+    const emailSubject = document.getElementById('emailSubject');
+    const emailBody = document.getElementById('emailBody');
+
+    // 1. Fungsi Buka Modal Assign Reviewer
+    function openAssignModal() {
+        modalMode = "assign";
+        if (!reviewerSelectInstance) return;
+
+        // Ambil data reviewer yang dipilih
+        const selectedItems = reviewerSelectInstance.items;
+        const selectedOptions = reviewerSelectInstance.options;
+
+        if (selectedItems.length === 0) {
+            alert("Please select at least one reviewer first.");
+            return;
+        }
+
+        // Ambil deadline
+        const deadlineInputEl = document.getElementById('deadlineDate');
+        const deadline = deadlineInputEl ? deadlineInputEl.value : '';
+        if (!deadline) {
+            alert('Please set a deadline.');
+            deadlineInputEl.focus();
+            return;
+        }
+
+        // Gabungkan nama reviewer (ambil hanya nama, tanpa info jumlah pekerjaan)
+        let names = selectedItems.map(id => {
+            const text = selectedOptions[id].text;
+            return text.split(' (')[0].trim(); // Ambil hanya nama sebelum tanda kurung
+        }).join(", ");
+
+        // Set isi modal
+        modalTitle.innerText = "Assign Reviewer & Send Invitation";
+        modalRecipient.value = names;
+
+        fetch('/prepared-email/invite_to_review')
+            .then(res => res.json())
+            .then(data => {
+                emailSubject.value = data.subject;
+
+                let body = data.body;
+                body = body.replace(/@{{reviewerName}}/g, names);
+                body = body.replace(/@{{articleTitle}}/g, articleTitle);
+                body = body.replace(/@{{articleUrl}}/g, articleUrl);
+                body = body.replace(/@{{editorName}}/g, editorName);
+                body = body.replace(/@{{deadline}}/g, deadline);
+                emailBody.value = body;
+                modal.classList.remove('hidden');
+            })
+            .catch(err => {
+                console.error('Failed to load email template', err);
+                alert('Failed to load email template.');
+            });
+    }
+
+    // 2. Fungsi Buka Modal Reminder
+    function openReminderModal(reviewerId, reviewerName, deadline) {
+        window.selectedReviewerId = reviewerId;
+
+        modalMode = "reminder";
+        // Set Isi Modal
+        modalTitle.innerText = "Send Reminder to Reviewer";
+        modalRecipient.value = reviewerName;
+        emailSubject.value = "Review Reminder: " + articleTitle;
+
+        fetch('/prepared-email/review_reminder')
+            .then(res => res.json())
+            .then(data => {
+
+                // Subject dari DB (fallback jika kosong)
+                emailSubject.value = data.subject && data.subject.trim() !== '' ?
+                    data.subject :
+                    "Review Reminder: " + articleTitle;
+
+                // Body dari DB + replace placeholder
+                let body = data.body ?? '';
+
+                body = body.replace(/@{{reviewerName}}/g, reviewerName);
+                body = body.replace(/@{{articleTitle}}/g, articleTitle);
+                body = body.replace(/@{{deadline}}/g, deadline);
+                body = body.replace(/@{{editorName}}/g, editorName);
+
+                emailBody.value = body;
+
+                modal.classList.remove('hidden');
+            })
+            .catch(err => {
+                console.error('Failed to load reminder template', err);
+                alert('Failed to load reminder email template.');
+            });
+    }
+
+    function openAssignSectionEditorModal() {
+        modalMode = "section_editor";
+
+        const editorSelect = document.getElementById('editorSelect');
+        const selected = Array.from(editorSelect.selectedOptions);
+
+        if (selected.length === 0) {
+            alert("Please select at least one Section Editor.");
+            return;
+        }
+
+        const names = selected
+            .map(opt => opt.text)
+            .join(', ');
+
+        modalTitle.innerText = "Assign Section Editor & Send Email";
+        modalRecipient.value = names;
+        emailSubject.value = "Section Editor Assignment";
+
+        const template = `Dear ${names},
 
 You have been assigned as a Section Editor for the manuscript:
 
@@ -1011,127 +1014,103 @@ ${articleUrl}
 Best regards,
 ${editorName}`;
 
-    emailBody.value = template;
+        emailBody.value = template;
 
-    modal.classList.remove('hidden');
-}
-
-// 3. Fungsi Tutup Modal
-function closeModal() {
-    modal.classList.add('hidden');
-}
-
-// 4. Simulasi Submit
-function submitProcess() {
-    if (modalMode === "section_editor") {
-
-        const editorSelect = document.getElementById('editorSelect');
-        const selectedIds = Array.from(editorSelect.selectedOptions)
-            .map(opt => opt.value);
-
-        document.getElementById('seEditorsInput').value = selectedIds.join(',');
-        document.getElementById('seSubjectInput').value = emailSubject.value;
-        document.getElementById('seBodyInput').value = emailBody.value;
-        document.getElementById('seSendEmailInput').value =
-            document.getElementById('skipEmail')?.checked ? 0 : 1;
-
-        document.getElementById('assignSectionEditorForm').submit();
-        return;
+        modal.classList.remove('hidden');
     }
 
-    if (modalMode === "assign") {
+    // 3. Fungsi Tutup Modal
+    function closeModal() {
+        modal.classList.add('hidden');
+    }
 
-        const deadlineInputEl = document.querySelector('input[type="date"]');
-        const deadlineValue = deadlineInputEl ? deadlineInputEl.value : '';
+    // 4. Simulasi Submit
+    function submitProcess() {
+        if (modalMode === "assign") {
+            const deadlineInputEl = document.querySelector('input[type="date"]');
+            const deadlineValue = deadlineInputEl ? deadlineInputEl.value : '';
 
-        if (!deadlineValue) {
-            alert("Please select a deadline before proceeding.");
-            deadlineInputEl.focus();
+            if (!deadlineValue) {
+                alert("Please select a deadline before proceeding.");
+                deadlineInputEl.focus();
+                return;
+            }
+
+            // kirim daftar reviewer
+            document.getElementById('reviewersInput').value = reviewerSelectInstance.items.join(',');
+            // kirim deadline
+            document.getElementById('deadlineInput').value = deadlineValue;
+            // kirim custom subject
+            document.getElementById('subjectInput').value = emailSubject.value;
+            // kirim custom email body
+            document.getElementById('bodyInput').value = emailBody.value;
+            // kirim switch email (skip atau tidak)
+            document.getElementById('sendEmailInput').value = document.getElementById('skipEmail')?.checked ? 0 : 1;
+
+            document.getElementById('assignForm').submit();
             return;
         }
 
-        // kirim daftar reviewer
-        document.getElementById('reviewersInput').value = reviewerSelectInstance.items.join(',');
+        // --- PROCESS REMINDER EMAIL ---
+        if (modalMode === "reminder") {
+            const form = document.createElement('form');
+            form.method = "POST";
+            form.action = "/editor/" + paperId + "/send-reminder";
 
-        // kirim deadline
-        document.getElementById('deadlineInput').value = deadlineValue;
+            const csrf = document.createElement('input');
+            csrf.type = "hidden";
+            csrf.name = "_token";
+            csrf.value = "{{ csrf_token() }}";
 
-        // kirim custom subject
-        document.getElementById('subjectInput').value = emailSubject.value;
+            const body = document.createElement('input');
+            body.type = "hidden";
+            body.name = "email_body";
+            body.value = emailBody.value;
 
-        // kirim custom email body
-        document.getElementById('bodyInput').value = emailBody.value;
+            const subject = document.createElement('input');
+            subject.type = "hidden";
+            subject.name = "subject";
+            subject.value = emailSubject.value;
 
-        // kirim switch email (skip atau tidak)
-        document.getElementById('sendEmailInput').value = document.getElementById('skipEmail')?.checked ? 0 : 1;
+            const reviewerIdInput = document.createElement('input');
+            reviewerIdInput.type = "hidden";
+            reviewerIdInput.name = "reviewer_id";
+            reviewerIdInput.value = window.selectedReviewerId;
 
-        document.getElementById('assignForm').submit();
-        return;
+            form.appendChild(reviewerIdInput);
+            form.appendChild(csrf);
+            form.appendChild(body);
+            form.appendChild(subject);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
     }
 
+    function unassignReviewer(reviewerId) {
+        if (!confirm("Remove this reviewer from the assignment?")) return;
 
-    // --- PROCESS REMINDER EMAIL ---
-    if (modalMode === "reminder") {
-        // buatkan form khusus reminder
         const form = document.createElement('form');
         form.method = "POST";
-        form.action = "/editor/" + paperId + "/send-reminder";
+        form.action = "/editor/" + paperId + "/unassign-reviewer";
 
         const csrf = document.createElement('input');
         csrf.type = "hidden";
         csrf.name = "_token";
         csrf.value = "{{ csrf_token() }}";
 
-        const body = document.createElement('input');
-        body.type = "hidden";
-        body.name = "email_body";
-        body.value = emailBody.value;
+        const reviewerInput = document.createElement('input');
+        reviewerInput.type = "hidden";
+        reviewerInput.name = "reviewer_id";
+        reviewerInput.value = reviewerId;
 
-        const subject = document.createElement('input');
-        subject.type = "hidden";
-        subject.name = "subject";
-        subject.value = emailSubject.value;
-
-        const reviewerIdInput = document.createElement('input');
-        reviewerIdInput.type = "hidden";
-        reviewerIdInput.name = "reviewer_id";
-        reviewerIdInput.value = window.selectedReviewerId;
-
-        form.appendChild(reviewerIdInput);
         form.appendChild(csrf);
-        form.appendChild(body);
-        form.appendChild(subject);
+        form.appendChild(reviewerInput);
 
         document.body.appendChild(form);
         form.submit();
     }
-}
-
-function unassignReviewer(reviewerId) {
-    if (!confirm("Remove this reviewer from the assignment?")) return;
-
-    const form = document.createElement('form');
-    form.method = "POST";
-    form.action = "/editor/" + paperId + "/unassign-reviewer";
-
-    // CSRF Token
-    const csrf = document.createElement('input');
-    csrf.type = "hidden";
-    csrf.name = "_token";
-    csrf.value = "{{ csrf_token() }}";
-
-    // Reviewer ID
-    const reviewerInput = document.createElement('input');
-    reviewerInput.type = "hidden";
-    reviewerInput.name = "reviewer_id";
-    reviewerInput.value = reviewerId;
-
-    form.appendChild(csrf);
-    form.appendChild(reviewerInput);
-
-    document.body.appendChild(form);
-    form.submit();
-}
 </script>
+
 
 @endsection

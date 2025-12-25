@@ -191,6 +191,8 @@ class EditorController extends Controller
                 // BODY
                 $emailBody = trim($request->email_body);
 
+                $emailBodyHtml = nl2br(e($emailBody));
+
                 if ($emailBody === '') {
                     // fallback template - body kosong, akan diisi oleh template
                     $emailBody = '';
@@ -203,7 +205,7 @@ class EditorController extends Controller
                         $deadline,
                         $editorName,
                         $subject,
-                        $emailBody,
+                        $emailBodyHtml,
                         $invitationUrl
                     )
                 );

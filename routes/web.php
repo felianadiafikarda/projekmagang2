@@ -123,13 +123,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/prepared-emails/{emailTemplate}/edit', [PreparedEmailController::class, 'edit'])->name('prepared_email.edit');
     Route::put('/prepared-emails/{emailTemplate}', [PreparedEmailController::class, 'update'])->name('prepared_email.update');
     Route::delete('/prepared-emails/{emailTemplate }', [PreparedEmailController::class, 'destroy'])->name('prepared_email.destroy');
+    Route::get('/prepared-email/{code}', [PreparedEmailController::class, 'getTemplate']);
 
     
     Route::post('/notifications/read-all', function () {
         Notification::where('user_id', auth()->id())
             ->where('is_read', false)
             ->update(['is_read' => true]);
-    })->name('notifications.markRead'); // Tandai semua notifikasi sebagai sudah dibaca
+    })->name('notifications.markRead');
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });

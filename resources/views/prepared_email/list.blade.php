@@ -25,24 +25,23 @@
         <table class="w-full text-left border">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="p-3 border w-1/5">Email Template</th>
+                    <th class="p-3 border w-1/3">Subject</th>
                     <th class="p-3 border w-1/6">Sender</th>
                     <th class="p-3 border w-1/6">Recipient</th>
-                    <th class="p-3 border w-1/3">Subject</th>
-                    <th class="p-3 border w-24">Actions</th>
+                    <th class="p-3 border w-24 text-center">Actions</th>
                 </tr>
             </thead>
 
             <tbody>
                 @foreach($templates as $t)
                 <tr class="border-t hover:bg-gray-50 transition">
-                    <td class="p-3">{{ $t->email_template }}</td>
-                    <td class="p-3 text-sm text-gray-700">{{ $t->sender }}</td>
-                    <td class="p-3 text-sm text-gray-700">{{ $t->recipient }}</td>
                     <td class="p-3">{{ $t->subject }}</td>
+                    <td class="p-3 text-sm text-gray-700">{{ $t->sender ? implode(', ', explode(',', $t->sender)) : '-' }}</td>
+                    <td class="p-3 text-sm text-gray-700">{{ $t->recipient ? implode(', ', explode(',', $t->recipient)) : '-' }}</td>
+                    
 
                     <td class="p-3">
-                        <div class="flex gap-2">
+                        <div class="flex justify-center gap-2">
                             <a href="{{ route('prepared_email.edit', $t->id) }}" class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
                                 Edit
                             </a>

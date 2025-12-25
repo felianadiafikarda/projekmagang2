@@ -4,37 +4,90 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\PreparedEmail;
-use Symfony\Component\Mime\Email;
 
 class PreparedEmailSeeder extends Seeder
 {
     public function run(): void
     {
-        PreparedEmail::insert([
+        $templates = [
             [
-                'email_template' => 'reminder',
-                'sender' => 'Admin',
-                'recipient' => 'Editor',
-                'subject' => 'Pengingat Jadwal Pendadaran',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'email_template' => 'new_registration_notification',
+                'sender' => 'system',
+                'recipient' => 'author',
+                'subject' => 'New Notification of Registration',
+                'body' => "Dear {{authorName}},\n\nThank you for registering at {{journalName}}.\n\nLogin URL:\n{{loginUrl}}\n\nBest regards,\nEditorial Team",
             ],
+
             [
-                'email_template' => 'registration',
-                'sender' => 'Editor',
-                'recipient' => 'Section Editor',
-                'subject' => 'Pendaftaran Berhasil',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'email_template' => 'invite_to_review',
+                'sender' => 'editor',
+                'recipient' => 'reviewer',
+                'subject' => 'Invitation to Review Manuscript',
+                'body' => "Dear {{reviewerName}},\n\nI believe that you would serve as an excellent reviewer of the manuscript, \"{{articleTitle}}\".\n\nPlease log into the journal web site to indicate whether you will undertake the review or not.\n\nSubmission URL:\n{{articleUrl}}\n\nReview Deadline: {{deadline}}\n\nThank you for considering this request.\n{{editorName}}",
             ],
+
             [
-                'email_template' => 'announcement',
-                'sender' => 'Section Editor',
-                'recipient' => 'Reviewer',
-                'subject' => 'Pengumuman Penting',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'email_template' => 'review_reminder',
+                'sender' => 'editor',
+                'recipient' => 'reviewer',
+                'subject' => 'Submission Review Reminder',
+                'body' => "Dear {{reviewerName}},\n\nJust a gentle reminder regarding the manuscript \"{{articleTitle}}\" which is currently assigned to you for review.\n\nWe noticed that the deadline is approaching ({{deadline}}).\nWe would appreciate it if you could submit your review soon.\n\nBest regards,\n{{editorName}}",
             ],
-        ]);
+
+            [
+                'email_template' => 'review_request_cancelled',
+                'sender' => 'editor',
+                'recipient' => 'reviewer',
+                'subject' => 'Request for Review Cancelled',
+                'body' => "Dear {{reviewerName}},\n\nThe review request for \"{{articleTitle}}\" has been cancelled.\n\nThank you for your willingness to assist.\n\nBest regards,\n{{editorName}}",
+            ],
+
+            [
+                'email_template' => 'review_acceptance',
+                'sender' => 'reviewer',
+                'recipient' => 'editor',
+                'subject' => 'Able to Review Manuscript',
+                'body' => "Dear {{editorName}},\n\nI confirm that I am able to review the manuscript \"{{articleTitle}}\".\n\nBest regards,\n{{reviewerName}}",
+            ],
+
+            [
+                'email_template' => 'review_decline',
+                'sender' => 'reviewer',
+                'recipient' => 'editor',
+                'subject' => 'Unable to Review Manuscript',
+                'body' => "Dear {{editorName}},\n\nUnfortunately, I am unable to review the manuscript \"{{articleTitle}}\" at this time.\n\nBest regards,\n{{reviewerName}}",
+            ],
+
+            [
+                'email_template' => 'review_completed',
+                'sender' => 'reviewer',
+                'recipient' => 'editor',
+                'subject' => 'Review Completed',
+                'body' => "Dear {{editorName}},\n\nI have completed the review for \"{{articleTitle}}\".\n\nThe review has been submitted via the system.\n\nBest regards,\n{{reviewerName}}",
+            ],
+
+            [
+                'email_template' => 'article_accepted',
+                'sender' => 'editor',
+                'recipient' => 'author',
+                'subject' => 'Decision on Your Manuscript Submission',
+                'body' => "Dear {{authorName}},\n\nWe are pleased to inform you that your manuscript \"{{articleTitle}}\" has been accepted.\n\nBest regards,\n{{editorName}}",
+            ],
+
+            [
+                'email_template' => 'article_rejected',
+                'sender' => 'editor',
+                'recipient' => 'author',
+                'subject' => 'Decision on Your Manuscript Submission',
+                'body' => "Dear {{authorName}},\n\nAfter careful review, we regret to inform you that your manuscript \"{{articleTitle}}\" has not been accepted.\n\nBest regards,\n{{editorName}}",
+            ],
+        ];
+
+        foreach ($templates as $template) {
+            PreparedEmail::updateOrCreate(
+                ['email_template' => $template['email_template']],
+                $template
+            );
+        }
     }
 }
