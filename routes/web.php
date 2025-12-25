@@ -45,11 +45,33 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
-});
-
-Route::get('/registrasi', function () {
+    
+    // Registration Routes
+    Route::get('/registrasi', function () {
         return view('registrasi');
-    });
+    })->name('register.author');
+    
+    Route::post('/registrasi', [AuthController::class, 'register'])->name('register.author.post');
+    
+    // Forgot Password & OTP Routes
+    Route::get('/forgot-password', function () {
+        return view('forgotpassword');
+    })->name('forgot.password');
+    
+    Route::post('/forgot-password', [AuthController::class, 'sendOTP'])->name('forgot.password.post');
+    
+    Route::get('/verify-otp', function () {
+        return view('verifyotp');
+    })->name('verify.otp');
+    
+    Route::post('/verify-otp', [AuthController::class, 'verifyOTP'])->name('verify.otp.post');
+    
+    Route::get('/reset-password', function () {
+        return view('resetpassword');
+    })->name('reset.password');
+    
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset.password.post');
+});
 
 // Reviewer Invitation Routes (public - accessed via email link)
 Route::get('/review-invitation/{token}', [ReviewerController::class, 'showInvitation'])->name('reviewer.invitation');

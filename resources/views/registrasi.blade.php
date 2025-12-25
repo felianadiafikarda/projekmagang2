@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registrasi</title>
+  <title>Author Registration</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
@@ -16,16 +16,16 @@
 <body class="flex items-center justify-center min-h-screen">
 
   <div class="bg-white rounded-lg shadow-md p-8 w-96 text-center">
-    <h2 class="text-2xl font-bold mb-6">Registrasi</h2>
+    <h2 class="text-2xl font-bold mb-6">Author Registration</h2>
 
-    {{-- Pesan sukses --}}
+    {{-- Success message --}}
     @if(session('success'))
     <div class="bg-green-100 text-green-600 p-2 rounded mb-4 text-sm">
       {{ session('success') }}
     </div>
     @endif
 
-    {{-- Pesan error --}}
+    {{-- Error message --}}
     @if ($errors->any())
     <div class="bg-red-100 text-red-600 p-2 rounded mb-4 text-sm">
       <ul class="list-disc list-inside">
@@ -36,12 +36,12 @@
     </div>
     @endif
 
-    <form action="#" method="POST" class="space-y-4 text-left">
+    <form action="{{ route('register.author.post') }}" method="POST" class="space-y-4 text-left">
       @csrf
 
-      <!-- Nama Lengkap -->
+      <!-- Full Name -->
       <div>
-        <label for="name" class="block text-sm font-medium mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
+        <label for="name" class="block text-sm font-medium mb-1">Full Name <span class="text-red-500">*</span></label>
         <input
           type="text"
           id="name"
@@ -83,9 +83,9 @@
         @enderror
       </div>
 
-      <!-- Konfirmasi Password -->
+      <!-- Confirm Password -->
       <div>
-        <label for="password_confirmation" class="block text-sm font-medium mb-1">Konfirmasi Password <span class="text-red-500">*</span></label>
+        <label for="password_confirmation" class="block text-sm font-medium mb-1">Confirm Password <span class="text-red-500">*</span></label>
         <input
           type="password"
           id="password_confirmation"
@@ -94,9 +94,9 @@
           class="w-full border border-gray-400 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
       </div>
 
-      <!-- Institusi/Afiliasi -->
+      <!-- Institution/Affiliation -->
       <div>
-        <label for="institution" class="block text-sm font-medium mb-1">Institusi/Afiliasi <span class="text-red-500">*</span></label>
+        <label for="institution" class="block text-sm font-medium mb-1">Institution/Affiliation <span class="text-red-500">*</span></label>
         <input
           type="text"
           id="institution"
@@ -109,9 +109,9 @@
         @enderror
       </div>
 
-      <!-- Nomor Telepon -->
+      <!-- Phone Number -->
       <div>
-        <label for="phone" class="block text-sm font-medium mb-1">Nomor Telepon</label>
+        <label for="phone" class="block text-sm font-medium mb-1">Phone Number</label>
         <input
           type="tel"
           id="phone"
@@ -123,25 +123,25 @@
         @enderror
       </div>
 
-      <!-- Tombol -->
+      <!-- Buttons -->
       <div class="pt-2 flex gap-3">
         <button
           type="button"
           onclick="window.history.back()"
           class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-2 rounded-md transition-all shadow-sm">
-          Batal
+          Cancel
         </button>
         <button
           type="submit"
           class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 rounded-md transition-all shadow-sm">
-          Daftar
+          Register
         </button>
       </div>
     </form>
 
-    <!-- Sudah punya akun -->
+    <!-- Already have an account -->
     <div class="mt-4 text-sm">
-      <p>sudah punya akun?
+      <p>Already have an account?
         <a href="/login" class="text-indigo-500 hover:underline font-medium">Login</a>
       </p>
     </div>
