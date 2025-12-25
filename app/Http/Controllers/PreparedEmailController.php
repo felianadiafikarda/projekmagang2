@@ -91,23 +91,13 @@ class PreparedEmailController extends Controller
             ->with('success', 'Email template deleted.');
     }
 
-    public function getTemplate($template)
+    public function getTemplate($code)
     {
-        $normalized = str_replace('_', ' ', strtolower($template));
-
-        $email = PreparedEmail::whereRaw('LOWER(email_template) = ?', [$normalized])
-            ->firstOrFail();
-
-        if (!$email) {
-            return response()->json([
-                'subject' => '',
-                'body' => ''
-            ]);
-        }
+        $email = PreparedEmail::where('email_template', $code)->first();
 
         return response()->json([
-            'subject' => $email?->subject ?? '',
-            'body'    => $email?->body ?? '',
+            'subject' => $email->subject ?? '',
+            'body'    => $email->body ?? '',
         ]);
     }
 }

@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\PreparedEmail;
 
-class PreparedemailSeeder extends Seeder
+class PreparedEmailSeeder extends Seeder
 {
     public function run(): void
     {
@@ -23,15 +23,15 @@ class PreparedemailSeeder extends Seeder
                 'sender' => 'editor',
                 'recipient' => 'reviewer',
                 'subject' => 'Invitation to Review Manuscript',
-                'body' => "Dear {{reviewerName}},\n\nWe invite you to review the manuscript entitled \"{{articleTitle}}\".\n\nSubmission URL:\n{{articleUrl}}\n\nReview Deadline: {{reviewDeadline}}\n\nBest regards,\n{{editorName}}",
+                'body' => "Dear {{reviewerName}},\n\nI believe that you would serve as an excellent reviewer of the manuscript, \"{{articleTitle}}\".\n\nPlease log into the journal web site to indicate whether you will undertake the review or not.\n\nSubmission URL:\n{{articleUrl}}\n\nReview Deadline: {{deadline}}\n\nThank you for considering this request.\n{{editorName}}",
             ],
 
             [
                 'email_template' => 'review_reminder',
                 'sender' => 'editor',
                 'recipient' => 'reviewer',
-                'subject' => '⦁	Submission Review Reminder',
-                'body' => "Dear {{reviewerName}},\n\nThis is a reminder to complete your review for \"{{articleTitle}}\".\n\nDeadline: {{reviewDeadline}}\n\nBest regards,\n{{editorName}}",
+                'subject' => 'Submission Review Reminder',
+                'body' => "Dear {{reviewerName}},\n\nJust a gentle reminder regarding the manuscript \"{{articleTitle}}\" which is currently assigned to you for review.\n\nWe noticed that the deadline is approaching ({{deadline}}).\nWe would appreciate it if you could submit your review soon.\n\nBest regards,\n{{editorName}}",
             ],
 
             [

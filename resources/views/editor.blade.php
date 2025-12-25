@@ -13,7 +13,7 @@
 
     {{-- === HEADER: NAVIGASI, FILTER & SEARCH === --}}
     <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
-        
+
         {{-- Kiri: Tombol Navigasi --}}
         <div class="flex gap-2">
 
@@ -23,24 +23,24 @@
         @if($page === 'list')
         <form action="{{ url()->current() }}" method="GET" class="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
             <input type="hidden" name="page" value="list">
-            
+
             {{-- Dropdown Filter --}}
-            <select name="filter_status" onchange="this.form.submit()" 
+            <select name="filter_status" onchange="this.form.submit()"
                 class="w-full md:w-48 border-gray-300 focus:border-gray-900 focus:ring-gray-900 rounded-md shadow-sm text-sm px-3 py-2 cursor-pointer bg-white text-gray-700">
                 <option value="">All Status</option>
                 @foreach(['Unassign', 'In Review', 'Rejected', 'Accept with Review', 'Accepted'] as $status)
-                    <option value="{{ $status }}" {{ request('filter_status') == $status ? 'selected' : '' }}>
-                        {{ $status }}
-                    </option>
+                <option value="{{ $status }}" {{ request('filter_status') == $status ? 'selected' : '' }}>
+                    {{ $status }}
+                </option>
                 @endforeach
             </select>
 
             {{-- Input Search --}}
             <div class="relative w-full md:w-64">
-                <input type="text" name="search" value="{{ request('search') }}" 
-                    placeholder="Search..." 
+                <input type="text" name="search" value="{{ request('search') }}"
+                    placeholder="Search..."
                     class="w-full border-gray-300 focus:border-gray-900 focus:ring-gray-900 rounded-md shadow-sm text-sm px-3 py-2 pr-10">
-                
+
                 {{-- Tombol Search --}}
                 <button type="submit" class="absolute inset-y-0 right-0 flex items-center px-3 text-white bg-gray-900 hover:bg-gray-700 rounded-r-md transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -84,11 +84,11 @@
                 @forelse($papers as $p)
                 @php
                 $statusColor = [
-                    'Unassign' => 'bg-gray-300 text-gray-800',
-                    'In Review' => 'bg-yellow-300 text-yellow-900',
-                    'Rejected' => 'bg-red-300 text-red-900',
-                    'Accept with Review' => 'bg-yellow-300 text-yellow-900',
-                    'Accepted' => 'bg-green-300 text-green-900',
+                'Unassign' => 'bg-gray-300 text-gray-800',
+                'In Review' => 'bg-yellow-300 text-yellow-900',
+                'Rejected' => 'bg-red-300 text-red-900',
+                'Accept with Review' => 'bg-yellow-300 text-yellow-900',
+                'Accepted' => 'bg-green-300 text-green-900',
                 ];
                 @endphp
 
@@ -97,7 +97,7 @@
                     <td class="p-2 border text-center">{{ $loop->iteration }}</td>
                     <td class="p-2 border font-semibold text-gray-800">{{ $p->judul }}</td>
                     <td class="p-2 border">{{ $p->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') ?: '-' }}</td>
-                    
+
                     {{-- STATUS (TEXT LABEL BIASA) --}}
                     <td class="p-2 border text-center">
                         <span class="px-2 py-1 rounded text-sm font-semibold {{ $statusColor[$p->status] ?? 'bg-gray-200 text-gray-700' }}">
@@ -194,7 +194,7 @@
             <h4 class="font-semibold mb-4 text-lg">Assign Section Editor</h4>
 
             <div class="bg-gray-50 border rounded-lg p-4">
-                
+
                 {{-- Form --}}
                 <form id="assignSectionEditorForm" method="POST"
                     action="{{ route('editor.assignSectionEditor', $paper->id) }}" class="mb-4">
@@ -207,7 +207,7 @@
                         <div class="flex-grow">
                             <select id="editorSelect" name="section_editors[]" multiple placeholder="Select Section Editor...">
                                 @foreach($all_section_editors as $se)
-                                <option value="{{ $se->id }}" 
+                                <option value="{{ $se->id }}"
                                     data-active="{{ $se->active_papers }}"
                                     @if(in_array($se->id, $assignedSectionEditors->pluck('id')->toArray())) selected @endif>
                                     {{ $se->first_name . ' ' . $se->last_name }}
@@ -254,9 +254,9 @@
         {{-- ========================================================== --}}
         <div class="mt-8 border-t pt-6">
             <h4 class="font-semibold mb-4 text-lg">Assign Reviewer</h4>
-            
+
             <div class="bg-gray-50 border rounded-lg p-4">
-                
+
                 {{-- Form --}}
                 <form id="assignForm" method="POST" action="{{ route('editor.assignReviewers', $paper->id) }}">
                     @csrf
@@ -265,13 +265,13 @@
                     <input type="hidden" id="reviewersInput" name="reviewers">
                     <input type="hidden" id="deadlineInput" name="deadline">
                     <input type="hidden" id="sendEmailInput" name="send_email" value="1">
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Select Reviewers</label>
                             <select id="reviewerSelect" name="reviewers[]" multiple placeholder="Cari dan pilih Reviewer..." autocomplete="off">
                                 @foreach($all_reviewers as $rev)
-                                <option value="{{ $rev->id }}" 
+                                <option value="{{ $rev->id }}"
                                     data-active="{{ $rev->active_papers }}"
                                     @if(in_array($rev->id, $assignedReviewers->pluck('id')->toArray())) selected @endif>
                                     {{ $rev->first_name . ' ' . $rev->last_name }}
@@ -329,7 +329,7 @@
 
                                 <div class="flex flex-col gap-2 items-end">
                                     @if(in_array($status, ['assigned', 'accept_to_review', 'decline_to_review']))
-                                    <button type="button" onclick="openReminderModal('{{ $ar->id }}', '{{ $ar->first_name . ' ' . $ar->last_name }}', '{{ $ar->pivot->deadline }}')" 
+                                    <button type="button" onclick="openReminderModal('{{ $ar->id }}', '{{ $ar->first_name . ' ' . $ar->last_name }}', '{{ $ar->pivot->deadline }}')"
                                         class="text-sm bg-yellow-500 text-white px-3 py-1.5 rounded hover:bg-yellow-600 transition shadow-sm flex items-center gap-1">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                                             <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
@@ -494,7 +494,7 @@
                         <textarea name="email_body" rows="8"
                             class="w-full p-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-b-md"
                             spellcheck="false">
-{{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
+                        {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
 
                         We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
 
@@ -502,9 +502,9 @@
 
                         Please revise your manuscript based on the reviewers' comments and resubmit it for further consideration.
 
-Best regards,
-{{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
-                            </textarea>
+                        Best regards,
+                        {{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
+                        </textarea>
                     </div>
                     <p class="text-xs text-gray-500 mt-2">You can edit the message above before sending.</p>
                 </div>
@@ -601,14 +601,14 @@ Best regards,
                         <textarea name="email_body" rows="8"
                             class="w-full p-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-b-md"
                             spellcheck="false">
-{{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
+                        {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
 
                         We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
 
                         Our decision is to: Accept
 
-{{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
-                            </textarea>
+                        {{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
+                        </textarea>
                     </div>
                     <p class="text-xs text-gray-500 mt-2">You can edit the message above before sending.</p>
                 </div>
@@ -721,14 +721,14 @@ Best regards,
                         <textarea name="email_body" rows="8"
                             class="w-full p-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-b-md"
                             spellcheck="false">
-{{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
+                        {{ $paper->authors->map(fn($a) => $a->first_name . ' ' . $a->last_name)->implode(', ') }}:
 
                         We have reached a decision regarding your submission to {{ config('app.name', 'Jurnal JPSD') }}, "{{ $paper->judul ?? 'Untitled' }}".
 
                         Our decision is to: Decline Submission
 
-{{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
-                            </textarea>
+                        {{ auth()->user()->first_name . ' ' . auth()->user()->last_name }}
+                        </textarea>
                     </div>
                     <p class="text-xs text-gray-500 mt-2">You can edit the message above before sending.</p>
                 </div>
@@ -917,7 +917,7 @@ Best regards,
         // Gabungkan nama reviewer (ambil hanya nama, tanpa info jumlah pekerjaan)
         let names = selectedItems.map(id => {
             const text = selectedOptions[id].text;
-            return text.split(' (')[0]; // Ambil hanya nama sebelum tanda kurung
+            return text.split(' (')[0].trim(); // Ambil hanya nama sebelum tanda kurung
         }).join(", ");
 
         // Set isi modal
@@ -930,14 +930,17 @@ Best regards,
                 emailSubject.value = data.subject;
 
                 let body = data.body;
-                body = body.replace('@{{name}}', names);
-                body = body.replace('@{{articleTitle}}', articleTitle);
-                body = body.replace('@{{articleUrl}}', articleUrl);
-                body = body.replace('@{{editorName}}', editorName);
-                body = body.replace('@{{deadline}}', deadline);
-
+                body = body.replace(/@{{reviewerName}}/g, names);
+                body = body.replace(/@{{articleTitle}}/g, articleTitle);
+                body = body.replace(/@{{articleUrl}}/g, articleUrl);
+                body = body.replace(/@{{editorName}}/g, editorName);
+                body = body.replace(/@{{deadline}}/g, deadline);
                 emailBody.value = body;
                 modal.classList.remove('hidden');
+            })
+            .catch(err => {
+                console.error('Failed to load email template', err);
+                alert('Failed to load email template.');
             });
     }
 
@@ -951,43 +954,53 @@ Best regards,
         modalRecipient.value = reviewerName;
         emailSubject.value = "Review Reminder: " + articleTitle;
 
-        // TEMPLATE PESAN REMINDER ASLI (Multi-line)
-        const template = `Dear ${reviewerName},
+        fetch('/prepared-email/review_reminder')
+            .then(res => res.json())
+            .then(data => {
 
-Just a gentle reminder regarding the manuscript "${articleTitle}" which is currently assigned to you for review.
+                // Subject dari DB (fallback jika kosong)
+                emailSubject.value = data.subject && data.subject.trim() !== '' ?
+                    data.subject :
+                    "Review Reminder: " + articleTitle;
 
-We noticed that the deadline is approaching (${deadline}). We would appreciate it if you could submit your review soon.
+                // Body dari DB + replace placeholder
+                let body = data.body ?? '';
 
+                body = body.replace(/@{{reviewerName}}/g, reviewerName);
+                body = body.replace(/@{{articleTitle}}/g, articleTitle);
+                body = body.replace(/@{{deadline}}/g, deadline);
+                body = body.replace(/@{{editorName}}/g, editorName);
 
+                emailBody.value = body;
 
-Best regards,
-
-${editorName}`;
-
-        emailBody.value = template;
-        modal.classList.remove('hidden');
+                modal.classList.remove('hidden');
+            })
+            .catch(err => {
+                console.error('Failed to load reminder template', err);
+                alert('Failed to load reminder email template.');
+            });
     }
 
-function openAssignSectionEditorModal() {
-    modalMode = "section_editor";
+    function openAssignSectionEditorModal() {
+        modalMode = "section_editor";
 
-    const editorSelect = document.getElementById('editorSelect');
-    const selected = Array.from(editorSelect.selectedOptions);
+        const editorSelect = document.getElementById('editorSelect');
+        const selected = Array.from(editorSelect.selectedOptions);
 
-    if (selected.length === 0) {
-        alert("Please select at least one Section Editor.");
-        return;
-    }
+        if (selected.length === 0) {
+            alert("Please select at least one Section Editor.");
+            return;
+        }
 
-    const names = selected
-        .map(opt => opt.text)
-        .join(', ');
+        const names = selected
+            .map(opt => opt.text)
+            .join(', ');
 
-    modalTitle.innerText = "Assign Section Editor & Send Email";
-    modalRecipient.value = names;
-    emailSubject.value = "Section Editor Assignment";
+        modalTitle.innerText = "Assign Section Editor & Send Email";
+        modalRecipient.value = names;
+        emailSubject.value = "Section Editor Assignment";
 
-    const template = `Dear ${names},
+        const template = `Dear ${names},
 
 You have been assigned as a Section Editor for the manuscript:
 
@@ -1001,10 +1014,10 @@ ${articleUrl}
 Best regards,
 ${editorName}`;
 
-    emailBody.value = template;
+        emailBody.value = template;
 
-    modal.classList.remove('hidden');
-}
+        modal.classList.remove('hidden');
+    }
 
     // 3. Fungsi Tutup Modal
     function closeModal() {

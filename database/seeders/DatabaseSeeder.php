@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             PaperAuthorSeeder::class,
-            PreparedemailSeeder::class,
+            PreparedEmailSeeder::class,
         ]);
     }
 }
