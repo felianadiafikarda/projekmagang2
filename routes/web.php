@@ -41,10 +41,15 @@ Route::get('/', function () {
     return redirect()->route('login')->withErrors(['role' => 'Akun belum memiliki role.']);
 });
 
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
 });
+
+Route::get('/registrasi', function () {
+        return view('registrasi');
+    });
 
 // Reviewer Invitation Routes (public - accessed via email link)
 Route::get('/review-invitation/{token}', [ReviewerController::class, 'showInvitation'])->name('reviewer.invitation');
