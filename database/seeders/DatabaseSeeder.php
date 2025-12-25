@@ -4,8 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use App\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,6 +16,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             UserSeeder::class,
+            PaperAuthorSeeder::class,
+            PreparedemailSeeder::class,
         ]);
     }
 }

@@ -40,9 +40,15 @@ class PreparedEmailController extends Controller
 
         PreparedEmail::create([
             'email_template' => $request->email_template,
-            'sender'         => $request->sender,     // array
-            'recipient'      => $request->recipient,  // array
+            'sender' => $request->sender
+                ? implode(',', $request->sender)
+                : null,
+
+            'recipient' => $request->recipient
+                ? implode(',', $request->recipient)
+                : null,
             'subject'        => $request->subject,
+            'body'           => $request->body,
         ]);
 
 
@@ -100,8 +106,8 @@ class PreparedEmailController extends Controller
         }
 
         return response()->json([
-            'subject' => $email->subject,
-            'body' => $email->body
+            'subject' => $email?->subject ?? '',
+            'body'    => $email?->body ?? '',
         ]);
     }
 }
