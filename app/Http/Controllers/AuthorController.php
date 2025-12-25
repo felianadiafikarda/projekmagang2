@@ -23,6 +23,19 @@ class AuthorController extends Controller
         return view('author.KirimArtikel', compact('user'));
     }
 
+    public function revision($id)
+    {
+        $paper = \App\Models\Paper::with('authors')->findOrFail($id);
+        
+        // Pastikan hanya author yang memiliki paper ini yang bisa akses
+        if ($paper->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+        
+        $user = auth()->user();
+        return view('author.RevisionArtikel', compact('paper', 'user'));
+    }
+
     public function store(Request $request)
     {
         $request->validate([
