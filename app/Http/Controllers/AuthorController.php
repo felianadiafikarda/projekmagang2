@@ -1,20 +1,42 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Paper;
+use App\Models\PaperRevision;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class AuthorController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $papers = \App\Models\Paper::with(['authors'])
-                ->where('user_id', auth()->id())
-                ->get();
+        $query = \App\Models\Paper::with('authors')
+            ->where('user_id', auth()->id());
 
-         return view('author.listpaper', compact('papers'));
+        // Filter berdasarkan status
+        if ($request->filled('filter_status') && $request->filter_status !== 'All Status') {
+            $statusMap = [
+                'Submitted' => 'submitted',
+                'In Review' => 'in_review',
+                'Accept with Review' => 'accept_with_review',
+                'Revised' => 'revised',
+                'Accepted' => 'accepted',
+                'Rejected' => 'rejected',
+            ];
+            $status = $statusMap[$request->filter_status] ?? null;
+            if ($status) {
+                $query->where('status', $status);
+            }
+        }
 
-        
+        // Search berdasarkan judul
+        if ($request->filled('search')) {
+            $query->where('judul', 'like', '%' . $request->search . '%');
+        }
+        // Urutkan terbaru
+        $papers = $query->orderByDesc('updated_at')->get();
+
+        return view('author.listpaper', compact('papers'));
     }
 
      public function paper()
@@ -46,8 +68,8 @@ class AuthorController extends Controller
             'keywords' => [
                 'required',
                 'string',
-                'regex:/^[^,\s]+(\s*,\s*[^,\s]+)+$/',
-            ],
+                'regex:/^[a-zA-Z0-9]+(?:\s+[a-zA-Z0-9]+)*(?:\s*,\s*[a-zA-Z0-9]+(?:\s+[a-zA-Z0-9]+)*)*$/',
+            ],            
         
             // FILE UPLOAD
             'file_artikel' => 'required|file|mimes:pdf,doc,docx|max:10000',
@@ -88,9 +110,6 @@ class AuthorController extends Controller
             'primary.required' => 'Please select the primary author.',
         ]);
         
-        
-        
-
         // SIMPAN FILE
         $filePath = $request->file('file_artikel')->store('papers', 'public');
 
@@ -101,7 +120,9 @@ class AuthorController extends Controller
             'judul' => $request->judul,
             'abstrak' => $request->abstrak,
             'keywords' => $request->keywords,
+            'paper_references' => $request->paper_references,
             'file_path' => $filePath,
+            'status' => 'submitted',
         ]);
 
         // SIMPAN AUTHORS
@@ -112,6 +133,7 @@ class AuthorController extends Controller
                 'email' => $author['email'],
                 'first_name' => $author['first_name'],
                 'last_name' => $author['last_name'],
+                'orcid' => $author['orcid'],
                 'organization' => $author['organization'],
                 'country' => $author['country'],
             ]);
@@ -119,5 +141,84 @@ class AuthorController extends Controller
 
         return redirect()->route('author.index')->with('success', 'Artikel berhasil dikirim!');
     }
+
+    public function storeRevision(Request $request, $id)
+{
+    $paper = Paper::with('authors')->findOrFail($id);
+
+    if ($paper->user_id !== auth()->id()) {
+        abort(403);
+    }
+
+    $request->validate([
+        'judul' => 'required|string|max:255',
+        'abstrak' => 'required|string',
+        'keywords' => 'required|string',
+        'file_artikel' => 'required|file|mimes:pdf,doc,docx|max:10000',
+        'authors' => 'required|array|min:1',
+        'authors.*.email' => 'required|email',
+        'authors.*.first_name' => 'required|string|max:255',
+        'authors.*.last_name' => 'required|string|max:255',
+        'authors.*.organization' => 'required|string|max:255',
+        'authors.*.country' => 'required',
+        'primary' => 'required|integer|min:0',
+    ], [
+        'judul.required' => 'The article title is required.',
+        'abstrak.required' => 'The abstract is required.',
+        'keywords.required' => 'Keywords are required.',
+        'file_artikel.required' => 'The article file is required.',
+        'file_artikel.mimes' => 'The file must be PDF, DOC, or DOCX.',
+        'file_artikel.max' => 'The file size must not exceed 10MB.',
+        'authors.required' => 'At least one author is required.',
+        'primary.required' => 'Please select the primary author.',
+    ]);
+    
+
+    DB::transaction(function () use ($request, $paper) {
+
+        // 1️⃣ Upload file revisi
+        $filePath = $request->file('file_artikel')->store('paper_revisions', 'public');
+
+        // 2️⃣ Simpan ke histori revisi
+        PaperRevision::create([
+            'paper_id' => $paper->id,
+            'judul' => $request->judul,
+            'abstrak' => $request->abstrak,
+            'keywords' => $request->keywords,
+            'paper_references' => $request->references,
+            'file_path' => $filePath,
+            'revision_notes' => $request->revision_notes,
+            'submitted_at' => now(),
+        ]);
+
+        // 3️⃣ Update paper utama
+        $paper->update([
+            'judul' => $request->judul,
+            'abstrak' => $request->abstrak,
+            'keywords' => $request->keywords,
+            'paper_references' => $request->references,
+            'file_path' => $filePath,
+            'status' => 'revised', // reset status
+        ]);
+
+        // 4️⃣ Update authors
+        $paper->authors()->delete();
+        foreach ($request->authors as $i => $author) {
+            \App\Models\PaperAuthor::create([
+                'paper_id' => $paper->id,
+                'is_primary' => ($request->primary == $i),
+                'email' => $author['email'],
+                'first_name' => $author['first_name'],
+                'last_name' => $author['last_name'],
+                'orcid' => $author['orcid'] ?? null,
+                'organization' => $author['organization'],
+                'country' => $author['country'],
+            ]);
+        }
+    });
+
+    return redirect()->route('author.index')->with('success', 'Revision submitted successfully');
+}
+
 
 }

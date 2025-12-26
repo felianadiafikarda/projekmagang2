@@ -9,10 +9,11 @@ use Illuminate\Mail\Mailable;
 class SectionEditorAssignmentMail extends Mailable
 {
     public $paper;
-    public $editor;      // section editor (penerima)
-    public $editorName;  // editor pengirim
+    public $editor;
+    public $editorName;
     public $subjectText;
     public $emailBody;
+    public $paperFile;
 
     public function __construct(
         Paper $paper,
@@ -26,11 +27,19 @@ class SectionEditorAssignmentMail extends Mailable
         $this->editorName  = $editorName;
         $this->subjectText = $subjectText;
         $this->emailBody   = $emailBody;
+
+        $this->paperFile = $paper->file_path
+            ? storage_path('app/public/' . $paper->file_path)
+            : null;
     }
 
     public function build()
     {
-        return $this->subject($this->subjectText)
+        $email = $this->from(
+            config('mail.from.address'),
+            'Assign Section Editor'
+            )
+            ->subject($this->subjectText)
             ->view('emails.section_editor_assignment')
             ->with([
                 'paper'      => $this->paper,
@@ -38,5 +47,13 @@ class SectionEditorAssignmentMail extends Mailable
                 'emailBody'  => $this->emailBody,
                 'editorName' => $this->editorName,
             ]);
+
+        if ($this->paperFile && file_exists($this->paperFile)) {
+            $email->attach($this->paperFile, [
+                'as' => $this->paper->judul . '.pdf',
+            ]);
+        }
+
+        return $email;
     }
 }

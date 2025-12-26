@@ -15,12 +15,12 @@ return new class extends Migration
             $table->string('judul');
             $table->text('abstrak')->nullable();
             $table->string('keywords');
+            $table->text('paper_references')->nullable();
             $table->enum('status', [
                 'submitted',
-                'assigned_to_section_editor',
-                'editing',
-                'reviewing',
-                'revision',
+                'in_review',
+                'accept_with_review',
+                'revised',
                 'accepted',
                 'rejected',
             ])->default('submitted');

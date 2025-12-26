@@ -104,7 +104,8 @@ Route::middleware('auth')->group(function () {
     
     Route::post('/editor/{paper}/unassign-section-editor', [EditorController::class, 'unassignSectionEditor'])->name('editor.unassignSectionEditor');
     Route::patch('/editor/paper/{id}/status', [EditorController::class, 'updateStatus'])->name('editor.updateStatus');
-    
+    Route::patch('/editor/paper/{id}/update-status-editor', [EditorController::class, 'updateStatusEditor'])->name('editor.updateStatusEditor');
+
     
 
     
@@ -134,6 +135,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/author', [AuthorController::class, 'index'])->name('author.index');
     Route::post('/author/sendArticle', [AuthorController::class, 'store'])->name('author.store');
+    Route::post('/author/{paper}/revision', [AuthorController::class, 'storeRevision'])->name('author.revision.store');
+
 
 
     // Section Editor Routes

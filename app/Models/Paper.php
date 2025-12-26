@@ -14,6 +14,7 @@ class Paper extends Model
         'file_path',
         'status',
         'editor_status',
+        'paper_references',
     ];
 
     public function authors()
@@ -23,53 +24,85 @@ class Paper extends Model
 
     public function reviewers()
     {
-        return $this->belongsToMany(User::class, 'paper_reviewer')->withPivot('deadline', 'status', 'recommendation')->withTimestamps();
+        return $this->belongsToMany(User::class, 'paper_reviewer')
+            ->withPivot([
+                'deadline',
+                'status',
+                'recommendation',
+                'Q1',
+                'Q2',
+                'Q3',
+                'comments_for_author',
+                'comments_for_editor',
+                'review_file',
+                'review_file_name',
+                'reviewed_at',
+                
+            ])
+            ->withTimestamps();
     }
+
 
     public function sectionEditors()
     {
         return $this->belongsToMany(User::class, 'paper_section_editor')->withTimestamps();
     }
 
-    public function getDisplayStatusAttribute()
+    public function getEditorDisplayStatusAttribute()
 {
-    // 1. Kalau editor sudah memutuskan
-    if ($this->editor_status) {
-        return $this->editor_status;
+    if ($this->editor_status === 'accepted') {
+        return 'Accepted';
     }
 
-    $reviewers = $this->reviewers;
-
-    if ($reviewers->isEmpty()) {
-        return 'Unassigned';
+    if ($this->editor_status === 'rejected') {
+        return 'Rejected';
     }
 
-    // Hitung status reviewer
-    $statuses = $reviewers->pluck('pivot.status');
-
-    // 2. Jika ADA reviewer yang accept / assigned
-    if ($statuses->contains(fn ($s) =>
-        in_array($s, ['assigned', 'accept_to_review'])
-    )) {
-        return 'In Review';
+    if ($this->editor_status === 'accept_with_review') {
+        if ($this->status === 'revised') {
+            return 'Revised';
+        }
+        return 'Accept with Review';
     }
 
-    // 3. Jika SEMUA reviewer decline
-    if ($statuses->every(fn ($s) => $s === 'decline_to_review')) {
-        return 'Decline to Review';
+    if ($this->reviewers->isEmpty()) {
+        return 'Unassign';
     }
 
-    // 4. Jika SEMUA reviewer completed
-    if ($statuses->every(fn ($s) => $s === 'completed')) {
-        return 'Completed Review';
-    }
-
-    return 'Pending';
+    return 'In Review';
 }
 
 
+public function getAuthorStatusAttribute()
+{
+    if ($this->editor_status === 'accepted') {
+        return 'Accepted';
+    }
 
+    if ($this->editor_status === 'rejected') {
+        return 'Rejected';
+    }
 
+    if ($this->editor_status === 'accept_with_review') {
+        if ($this->status === 'revised') {
+            return 'Revised';
+        }
+        return 'Accept with Review';
+    }
 
+    if ($this->reviewers->isNotEmpty()) {
+        return 'In Review';
+    }
 
+    return match ($this->status) {
+        'submitted' => 'Submitted',
+        'revised'   => 'Revised',
+        default     => ucfirst($this->status),
+    };
+}
+  
+    public function revisions()
+    {
+        return $this->hasMany(PaperRevision::class);
+    }
 }

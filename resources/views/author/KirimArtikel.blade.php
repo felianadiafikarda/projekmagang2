@@ -6,7 +6,6 @@
 @section('content')
 
 <section class="space-y-8">
-    <h2 class="text-2xl font-semibold mb-6">Send Article</h2>
 
     <form action="{{ route('author.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
         @csrf
@@ -54,11 +53,11 @@
                 <!-- REFERENCES -->
                 <div>
                     <label class="block mb-1">References</label>
-                    <textarea name="references" rows="6"
-                        placeholder="List your references here (APA, IEEE, or other citation format)&#10;Example:&#10;[1] Smith, J. (2023). Title of Paper. Journal Name, 10(2), 123-145.&#10;[2] Doe, J. et al. (2024). Another Paper Title. Conference Proceedings."
+                    <textarea name="paper_references" rows="6"
+                        placeholder="List your paper_references here (APA, IEEE, or other citation format)&#10;Example:&#10;[1] Smith, J. (2023). Title of Paper. Journal Name, 10(2), 123-145.&#10;[2] Doe, J. et al. (2024). Another Paper Title. Conference Proceedings."
                         class="w-full border rounded p-2 focus:ring-2 focus:ring-gray-400"></textarea>
                     <p class="text-xs text-gray-500 mt-1">Enter each reference on a new line</p>
-                    @error('references')
+                    @error('paper_references')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -142,10 +141,8 @@
                         </td>
 
                         <td class="p-2">
-                            <input type="text" name="authors[{{ $i }}][orcid]"
-                                value="{{ $author['orcid'] ?? '' }}"
-                                class="border rounded p-1 w-full @error(" authors.$i.orcid") border-red-500
-                                @enderror">
+                            <input type="text" name="authors[{{ $i }}][orcid]" value="{{ $author['orcid'] ?? '' }}"
+                                class="border rounded p-1 w-full @error(" authors.$i.orcid") border-red-500 @enderror">
                             @error("authors.$i.orcid")
                             <p class="text-red-500 text-sm">{{ $message }}</p>
                             @enderror
@@ -164,30 +161,49 @@
                         <td class="p-2">
                             <select name="authors[{{ $i }}][country]" required class="border rounded p-1 w-full @error("
                                 authors.$i.country") border-red-500 @enderror">
-                                <option value="">-- Pilih Negara --</option>
+                                <option value="">-- Select Country --</option>
 
                                 @php
                                 $negaraList = [
-                                    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria",
-                                    "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
-                                    "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia",
-                                    "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica",
-                                    "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt",
-                                    "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon",
-                                    "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
-                                    "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel",
-                                    "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan",
-                                    "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar",
-                                    "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia",
-                                    "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal",
-                                    "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan",
-                                    "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar",
-                                    "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia",
-                                    "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa",
-                                    "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan",
-                                    "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan",
-                                    "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City",
-                                    "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+                                "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
+                                "Argentina", "Armenia", "Australia", "Austria",
+                                "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
+                                "Belize", "Benin", "Bhutan",
+                                "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria",
+                                "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia",
+                                "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia",
+                                "Comoros", "Congo", "Costa Rica",
+                                "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica",
+                                "Dominican Republic", "Ecuador", "Egypt",
+                                "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia",
+                                "Fiji", "Finland", "France", "Gabon",
+                                "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea",
+                                "Guinea-Bissau", "Guyana",
+                                "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq",
+                                "Ireland", "Israel",
+                                "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo",
+                                "Kuwait", "Kyrgyzstan",
+                                "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein",
+                                "Lithuania", "Luxembourg", "Madagascar",
+                                "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania",
+                                "Mauritius", "Mexico", "Micronesia",
+                                "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar",
+                                "Namibia", "Nauru", "Nepal",
+                                "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North
+                                Macedonia", "Norway", "Oman", "Pakistan",
+                                "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines",
+                                "Poland", "Portugal", "Qatar",
+                                "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent
+                                and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia",
+                                "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia",
+                                "Solomon Islands", "Somalia", "South Africa",
+                                "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden",
+                                "Switzerland", "Syria", "Taiwan",
+                                "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and
+                                Tobago", "Tunisia", "Turkey", "Turkmenistan",
+                                "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United
+                                States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City",
+                                "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
                                 ];
                                 @endphp
 
@@ -234,13 +250,13 @@
 
 
         <!-- BUTTON -->
-        <div class="flex space-x-4">
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        <div class="flex justify-end space-x-4">
+            <a href="{{ route('author.index') }}" class="inline-flex items-center px-4 py-2 rounded
+        bg-gray-300 text-gray-800 hover:bg-gray-400 transition">
+                Back
+            </a>
+            <button type="submit" class="px-5 py-2 rounded bg-slate-700 text-white hover:bg-slate-800">
                 Submit Article
-            </button>
-
-            <button type="reset" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">
-                Reset
             </button>
         </div>
 

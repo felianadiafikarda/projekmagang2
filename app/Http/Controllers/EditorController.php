@@ -12,6 +12,7 @@ use App\Mail\ReviewerReminderMail;
 use Illuminate\Support\Facades\DB;
 use App\Mail\ReviewerAssignmentMail;
 use App\Mail\SectionEditorAssignmentMail;
+use App\Mail\PaperDecisionMail;
 use Illuminate\Support\Facades\Mail;
 
 class EditorController extends Controller
@@ -19,12 +20,50 @@ class EditorController extends Controller
     public function index(Request $request)
     {
         $page = $request->get('page', 'list');
+        $filterStatus = $request->get('filter_status', '');
+        $search = $request->get('search', '');
+        $papers = Paper::with(['authors','reviewers','revisions'])
+        ->when($search, function($query) use ($search) {
+            $query->where('judul', 'like', "%{$search}%")
+                ->orWhereHas('authors', function($q) use ($search) {
+                    $q->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'like', "%{$search}%");
+                });
+        })
+        ->orderBy('updated_at', 'desc')
+        ->get();
 
+        
+        // Filter berdasarkan dropdown status
+        if ($filterStatus) {
+            $papers = $papers->filter(fn($p) => $p->display_status === $filterStatus);
+        }
+        
+        
+
+
+        $editors = User::whereHas('roles', function($q) {
+            $q->where('name', 'editor');
+        })->get();
+        
         if ($page === 'list') {
 
-            $papers = Paper::with(['authors'])
+                $paper = Paper::with(['authors','reviewers'])
                 ->orderBy('created_at', 'desc')
                 ->get();
+            
+                $editors = User::whereHas('roles', function($q) {
+                    $q->where('name', 'editor');
+                })->get();
+            
+                return view('editor', [
+                    'page'     => $page,
+                    'papers'   => $papers,
+                    'editors'  => $editors,
+                    'paper'    => null,
+                    'articleUrl' => null,
+                ]);
+            
+            
 
             $editors = User::whereHas('roles', function($q) {
                 $q->where('name', 'editor');
@@ -32,7 +71,7 @@ class EditorController extends Controller
 
             return view('editor', [
                 'page'     => $page,
-                'papers'   => $papers,
+                'papers'   => $paper,
                 'editors'  => $editors,
                 'paper'    => null,
                 'articleUrl' => null,
@@ -42,7 +81,7 @@ class EditorController extends Controller
         if ($page === 'assign') {
 
             $id = $request->get('id');
-            $paper = Paper::with(['authors'])->findOrFail($id);
+            $paper = Paper::with(['authors', 'reviewers', 'sectionEditors'])->findOrFail($id);
 
             $articleUrl = $paper->file_path ? asset('storage/' . $paper->file_path) : '#';
 
@@ -85,7 +124,22 @@ class EditorController extends Controller
                 return $se;
             });
 
-
+            $reviews = DB::table('paper_reviewer')
+            ->join('users', 'users.id', '=', 'paper_reviewer.user_id')
+            ->where('paper_reviewer.paper_id', $paper->id)
+            ->where('paper_reviewer.status', 'completed')
+            ->select(
+                'users.first_name',
+                'users.last_name',
+                'paper_reviewer.recommendation',
+                'paper_reviewer.comments_for_author',
+                'paper_reviewer.comments_for_editor',
+                'paper_reviewer.review_file',
+                'paper_reviewer.reviewed_at'
+            )
+            ->orderBy('paper_reviewer.reviewed_at', 'desc')
+            ->get();
+        
             return view('editor', [
                 'page'                  => 'assign',
                 'paper'                 => $paper,
@@ -96,6 +150,7 @@ class EditorController extends Controller
                 'assignedSectionEditors'=> $paper->sectionEditors,
                 'editors'               => $all_section_editors,
                 'modalType'             => 'assign',
+                'reviews'               => $reviews,
             ]);
         }
 
@@ -261,7 +316,8 @@ class EditorController extends Controller
                 $reviewer,
                 $editorName,
                 $subject,
-                $emailBody
+                $emailBody,
+                $request->input('email_body') ?? '', 
             )
         );
 
@@ -284,87 +340,189 @@ class EditorController extends Controller
 
 
     public function assignSectionEditorWithEmail(Request $request, $paperId)
-{
-    $request->validate([
-        'section_editors' => 'required|array',
-        'send_email'      => 'required|boolean',
-    ]);
-
-    $paper     = Paper::findOrFail($paperId);
-    $editorIds = $request->section_editors;
-    $sendEmail = $request->send_email;
-
-    // Sync section editor
-    $paper->sectionEditors()->sync($editorIds);
-    
-
-    // Assign role
-    $role = Role::where('name', 'section_editor')->first();
-    if ($role) {
-        foreach ($editorIds as $id) {
-            $user = User::find($id);
-            if ($user && !$user->roles->contains($role->id)) {
-                $user->roles()->attach($role->id);
-            }
-        }
-    }
-
-    // Notification
-    foreach ($editorIds as $id) {
-        Notification::create([
-            'user_id' => $id,
-            'title'   => 'Section Editor Assignment',
-            'message' => 'You are assigned as section editor for "' . $paper->judul . '"',
-            'type'    => 'assign_section_editor',
-        ]);
-    }
-
-    // ================= EMAIL =================
-    if ($sendEmail) {
-        $editors     = User::whereIn('id', $editorIds)->get();
-        $editorName  = auth()->user()->first_name . ' ' . auth()->user()->last_name;
-
-        $subject = trim($request->subject) !== ''
-            ? $request->subject
-            : 'Assignment as Section Editor';
-
-        $emailBody = trim($request->email_body);
-
-        foreach ($editors as $editor) {
-            Mail::to($editor->email)->send(
-                new SectionEditorAssignmentMail(
-                    $paper,
-                    $editor,
-                    $editorName,
-                    $subject,
-                    $emailBody
-                )
-            );
-        }
-    }
-
-    return back()->with('success', 'Section editor assigned & email sent!');
-}
-
-    /**
-     * Update paper status (Accept with Review, Accepted, Rejected)
-     */
-    public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:Accept with Review,Accepted,Rejected',
+            'section_editors' => 'required|array',
+            'send_email'      => 'required|boolean',
         ]);
 
-        $paper = Paper::findOrFail($id);
-        
-        // Update status paper (menggunakan status karena view menggunakan $p->status)
-        $paper->status = $request->status;
-        $paper->save();
+        $paper     = Paper::findOrFail($paperId);
+        $editorIds = $request->section_editors;
+        $sendEmail = $request->send_email;
 
-        return redirect()->route('editor.index', ['page' => 'assign', 'id' => $id])
-            ->with('success', 'Paper status updated successfully.');
+        // Sync section editor
+        $paper->sectionEditors()->sync($editorIds);
+        
+
+        // Assign role
+        $role = Role::where('name', 'section_editor')->first();
+        if ($role) {
+            foreach ($editorIds as $id) {
+                $user = User::find($id);
+                if ($user && !$user->roles->contains($role->id)) {
+                    $user->roles()->attach($role->id);
+                }
+            }
+        }
+
+        // Notification
+        foreach ($editorIds as $id) {
+            Notification::create([
+                'user_id' => $id,
+                'title'   => 'Section Editor Assignment',
+                'message' => 'You are assigned as section editor for "' . $paper->judul . '"',
+                'type'    => 'assign_section_editor',
+            ]);
+        }
+
+        // ================= EMAIL =================
+        if ($sendEmail) {
+            $editors     = User::whereIn('id', $editorIds)->get();
+            $editorName  = auth()->user()->first_name . ' ' . auth()->user()->last_name;
+
+            $subject = trim($request->subject) !== ''
+                ? $request->subject
+                : 'Assignment as Section Editor';
+
+            $emailBody = trim($request->email_body);
+
+            foreach ($editors as $editor) {
+                Mail::to($editor->email)->send(
+                    new SectionEditorAssignmentMail(
+                        $paper,
+                        $editor,
+                        $editorName,
+                        $subject,
+                        $emailBody,
+                        
+                    )
+                );
+            }
+        }
+
+        return back()->with('success', 'Section editor assigned & email sent!');
+    }
+
+    protected function isPaperRevised(Paper $paper)
+    {
+        // Cek apakah ada histori revisi di tabel paper_revisions
+        return $paper->revisions()->exists();
     }
     
+    public function updateStatus(Request $request, $id)
+    {
+            $paper = Paper::with(['reviewers', 'authors'])->findOrFail($id);
+
+            // =========================
+            // Tentukan status default
+            // =========================
+            $newEditorStatus = $paper->editor_status;
+            $newAuthorStatus = $paper->status;
+
+
+            // =========================
+            // Editor memberikan keputusan
+            // =========================
+            if ($request->has('status')) {
+                switch ($request->input('status')) {
+                    case 'accepted':
+                        $newEditorStatus = 'accepted';
+                        $newAuthorStatus = 'accepted';
+                        break;
+            
+                    case 'accept_with_review':
+                        $newEditorStatus = 'accept_with_review';
+                        $newAuthorStatus = 'accept_with_review';
+                        break;
+            
+                    case 'rejected':
+                        $newEditorStatus = 'rejected';
+                        $newAuthorStatus = 'rejected';
+                        break;
+                }
+            }
+            
+            $paper->update([
+                'editor_status' => $newEditorStatus,
+                'status'        => $newAuthorStatus,
+            ]);
+            
+            
+            $paper->save();
+
+            \Log::info('Paper updated', [
+                'id' => $paper->id,
+                'editor_status' => $paper->editor_status,
+                'status' => $paper->status
+            ]);
+            
+
+            // =========================
+            // Kirim email ke author jika dipilih
+            // =========================
+            if ($request->input('send_email_decision') == 1 &&in_array($newEditorStatus, ['accepted','accept_with_review','rejected'])) {
+            
+                $reviewFiles = [];
+                foreach ($paper->reviewers as $reviewer) {
+                    if ($reviewer->pivot->review_file) {
+                        $reviewFiles[] = [
+                            'path' => storage_path('app/public/' . $reviewer->pivot->review_file), // harus string
+                            'name' => $reviewer->pivot->review_file_name ?? basename($reviewer->pivot->review_file),
+                        ];
+                    }
+                }
+
+                // tentukan field file berdasarkan status
+                if ($newEditorStatus === 'accept_with_review') {
+                    $fileField = 'additional_files';
+                    $selectedField = 'selected_new_files';
+                } elseif ($newEditorStatus === 'accepted') {
+                    $fileField = 'additional_files_accept';
+                    $selectedField = 'selected_new_files_accept';
+                } elseif ($newEditorStatus === 'rejected') {
+                    $fileField = 'additional_files_decline';
+                    $selectedField = 'selected_new_files_decline';
+                } else {
+                    $fileField = null;
+                    $selectedField = null;
+                }
+
+                $selectedIndexes = $selectedField ? $request->input($selectedField, []) : [];
+
+                if ($fileField && $request->hasFile($fileField) && count($selectedIndexes)) {
+                    foreach ($selectedIndexes as $index) {
+                        if (isset($request->file($fileField)[$index])) {
+                            $file = $request->file($fileField)[$index];
+
+                            if ($file->isValid()) {
+                                $path = $file->store('editor-uploads', 'public');
+
+                                $reviewFiles[] = [
+                                    'path' => storage_path('app/public/' . $path), // string
+                                    'name' => $file->getClientOriginalName(),  
+                                ];
+                                
+                            }
+                        }
+                    }
+                }
+
+                foreach ($paper->authors as $author) {
+                    Mail::to($author->email)->send(new PaperDecisionMail(
+                        $paper,
+                        $author,
+                        $newEditorStatus,
+                        auth()->user()->name,
+                        $reviewFiles,                  
+                        $request->input('email_body') ?? '' 
+                    ));
+                }   
+            }
+            return redirect()->route('editor.index')
+            ->with('success', 'Paper status updated successfully!');
+    }
+
+
     public function unassignSectionEditor(Request $request, $paperId)
     {
         $paper = Paper::findOrFail($paperId);
