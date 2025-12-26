@@ -19,7 +19,7 @@ class ReviewerAssignmentMail extends Mailable
     public $editorName;
     public $articleTitle;
     public $invitationUrl;
-
+    public $paperFile;
     public $subjectText;   
     public $emailBody;     
 
@@ -49,28 +49,38 @@ class ReviewerAssignmentMail extends Mailable
 
         $this->emailBody    = $emailBody 
                                 ?? "You are invited to review the manuscript assigned to you.";
+        
+        $this->paperFile = $paper->file_path
+            ? storage_path('app/public/' . $paper->file_path)
+            : null;
     }
 
     public function build()
     {
         $names = $this->reviewer->first_name . ' ' . $this->reviewer->last_name;
 
-        $email = $this->subject($this->subjectText)
+        $email = $this->from(
+            config('mail.from.address'),
+            'Assign Reviewer'
+            )
+            ->subject($this->subjectText)
             ->view('emails.reviewer_assignment')
             ->with([
-                'names'        => $names,
-                'paper'        => $this->paper,
-                'deadline'     => $this->deadline,
-                'articleUrl'   => $this->articleUrl,
-                'editorName'   => $this->editorName,
-                'articleTitle' => $this->articleTitle,
-                'emailBody'    => $this->emailBody,
+                'names'         => $names,
+                'paper'         => $this->paper,
+                'deadline'      => $this->deadline,
+                'articleUrl'    => $this->articleUrl,
+                'editorName'    => $this->editorName,
+                'articleTitle'  => $this->articleTitle,
+                'emailBody'     => $this->emailBody,
                 'invitationUrl' => $this->invitationUrl,
             ]);
 
-        if ($this->paper->file_path && file_exists(storage_path('app/public/' . $this->paper->file_path))) {
-            $email->attach(storage_path('app/public/' . $this->paper->file_path));
-        }
+            if ($this->paperFile && file_exists($this->paperFile)) {
+                $email->attach($this->paperFile, [
+                    'as' => $this->paper->judul . '.pdf',
+                ]);
+            }
 
         return $email;
     }

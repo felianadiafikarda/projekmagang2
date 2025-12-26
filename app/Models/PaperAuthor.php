@@ -13,6 +13,7 @@ class PaperAuthor extends Model
         'email',
         'first_name',
         'last_name',
+        'orcid',
         'organization',
         'country',
     ];

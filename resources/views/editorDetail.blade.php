@@ -110,8 +110,7 @@
 
     {{-- BUTTON BACK --}}
     <div class="flex justify-end mt-6">
-        <a href="{{ route('editor.index') }}"
-            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+        <a href="{{ route('editor.index') }}" class="px-5 py-2 rounded-xl bg-slate-700 text-white hover:bg-slate-800">
             Back
         </a>
     </div>
