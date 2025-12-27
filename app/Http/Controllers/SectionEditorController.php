@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use App\Models\Paper;
-use App\Models\User;
 use App\Models\Role;
-use App\Mail\ReviewerAssignmentMail;
+use App\Models\User;
+use App\Models\Paper;
+use Illuminate\Support\Str;
+use App\Models\Notification;
+use Illuminate\Http\Request;
 use App\Mail\ReviewerReminderMail;
+use Illuminate\Support\Facades\DB;
+use App\Mail\ReviewerAssignmentMail;
+use Illuminate\Support\Facades\Mail;
 
 class SectionEditorController extends Controller
 {
@@ -95,15 +96,17 @@ class SectionEditorController extends Controller
         $reviewerIds = $request->reviewers;
         $deadline    = $request->deadline;
         $sendEmail   = $request->send_email;
+        $assignedBy = auth()->id();
 
-        // Generate tokens dan assign reviewers
+        // Generate tokens for each reviewer and add to pivot
         $pivotData = [];
         foreach ($reviewerIds as $id) {
             $token = Str::uuid()->toString();
             $pivotData[$id] = [
-                'deadline' => $deadline, 
+                'deadline' => $deadline,
                 'status' => 'assigned',
-                'invitation_token' => $token
+                'invitation_token' => $token,
+                'assigned_by' => $assignedBy
             ];
         }
 
@@ -120,6 +123,23 @@ class SectionEditorController extends Controller
             }
         }
 
+        foreach ($reviewerIds as $revId) {
+            Notification::create([
+                'user_id'  => $revId,
+                'title'    => 'Invitation to Review',
+                'message'  => 'You are invited to review the manuscript: "' . $paper->judul . '"',
+                'type'     => 'invite_review',   // khusus invitation
+                'status'   => 'pending',         // reviewer belum accept/decline
+                'data'     => [
+                    'paper_id'      => $paper->id,
+                    'paper_title'   => $paper->judul,
+                    'deadline'      => $deadline,
+                    'invited_by'    => auth()->id(),
+                    'token'         => $pivotData[$revId]['invitation_token']
+                ],
+            ]);
+        }
+
         if ($sendEmail) {
             $reviewers = User::whereIn('id', $reviewerIds)->get();
             $editorName = auth()->user()->first_name . ' ' . auth()->user()->last_name;
@@ -133,6 +153,7 @@ class SectionEditorController extends Controller
                     : 'Invitation to Review Manuscript';
 
                 $emailBody = trim($request->email_body);
+                $emailBodyHtml = nl2br(e($emailBody));
 
                 if ($emailBody === '') {
                     $emailBody = '';
@@ -145,7 +166,7 @@ class SectionEditorController extends Controller
                         $deadline,
                         $editorName,
                         $subject,
-                        $emailBody,
+                        $emailBodyHtml,
                         $invitationUrl
                     )
                 );

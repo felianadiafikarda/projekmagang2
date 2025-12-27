@@ -23,7 +23,15 @@ class PreparedEmailSeeder extends Seeder
                 'sender' => 'editor',
                 'recipient' => 'reviewer',
                 'subject' => 'Invitation to Review Manuscript',
-                'body' => "Dear {{reviewerName}},\n\nI believe that you would serve as an excellent reviewer of the manuscript, \"{{articleTitle}}\".\n\nPlease log into the journal web site to indicate whether you will undertake the review or not.\n\nSubmission URL:\n{{articleUrl}}\n\nReview Deadline: {{deadline}}\n\nThank you for considering this request.\n{{editorName}}",
+                'body' => "Dear {{reviewerName}},\n\nI believe that you would serve as an excellent reviewer of the manuscript, \"{{articleTitle}}\".\n\nPlease log into the journal web site to indicate whether you will undertake the review or not.\n\nSubmission URL:\n{{articleUrl}}\n\nReview Deadline: {{deadline}}\n\nThank you for considering this request.\n{{assignedBy}}",
+            ],
+
+            [
+                'email_template' => 'assign_section_editor',
+                'sender' => 'editor',
+                'recipient' => 'section_editor',
+                'subject' => 'Assignment as Section Editor',
+                'body' => "Dear {{sectionEditorName}},\n\nYou have been assigned as the Section Editor for the manuscript \"{{articleTitle}}\".\n\nPlease log into the journal system to manage this submission.\nThe manuscript is attached to this email.\n\nBest regards,\n{{assignedBy}}",
             ],
 
             [
@@ -31,7 +39,7 @@ class PreparedEmailSeeder extends Seeder
                 'sender' => 'editor',
                 'recipient' => 'reviewer',
                 'subject' => 'Submission Review Reminder',
-                'body' => "Dear {{reviewerName}},\n\nJust a gentle reminder regarding the manuscript \"{{articleTitle}}\" which is currently assigned to you for review.\n\nWe noticed that the deadline is approaching ({{deadline}}).\nWe would appreciate it if you could submit your review soon.\n\nBest regards,\n{{editorName}}",
+                'body' => "Dear {{reviewerName}},\n\nJust a gentle reminder regarding the manuscript \"{{articleTitle}}\" which is currently assigned to you for review.\n\nWe noticed that the deadline is approaching ({{deadline}}).\nWe would appreciate it if you could submit your review soon.\n\nBest regards,\n{{assignedBy}}",
             ],
 
             [
@@ -39,7 +47,7 @@ class PreparedEmailSeeder extends Seeder
                 'sender' => 'editor',
                 'recipient' => 'reviewer',
                 'subject' => 'Request for Review Cancelled',
-                'body' => "Dear {{reviewerName}},\n\nThe review request for \"{{articleTitle}}\" has been cancelled.\n\nThank you for your willingness to assist.\n\nBest regards,\n{{editorName}}",
+                'body' => "Dear {{reviewerName}},\n\nThe review request for \"{{articleTitle}}\" has been cancelled.\n\nThank you for your willingness to assist.\n\nBest regards,\n{{assignedBy}}",
             ],
 
             [
@@ -47,7 +55,7 @@ class PreparedEmailSeeder extends Seeder
                 'sender' => 'reviewer',
                 'recipient' => 'editor',
                 'subject' => 'Able to Review Manuscript',
-                'body' => "Dear {{editorName}},\n\nI confirm that I am able to review the manuscript \"{{articleTitle}}\".\n\nBest regards,\n{{reviewerName}}",
+                'body' => "Dear {{assignedBy}},\n\nI confirm that I am able to review the manuscript \"{{articleTitle}}\".\n\nBest regards,\n{{reviewerName}}",
             ],
 
             [
@@ -55,7 +63,7 @@ class PreparedEmailSeeder extends Seeder
                 'sender' => 'reviewer',
                 'recipient' => 'editor',
                 'subject' => 'Unable to Review Manuscript',
-                'body' => "Dear {{editorName}},\n\nUnfortunately, I am unable to review the manuscript \"{{articleTitle}}\" at this time.\n\nBest regards,\n{{reviewerName}}",
+                'body' => "Dear {{assignedBy}},\n\nUnfortunately, I am unable to review the manuscript \"{{articleTitle}}\" at this time.\n\nBest regards,\n{{reviewerName}}",
             ],
 
             [
@@ -63,7 +71,7 @@ class PreparedEmailSeeder extends Seeder
                 'sender' => 'reviewer',
                 'recipient' => 'editor',
                 'subject' => 'Review Completed',
-                'body' => "Dear {{editorName}},\n\nI have completed the review for \"{{articleTitle}}\".\n\nThe review has been submitted via the system.\n\nBest regards,\n{{reviewerName}}",
+                'body' => "Dear {{assignedBy}},\n\nI have completed the review for \"{{articleTitle}}\".\n\nThe review has been submitted via the system.\n\nBest regards,\n{{reviewerName}}",
             ],
 
             [
@@ -71,7 +79,7 @@ class PreparedEmailSeeder extends Seeder
                 'sender' => 'editor',
                 'recipient' => 'author',
                 'subject' => 'Decision on Your Manuscript Submission',
-                'body' => "Dear {{authorName}},\n\nWe are pleased to inform you that your manuscript \"{{articleTitle}}\" has been accepted.\n\nBest regards,\n{{editorName}}",
+                'body' => "Dear {{authorName}},\n\nWe are pleased to inform you that your manuscript \"{{articleTitle}}\" has been accepted.\n\nBest regards,\n{{assignedBy}}",
             ],
 
             [
@@ -79,7 +87,7 @@ class PreparedEmailSeeder extends Seeder
                 'sender' => 'editor',
                 'recipient' => 'author',
                 'subject' => 'Decision on Your Manuscript Submission',
-                'body' => "Dear {{authorName}},\n\nAfter careful review, we regret to inform you that your manuscript \"{{articleTitle}}\" has not been accepted.\n\nBest regards,\n{{editorName}}",
+                'body' => "Dear {{authorName}},\n\nAfter careful review, we regret to inform you that your manuscript \"{{articleTitle}}\" has not been accepted.\n\nBest regards,\n{{assignedBy}}",
             ],
         ];
 
