@@ -1,5 +1,3 @@
-<p>Dear {{ $editor->first_name }} {{ $editor->last_name }},</p>
-
 @if(!empty($emailBody))
 {!! $emailBody !!}
 @else
@@ -9,6 +7,3 @@
 
 <p>Please handle the editorial process for this manuscript via the journal system.</p>
 @endif
-
-<p>Best regards,<br>
-    {{ $editorName }}</p>

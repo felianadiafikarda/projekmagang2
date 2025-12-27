@@ -1459,7 +1459,7 @@ function openAssignModal() {
             body = body.replace(/@{{reviewerName}}/g, names);
             body = body.replace(/@{{articleTitle}}/g, articleTitle);
             body = body.replace(/@{{articleUrl}}/g, articleUrl);
-            body = body.replace(/@{{editorName}}/g, editorName);
+            body = body.replace(/@{{assignedBy}}/g, editorName);
             body = body.replace(/@{{deadline}}/g, deadline);
             emailBody.value = body;
             modal.classList.remove('hidden');
@@ -1495,7 +1495,7 @@ function openReminderModal(reviewerId, reviewerName, deadline) {
             body = body.replace(/@{{reviewerName}}/g, reviewerName);
             body = body.replace(/@{{articleTitle}}/g, articleTitle);
             body = body.replace(/@{{deadline}}/g, deadline);
-            body = body.replace(/@{{editorName}}/g, editorName);
+            body = body.replace(/@{{assignedBy}}/g, editorName);
 
             emailBody.value = body;
 
@@ -1524,25 +1524,25 @@ function openAssignSectionEditorModal() {
 
     modalTitle.innerText = "Assign Section Editor & Send Email";
     modalRecipient.value = names;
-    emailSubject.value = "Section Editor Assignment";
+    fetch('/prepared-email/assign_section_editor')
+        .then(res => res.json())
+        .then(data => {
 
-    const template = `Dear ${names},
+            emailSubject.value = data.subject;
 
-You have been assigned as a Section Editor for the manuscript:
+            let body = data.body;
 
-"${articleTitle}"
+            body = body.replace(/@{{sectionEditorName}}/g, names);
+            body = body.replace(/@{{articleTitle}}/g, articleTitle);
+            body = body.replace(/@{{assignedBy}}/g, editorName);
 
-Please log into the journal system to manage this submission.
-
-The manuscript is attached to this email.
-
-
-Best regards,
-${editorName}`;
-
-    emailBody.value = template;
-
-    modal.classList.remove('hidden');
+            emailBody.value = body;
+            modal.classList.remove('hidden');
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Failed to load Section Editor email template.');
+        });
 }
 
 // 3. Fungsi Tutup Modal

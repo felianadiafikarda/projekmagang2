@@ -183,6 +183,7 @@ class EditorController extends Controller
         $reviewerIds = $request->reviewers;
         $deadline    = $request->deadline;
         $sendEmail   = $request->send_email;
+        $assignedBy = auth()->id();
 
         // Generate tokens for each reviewer and add to pivot
         $pivotData = [];
@@ -191,7 +192,8 @@ class EditorController extends Controller
             $pivotData[$id] = [
                 'deadline' => $deadline,
                 'status' => 'assigned',
-                'invitation_token' => $token
+                'invitation_token' => $token,
+                'assigned_by' => $assignedBy
             ];
         }
 
@@ -353,7 +355,6 @@ class EditorController extends Controller
         // Sync section editor
         $paper->sectionEditors()->sync($editorIds);
         
-
         // Assign role
         $role = Role::where('name', 'section_editor')->first();
         if ($role) {
@@ -385,6 +386,7 @@ class EditorController extends Controller
                 : 'Assignment as Section Editor';
 
             $emailBody = trim($request->email_body);
+            $emailBodyHtml = nl2br(e($emailBody));
 
             foreach ($editors as $editor) {
                 Mail::to($editor->email)->send(
@@ -393,7 +395,7 @@ class EditorController extends Controller
                         $editor,
                         $editorName,
                         $subject,
-                        $emailBody,
+                        $emailBodyHtml,
                         
                     )
                 );

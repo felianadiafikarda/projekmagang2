@@ -2,53 +2,56 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\Paper;
 use Illuminate\Http\Request;
+use App\Models\PreparedEmail;
+use App\Mail\ReviewerResponseMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Paper;
-use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 
 class ReviewerController extends Controller
 {
     public function index()
     {
         $reviewer = Auth::user();
-        
+
         // Ambil semua papers yang di-assign ke reviewer ini dengan status dari pivot table
-        $papers = Paper::whereHas('reviewers', function($query) use ($reviewer) {
+        $papers = Paper::whereHas('reviewers', function ($query) use ($reviewer) {
             $query->where('user_id', $reviewer->id);
         })
-        ->with(['authors', 'reviewers' => function($query) use ($reviewer) {
-            $query->where('user_id', $reviewer->id);
-        }])
-        ->get()
-        ->map(function($paper) use ($reviewer) {
-            // Ambil pivot data untuk reviewer ini
-            $pivot = DB::table('paper_reviewer')
-                ->where('paper_id', $paper->id)
-                ->where('user_id', $reviewer->id)
-                ->first();
-            
-            // Normalisasi status ke lowercase dan mapping ke format yang diharapkan
-            $status = strtolower($pivot->status ?? 'assigned');
-            
-            // Mapping status yang mungkin berbeda format
-            $statusMap = [
-                'assigned' => 'assigned',
-                'accepted' => 'accept_to_review',
-                'accept_to_review' => 'accept_to_review',
-                'completed' => 'completed',
-                'declined' => 'decline_to_review',
-                'decline_to_review' => 'decline_to_review',
-            ];
-            
-            // Tambahkan review_status dan review_deadline dari pivot
-            $paper->review_status = $statusMap[$status] ?? 'assigned';
-            $paper->review_deadline = $pivot->deadline ?? null;
-            
-            return $paper;
-        });
-        
+            ->with(['authors', 'reviewers' => function ($query) use ($reviewer) {
+                $query->where('user_id', $reviewer->id);
+            }])
+            ->get()
+            ->map(function ($paper) use ($reviewer) {
+                // Ambil pivot data untuk reviewer ini
+                $pivot = DB::table('paper_reviewer')
+                    ->where('paper_id', $paper->id)
+                    ->where('user_id', $reviewer->id)
+                    ->first();
+
+                // Normalisasi status ke lowercase dan mapping ke format yang diharapkan
+                $status = strtolower($pivot->status ?? 'assigned');
+
+                // Mapping status yang mungkin berbeda format
+                $statusMap = [
+                    'assigned' => 'assigned',
+                    'accepted' => 'accept_to_review',
+                    'accept_to_review' => 'accept_to_review',
+                    'completed' => 'completed',
+                    'declined' => 'decline_to_review',
+                    'decline_to_review' => 'decline_to_review',
+                ];
+
+                // Tambahkan review_status dan review_deadline dari pivot
+                $paper->review_status = $statusMap[$status] ?? 'assigned';
+                $paper->review_deadline = $pivot->deadline ?? null;
+
+                return $paper;
+            });
+
         // Hitung statistik berdasarkan status
         $stats = [
             'pending' => $papers->where('review_status', 'assigned')->count(),
@@ -57,7 +60,7 @@ class ReviewerController extends Controller
             'declined' => $papers->where('review_status', 'decline_to_review')->count(),
             'total' => $papers->count(),
         ];
-        
+
         return view('reviewer', [
             'papers' => $papers,
             'stats' => $stats,
@@ -138,12 +141,29 @@ class ReviewerController extends Controller
     public function acceptReview(Paper $paper)
     {
         $reviewer = Auth::user();
-        
+
         // Update status to accept_to_review
         DB::table('paper_reviewer')
             ->where('paper_id', $paper->id)
             ->where('user_id', $reviewer->id)
             ->update(['status' => 'accept_to_review']);
+
+        $pivot = DB::table('paper_reviewer')
+            ->where('paper_id', $paper->id)
+            ->where('user_id', $reviewer->id)
+            ->first();
+
+        $assigned_by = User::find($pivot->assigned_by); // sesuaikan jika relasi berbeda
+
+        $email = $this->renderEmailTemplate('review_acceptance', [
+            'assignedBy'   => trim($assigned_by->first_name . ' ' . $assigned_by->last_name),
+            'reviewerName' => trim($reviewer->first_name . ' ' . $reviewer->last_name),
+            'articleTitle' => $paper->judul,
+        ]);
+
+        Mail::to($assigned_by->email)->send(
+            new ReviewerResponseMail($email['subject'], $email['body'])
+        );
 
         return redirect()->route('reviewer.index')->with('success', 'Review accepted successfully.');
     }
@@ -154,12 +174,29 @@ class ReviewerController extends Controller
     public function declineReview(Paper $paper)
     {
         $reviewer = Auth::user();
-        
+
         // Update status to decline_to_review
         DB::table('paper_reviewer')
             ->where('paper_id', $paper->id)
             ->where('user_id', $reviewer->id)
             ->update(['status' => 'decline_to_review']);
+
+        $pivot = DB::table('paper_reviewer')
+            ->where('paper_id', $paper->id)
+            ->where('user_id', $reviewer->id)
+            ->first();
+
+        $assigned_by = User::find($pivot->assigned_by); // sesuaikan jika relasi berbeda
+
+        $email = $this->renderEmailTemplate('review_decline', [
+            'assignedBy'   => trim($assigned_by->first_name . ' ' . $assigned_by->last_name),
+            'reviewerName' => trim($reviewer->first_name . ' ' . $reviewer->last_name),
+            'articleTitle' => $paper->judul,
+        ]);
+
+        Mail::to($assigned_by->email)->send(
+            new ReviewerResponseMail($email['subject'], $email['body'])
+        );
 
         return redirect()->route('reviewer.index')->with('info', 'Review declined.');
     }
@@ -170,7 +207,7 @@ class ReviewerController extends Controller
     public function showReviewForm(Paper $paper)
     {
         $reviewer = Auth::user();
-        
+
         // Verifikasi bahwa paper ini di-assign ke reviewer ini
         $pivot = DB::table('paper_reviewer')
             ->where('paper_id', $paper->id)
@@ -206,7 +243,7 @@ class ReviewerController extends Controller
     public function submitReview(Request $request, Paper $paper)
     {
         $reviewer = Auth::user();
-        
+
         // Verifikasi bahwa paper ini di-assign ke reviewer ini
         $pivot = DB::table('paper_reviewer')
             ->where('paper_id', $paper->id)
@@ -240,7 +277,7 @@ class ReviewerController extends Controller
             'reviewed_at' => now(),
             'updated_at' => now(),
         ];
-        
+
         // Handle file upload jika ada
         if ($request->hasFile('review_file')) {
             // Hapus file lama jika ada
@@ -250,7 +287,7 @@ class ReviewerController extends Controller
                     @unlink($oldFilePath);
                 }
             }
-            
+
             $file = $request->file('review_file');
             // Jika multiple files, ambil file pertama
             if (is_array($file)) {
@@ -275,7 +312,7 @@ class ReviewerController extends Controller
     public function saveDraft(Request $request, Paper $paper)
     {
         $reviewer = Auth::user();
-        
+
         // Verifikasi bahwa paper ini di-assign ke reviewer ini
         $pivot = DB::table('paper_reviewer')
             ->where('paper_id', $paper->id)
@@ -299,31 +336,31 @@ class ReviewerController extends Controller
 
         // Handle file upload jika ada
         $updateData = [];
-        
+
         if ($request->has('recommendation') && $request->recommendation) {
             $updateData['recommendation'] = $request->recommendation;
         }
-        
+
         if ($request->has('comments_for_author') && $request->comments_for_author) {
             $updateData['comments_for_author'] = $request->comments_for_author;
         }
-        
+
         if ($request->has('comments_for_editor') && $request->comments_for_editor) {
             $updateData['comments_for_editor'] = $request->comments_for_editor;
         }
-        
+
         if ($request->has('Q1') && $request->Q1) {
             $updateData['Q1'] = $request->Q1;
         }
-        
+
         if ($request->has('Q2') && $request->Q2) {
             $updateData['Q2'] = $request->Q2;
         }
-        
+
         if ($request->has('Q3') && $request->Q3) {
             $updateData['Q3'] = $request->Q3;
         }
-        
+
         // Handle file upload jika ada
         if ($request->hasFile('review_file')) {
             // Hapus file lama jika ada
@@ -333,7 +370,7 @@ class ReviewerController extends Controller
                     @unlink($oldFilePath);
                 }
             }
-            
+
             $file = $request->file('review_file');
             // Jika multiple files, ambil file pertama saja
             if (is_array($file)) {
@@ -342,13 +379,13 @@ class ReviewerController extends Controller
             $updateData['review_file'] = $file->store('review_files', 'public');
             $updateData['review_file_name'] = $file->getClientOriginalName();
         }
-        
+
         // Update status tetap accept_to_review (in review), tidak completed
         // Hanya update status jika ada perubahan data
         if (!empty($updateData)) {
             $updateData['status'] = 'accept_to_review';
             $updateData['updated_at'] = now();
-            
+
             // Update pivot table dengan draft data
             DB::table('paper_reviewer')
                 ->where('paper_id', $paper->id)
@@ -366,5 +403,25 @@ class ReviewerController extends Controller
 
         // Redirect ke dashboard reviewer
         return redirect()->route('reviewer.index')->with('success', 'Draft saved successfully.');
+    }
+
+    // Helper to render email template with data
+    private function renderEmailTemplate($templateCode, array $data)
+    {
+        $email = PreparedEmail::where('email_template', $templateCode)
+            ->firstOrFail();
+
+        $subject = $email->subject;
+        $body    = $email->body;
+
+        foreach ($data as $key => $value) {
+            $subject = str_replace('{{' . $key . '}}', $value, $subject);
+            $body    = str_replace('{{' . $key . '}}', $value, $body);
+        }
+
+        return [
+            'subject' => $subject,
+            'body'    => nl2br(e($body))
+        ];
     }
 }

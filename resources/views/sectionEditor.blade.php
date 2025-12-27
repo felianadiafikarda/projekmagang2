@@ -825,27 +825,32 @@ function openAssignModal() {
         return;
     }
 
-    let names = selectedItems.map(id => selectedOptions[id].text.split(' (')[0]).join(", ");
+    let names = selectedItems.map(id => {
+        const text = selectedOptions[id].text;
+        return text.split(' (')[0].trim(); // Ambil hanya nama sebelum tanda kurung
+    }).join(", ");
 
     modalTitle.innerText = "Assign Reviewer & Send Invitation";
     modalRecipient.value = names;
-    emailSubject.value = "Invitation to Review Manuscript";
 
-    const template = `Dear ${names},
+    fetch('/prepared-email/invite_to_review')
+        .then(res => res.json())
+        .then(data => {
+            emailSubject.value = data.subject;
 
-I believe that you would serve as an excellent reviewer of the manuscript, "${articleTitle}".
-
-Please log into the journal web site to indicate whether you will undertake the review or not.
-
-Submission URL: ${articleUrl}
-
-Thank you for considering this request.
-
-${editorName}`;
-
-    emailBody.value = template;
-
-    modal.classList.remove('hidden');
+            let body = data.body;
+            body = body.replace(/@{{reviewerName}}/g, names);
+            body = body.replace(/@{{articleTitle}}/g, articleTitle);
+            body = body.replace(/@{{articleUrl}}/g, articleUrl);
+            body = body.replace(/@{{assignedBy}}/g, editorName);
+            body = body.replace(/@{{deadline}}/g, deadline);
+            emailBody.value = body;
+            modal.classList.remove('hidden');
+        })
+        .catch(err => {
+            console.error('Failed to load email template', err);
+            alert('Failed to load email template.');
+        });
 }
 
 // 2. Fungsi Buka Modal Reminder
