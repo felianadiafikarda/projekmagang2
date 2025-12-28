@@ -8,12 +8,14 @@ use App\Models\Paper;
 use Illuminate\Support\Str;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use App\Models\PreparedEmail;
+use App\Mail\PaperDecisionMail;
 use App\Mail\ReviewerReminderMail;
+use App\Mail\ReviewerResponseMail;
 use Illuminate\Support\Facades\DB;
 use App\Mail\ReviewerAssignmentMail;
-use App\Mail\SectionEditorAssignmentMail;
-use App\Mail\PaperDecisionMail;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\SectionEditorAssignmentMail;
 
 class EditorController extends Controller
 {
@@ -22,50 +24,45 @@ class EditorController extends Controller
         $page = $request->get('page', 'list');
         $filterStatus = $request->get('filter_status', '');
         $search = $request->get('search', '');
-        $papers = Paper::with(['authors','reviewers','revisions'])
-        ->when($search, function($query) use ($search) {
-            $query->where('judul', 'like', "%{$search}%")
-                ->orWhereHas('authors', function($q) use ($search) {
-                    $q->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'like', "%{$search}%");
-                });
-        })
-        ->orderBy('updated_at', 'desc')
-        ->get();
+        $papers = Paper::with(['authors', 'reviewers', 'revisions'])
+            ->when($search, function ($query) use ($search) {
+                $query->where('judul', 'like', "%{$search}%")
+                    ->orWhereHas('authors', function ($q) use ($search) {
+                        $q->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'like', "%{$search}%");
+                    });
+            })
+            ->orderBy('updated_at', 'desc')
+            ->get();
 
-        
+
         // Filter berdasarkan dropdown status
         if ($filterStatus) {
             $papers = $papers->filter(fn($p) => $p->display_status === $filterStatus);
         }
-        
-        
 
-
-        $editors = User::whereHas('roles', function($q) {
+        $editors = User::whereHas('roles', function ($q) {
             $q->where('name', 'editor');
         })->get();
-        
+
         if ($page === 'list') {
 
-                $paper = Paper::with(['authors','reviewers'])
+            $paper = Paper::with(['authors', 'reviewers'])
                 ->orderBy('created_at', 'desc')
                 ->get();
-            
-                $editors = User::whereHas('roles', function($q) {
-                    $q->where('name', 'editor');
-                })->get();
-            
-                return view('editor', [
-                    'page'     => $page,
-                    'papers'   => $papers,
-                    'editors'  => $editors,
-                    'paper'    => null,
-                    'articleUrl' => null,
-                ]);
-            
-            
 
-            $editors = User::whereHas('roles', function($q) {
+            $editors = User::whereHas('roles', function ($q) {
+                $q->where('name', 'editor');
+            })->get();
+
+            return view('editor', [
+                'page'     => $page,
+                'papers'   => $papers,
+                'editors'  => $editors,
+                'paper'    => null,
+                'articleUrl' => null,
+            ]);
+
+            $editors = User::whereHas('roles', function ($q) {
                 $q->where('name', 'editor');
             })->get();
 
@@ -90,56 +87,56 @@ class EditorController extends Controller
             $all_reviewers = User::whereHas('roles', function ($q) {
                 $q->where('name', 'reviewer');
             })
-            ->whereNotIn('id', $assignedReviewerIds) // 🔥 DI SINI PAKAI ID
-            ->get()
-            ->map(function ($reviewer) {
-        
-                $reviewer->active_papers = DB::table('paper_reviewer')
-                    ->where('user_id', $reviewer->id)
-                    ->whereIn('status', ['accept_to_review', 'completed'])
-                    ->count();
-        
-                return $reviewer;
-            });
-        
+                ->whereNotIn('id', $assignedReviewerIds) // 🔥 DI SINI PAKAI ID
+                ->get()
+                ->map(function ($reviewer) {
+
+                    $reviewer->active_papers = DB::table('paper_reviewer')
+                        ->where('user_id', $reviewer->id)
+                        ->whereIn('status', ['accept_to_review', 'completed'])
+                        ->count();
+
+                    return $reviewer;
+                });
+
 
             // Ambil semua user yang memiliki role section_editor dengan info jumlah paper aktif
             $assignedSectionEditorIds = $paper->sectionEditors()
-            ->pluck('users.id')
-            ->toArray();
+                ->pluck('users.id')
+                ->toArray();
 
-            $all_section_editors = User::whereHas('roles', function ($q) {  
-                    $q->where('name', 'section_editor');
-                })
-            ->whereNotIn('id', $assignedSectionEditorIds)
-            ->get()
-            ->map(function($se) {
-                // Hitung jumlah paper aktif (yang di-assign ke section editor ini)
-                $activePapers = DB::table('paper_section_editor')
-                    ->where('user_id', $se->id)
-                    ->count();
-                
-                $se->active_papers = $activePapers;
-                
-                return $se;
-            });
+            $all_section_editors = User::whereHas('roles', function ($q) {
+                $q->where('name', 'section_editor');
+            })
+                ->whereNotIn('id', $assignedSectionEditorIds)
+                ->get()
+                ->map(function ($se) {
+                    // Hitung jumlah paper aktif (yang di-assign ke section editor ini)
+                    $activePapers = DB::table('paper_section_editor')
+                        ->where('user_id', $se->id)
+                        ->count();
+
+                    $se->active_papers = $activePapers;
+
+                    return $se;
+                });
 
             $reviews = DB::table('paper_reviewer')
-            ->join('users', 'users.id', '=', 'paper_reviewer.user_id')
-            ->where('paper_reviewer.paper_id', $paper->id)
-            ->where('paper_reviewer.status', 'completed')
-            ->select(
-                'users.first_name',
-                'users.last_name',
-                'paper_reviewer.recommendation',
-                'paper_reviewer.comments_for_author',
-                'paper_reviewer.comments_for_editor',
-                'paper_reviewer.review_file',
-                'paper_reviewer.reviewed_at'
-            )
-            ->orderBy('paper_reviewer.reviewed_at', 'desc')
-            ->get();
-        
+                ->join('users', 'users.id', '=', 'paper_reviewer.user_id')
+                ->where('paper_reviewer.paper_id', $paper->id)
+                ->where('paper_reviewer.status', 'completed')
+                ->select(
+                    'users.first_name',
+                    'users.last_name',
+                    'paper_reviewer.recommendation',
+                    'paper_reviewer.comments_for_author',
+                    'paper_reviewer.comments_for_editor',
+                    'paper_reviewer.review_file',
+                    'paper_reviewer.reviewed_at'
+                )
+                ->orderBy('paper_reviewer.reviewed_at', 'desc')
+                ->get();
+
             return view('editor', [
                 'page'                  => 'assign',
                 'paper'                 => $paper,
@@ -147,7 +144,7 @@ class EditorController extends Controller
                 'all_reviewers'         => $all_reviewers,
                 'all_section_editors'   => $all_section_editors,
                 'assignedReviewers'     => $paper->reviewers,
-                'assignedSectionEditors'=> $paper->sectionEditors,
+                'assignedSectionEditors' => $paper->sectionEditors,
                 'editors'               => $all_section_editors,
                 'modalType'             => 'assign',
                 'reviews'               => $reviews,
@@ -164,10 +161,9 @@ class EditorController extends Controller
         return view('editorDetail', [
             'paper'                 => $paper,
             'assignedReviewers'     => $paper->reviewers,
-            'assignedSectionEditors'=> $paper->sectionEditors
+            'assignedSectionEditors' => $paper->sectionEditors
         ]);
     }
-
 
     // ===========================
     // ASSIGN REVIEWERS + EMAIL
@@ -199,7 +195,7 @@ class EditorController extends Controller
 
         // Tambahkan reviewer ke pivot with tokens
         $paper->reviewers()->syncWithoutDetaching($pivotData);
-        
+
 
         // Tambahkan role reviewer ke user yang di-assign (jika belum punya)
         $reviewerRole = Role::where('name', 'reviewer')->first();
@@ -319,7 +315,7 @@ class EditorController extends Controller
                 $editorName,
                 $subject,
                 $emailBody,
-                $request->input('email_body') ?? '', 
+                $request->input('email_body') ?? '',
             )
         );
 
@@ -333,9 +329,32 @@ class EditorController extends Controller
             'reviewer_id' => 'required|integer|exists:users,id',
         ]);
 
-        $paper->reviewers()->detach($request->reviewer_id);
-        
+        $editor   = auth()->user();
+        $reviewer = User::findOrFail($request->reviewer_id);
 
+        // ================= SEND EMAIL: REVIEW REQUEST CANCELLED =================
+
+        $template = PreparedEmail::where('email_template', 'review_request_cancelled')->first();
+
+        if ($template && $reviewer->email) {
+
+            $body = $template->body;
+            $body = str_replace('{{reviewerName}}', $reviewer->full_name, $body);
+            $body = str_replace('{{articleTitle}}', $paper->judul, $body);
+            $body = str_replace('{{assignedBy}}', $editor->full_name, $body);
+
+            // ubah newline ke HTML <br>
+            $bodyHtml = nl2br(e($body));
+
+            Mail::to($reviewer->email)->send(
+                new ReviewerResponseMail(
+                    $template->subject,
+                    $bodyHtml
+                )
+            );
+        }
+
+        $paper->reviewers()->detach($request->reviewer_id);
 
         return back()->with('success', 'Reviewer unassigned successfully!');
     }
@@ -354,7 +373,7 @@ class EditorController extends Controller
 
         // Sync section editor
         $paper->sectionEditors()->sync($editorIds);
-        
+
         // Assign role
         $role = Role::where('name', 'section_editor')->first();
         if ($role) {
@@ -396,7 +415,7 @@ class EditorController extends Controller
                         $editorName,
                         $subject,
                         $emailBodyHtml,
-                        
+
                     )
                 );
             }
@@ -410,117 +429,116 @@ class EditorController extends Controller
         // Cek apakah ada histori revisi di tabel paper_revisions
         return $paper->revisions()->exists();
     }
-    
+
     public function updateStatus(Request $request, $id)
     {
-            $paper = Paper::with(['reviewers', 'authors'])->findOrFail($id);
+        $paper = Paper::with(['reviewers', 'authors'])->findOrFail($id);
 
-            // =========================
-            // Tentukan status default
-            // =========================
-            $newEditorStatus = $paper->editor_status;
-            $newAuthorStatus = $paper->status;
+        // =========================
+        // Tentukan status default
+        // =========================
+        $newEditorStatus = $paper->editor_status;
+        $newAuthorStatus = $paper->status;
 
 
-            // =========================
-            // Editor memberikan keputusan
-            // =========================
-            if ($request->has('status')) {
-                switch ($request->input('status')) {
-                    case 'accepted':
-                        $newEditorStatus = 'accepted';
-                        $newAuthorStatus = 'accepted';
-                        break;
-            
-                    case 'accept_with_review':
-                        $newEditorStatus = 'accept_with_review';
-                        $newAuthorStatus = 'accept_with_review';
-                        break;
-            
-                    case 'rejected':
-                        $newEditorStatus = 'rejected';
-                        $newAuthorStatus = 'rejected';
-                        break;
+        // =========================
+        // Editor memberikan keputusan
+        // =========================
+        if ($request->has('status')) {
+            switch ($request->input('status')) {
+                case 'accepted':
+                    $newEditorStatus = 'accepted';
+                    $newAuthorStatus = 'accepted';
+                    break;
+
+                case 'accept_with_review':
+                    $newEditorStatus = 'accept_with_review';
+                    $newAuthorStatus = 'accept_with_review';
+                    break;
+
+                case 'rejected':
+                    $newEditorStatus = 'rejected';
+                    $newAuthorStatus = 'rejected';
+                    break;
+            }
+        }
+
+        $paper->update([
+            'editor_status' => $newEditorStatus,
+            'status'        => $newAuthorStatus,
+        ]);
+
+
+        $paper->save();
+
+        \Log::info('Paper updated', [
+            'id' => $paper->id,
+            'editor_status' => $paper->editor_status,
+            'status' => $paper->status
+        ]);
+
+
+        // =========================
+        // Kirim email ke author jika dipilih
+        // =========================
+        if ($request->input('send_email_decision') == 1 && in_array($newEditorStatus, ['accepted', 'accept_with_review', 'rejected'])) {
+
+            $reviewFiles = [];
+            foreach ($paper->reviewers as $reviewer) {
+                if ($reviewer->pivot->review_file) {
+                    $reviewFiles[] = [
+                        'path' => storage_path('app/public/' . $reviewer->pivot->review_file), // harus string
+                        'name' => $reviewer->pivot->review_file_name ?? basename($reviewer->pivot->review_file),
+                    ];
                 }
             }
-            
-            $paper->update([
-                'editor_status' => $newEditorStatus,
-                'status'        => $newAuthorStatus,
-            ]);
-            
-            
-            $paper->save();
 
-            \Log::info('Paper updated', [
-                'id' => $paper->id,
-                'editor_status' => $paper->editor_status,
-                'status' => $paper->status
-            ]);
-            
+            // tentukan field file berdasarkan status
+            if ($newEditorStatus === 'accept_with_review') {
+                $fileField = 'additional_files';
+                $selectedField = 'selected_new_files';
+            } elseif ($newEditorStatus === 'accepted') {
+                $fileField = 'additional_files_accept';
+                $selectedField = 'selected_new_files_accept';
+            } elseif ($newEditorStatus === 'rejected') {
+                $fileField = 'additional_files_decline';
+                $selectedField = 'selected_new_files_decline';
+            } else {
+                $fileField = null;
+                $selectedField = null;
+            }
 
-            // =========================
-            // Kirim email ke author jika dipilih
-            // =========================
-            if ($request->input('send_email_decision') == 1 &&in_array($newEditorStatus, ['accepted','accept_with_review','rejected'])) {
-            
-                $reviewFiles = [];
-                foreach ($paper->reviewers as $reviewer) {
-                    if ($reviewer->pivot->review_file) {
-                        $reviewFiles[] = [
-                            'path' => storage_path('app/public/' . $reviewer->pivot->review_file), // harus string
-                            'name' => $reviewer->pivot->review_file_name ?? basename($reviewer->pivot->review_file),
-                        ];
-                    }
-                }
+            $selectedIndexes = $selectedField ? $request->input($selectedField, []) : [];
 
-                // tentukan field file berdasarkan status
-                if ($newEditorStatus === 'accept_with_review') {
-                    $fileField = 'additional_files';
-                    $selectedField = 'selected_new_files';
-                } elseif ($newEditorStatus === 'accepted') {
-                    $fileField = 'additional_files_accept';
-                    $selectedField = 'selected_new_files_accept';
-                } elseif ($newEditorStatus === 'rejected') {
-                    $fileField = 'additional_files_decline';
-                    $selectedField = 'selected_new_files_decline';
-                } else {
-                    $fileField = null;
-                    $selectedField = null;
-                }
+            if ($fileField && $request->hasFile($fileField) && count($selectedIndexes)) {
+                foreach ($selectedIndexes as $index) {
+                    if (isset($request->file($fileField)[$index])) {
+                        $file = $request->file($fileField)[$index];
 
-                $selectedIndexes = $selectedField ? $request->input($selectedField, []) : [];
+                        if ($file->isValid()) {
+                            $path = $file->store('editor-uploads', 'public');
 
-                if ($fileField && $request->hasFile($fileField) && count($selectedIndexes)) {
-                    foreach ($selectedIndexes as $index) {
-                        if (isset($request->file($fileField)[$index])) {
-                            $file = $request->file($fileField)[$index];
-
-                            if ($file->isValid()) {
-                                $path = $file->store('editor-uploads', 'public');
-
-                                $reviewFiles[] = [
-                                    'path' => storage_path('app/public/' . $path), // string
-                                    'name' => $file->getClientOriginalName(),  
-                                ];
-                                
-                            }
+                            $reviewFiles[] = [
+                                'path' => storage_path('app/public/' . $path), // string
+                                'name' => $file->getClientOriginalName(),
+                            ];
                         }
                     }
                 }
-
-                foreach ($paper->authors as $author) {
-                    Mail::to($author->email)->send(new PaperDecisionMail(
-                        $paper,
-                        $author,
-                        $newEditorStatus,
-                        auth()->user()->name,
-                        $reviewFiles,                  
-                        $request->input('email_body') ?? '' 
-                    ));
-                }   
             }
-            return redirect()->route('editor.index')
+
+            foreach ($paper->authors as $author) {
+                Mail::to($author->email)->send(new PaperDecisionMail(
+                    $paper,
+                    $author,
+                    $newEditorStatus,
+                    auth()->user()->name,
+                    $reviewFiles,
+                    $request->input('email_body') ?? ''
+                ));
+            }
+        }
+        return redirect()->route('editor.index')
             ->with('success', 'Paper status updated successfully!');
     }
 
@@ -529,8 +547,39 @@ class EditorController extends Controller
     {
         $paper = Paper::findOrFail($paperId);
         $paper->sectionEditors()->detach($request->editor_id);
-        
+
 
         return back()->with('success', 'Section editor removed!');
+    }
+
+    public function sendAppreciationMail(Request $request, $paperId)
+    {
+        $request->validate([
+            'reviewer_id' => 'required|integer|exists:users,id',
+            'subject'     => 'nullable|string',
+            'email_body'  => 'nullable|string',
+        ]);
+
+        $paper    = Paper::findOrFail($paperId);
+        $reviewer = User::findOrFail($request->reviewer_id);
+
+        $editorName = auth()->user()
+            ? trim(auth()->user()->first_name . ' ' . auth()->user()->last_name)
+            : 'Editor';
+
+        // SUBJECT
+        $subject = trim($request->subject) !== ''
+            ? $request->subject
+            : 'Thank You for Your Review';
+
+        // BODY
+        $emailBody = trim($request->email_body);
+        $emailBodyHtml = nl2br(e($emailBody));
+
+        Mail::to($reviewer->email)->send(
+            new ReviewerResponseMail($subject, $emailBodyHtml)
+        );
+
+        return back()->with('success', 'Thank you email sent successfully.');
     }
 }

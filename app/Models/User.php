@@ -71,4 +71,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Paper::class);
     }
+
+    public function getFullNameAttribute()
+    {
+        return trim($this->first_name . ' ' . $this->last_name);
+    }
 }

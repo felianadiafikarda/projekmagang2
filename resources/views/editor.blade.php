@@ -394,7 +394,8 @@
                                     !!}' onclick="openReviewModal(this)">
                                             Read Review
                                         </button>
-                                        <button class="inline-flex items-center gap-1.5
+                                        <button onclick="openThankYouModal('{{ $ar->id }}', '{{ $ar->full_name }}')" 
+                                            class="inline-flex items-center gap-1.5
     text-sm px-3 py-1.5 rounded
     border border-amber-400
     bg-amber-50 text-amber-700 font-medium
@@ -1598,7 +1599,6 @@ function submitProcess() {
         return;
     }
 
-
     // --- PROCESS REMINDER EMAIL ---
     if (modalMode === "reminder") {
         // buatkan form khusus reminder
@@ -1633,6 +1633,43 @@ function submitProcess() {
 
         document.body.appendChild(form);
         form.submit();
+    }
+
+    // --- PROCESS THANK YOU EMAIL ---
+    if (modalMode === "appreciation_mail") {
+
+        const form = document.createElement('form');
+        form.method = "POST";
+        form.action = "/editor/" + paperId + "/send-appreciation-mail";
+
+        const csrf = document.createElement('input');
+        csrf.type = "hidden";
+        csrf.name = "_token";
+        csrf.value = "{{ csrf_token() }}";
+
+        const reviewerId = document.createElement('input');
+        reviewerId.type = "hidden";
+        reviewerId.name = "reviewer_id";
+        reviewerId.value = window.selectedReviewerId;
+
+        const subject = document.createElement('input');
+        subject.type = "hidden";
+        subject.name = "subject";
+        subject.value = emailSubject.value;
+
+        const body = document.createElement('input');
+        body.type = "hidden";
+        body.name = "email_body";
+        body.value = emailBody.value;
+
+        form.appendChild(csrf);
+        form.appendChild(reviewerId);
+        form.appendChild(subject);
+        form.appendChild(body);
+
+        document.body.appendChild(form);
+        form.submit();
+        return;
     }
 }
 
@@ -1769,6 +1806,28 @@ function openReviewModal(button) {
 
 function closeReviewModal() {
     document.getElementById('reviewModal').classList.add('hidden');
+}
+
+function openThankYouModal(reviewerId, reviewerName) {
+    modalMode = "appreciation_mail";
+    window.selectedReviewerId = reviewerId;
+
+    modalTitle.innerText = "Send Thank You Email";
+    modalRecipient.value = reviewerName;
+
+    fetch('/prepared-email/thank_you_for_review')
+        .then(res => res.json())
+        .then(data => {
+            emailSubject.value = data.subject ?? '';
+
+            let body = data.body ?? '';
+            body = body.replace(/@{{reviewerName}}/g, reviewerName);
+            body = body.replace(/@{{articleTitle}}/g, articleTitle);
+            body = body.replace(/@{{assignedBy}}/g, editorName);
+
+            emailBody.value = body;
+            modal.classList.remove('hidden');
+        });
 }
 </script>
 
