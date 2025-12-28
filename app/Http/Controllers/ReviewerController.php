@@ -156,8 +156,8 @@ class ReviewerController extends Controller
         $assigned_by = User::find($pivot->assigned_by); // sesuaikan jika relasi berbeda
 
         $email = $this->renderEmailTemplate('review_acceptance', [
-            'assignedBy'   => trim($assigned_by->first_name . ' ' . $assigned_by->last_name),
-            'reviewerName' => trim($reviewer->first_name . ' ' . $reviewer->last_name),
+            'assignedBy'   => $assigned_by->full_name,
+            'reviewerName' => $reviewer->full_name,
             'articleTitle' => $paper->judul,
         ]);
 
@@ -189,8 +189,8 @@ class ReviewerController extends Controller
         $assigned_by = User::find($pivot->assigned_by); // sesuaikan jika relasi berbeda
 
         $email = $this->renderEmailTemplate('review_decline', [
-            'assignedBy'   => trim($assigned_by->first_name . ' ' . $assigned_by->last_name),
-            'reviewerName' => trim($reviewer->first_name . ' ' . $reviewer->last_name),
+            'assignedBy'   => $assigned_by->full_name,
+            'reviewerName' => $reviewer->full_name,
             'articleTitle' => $paper->judul,
         ]);
 
@@ -302,6 +302,31 @@ class ReviewerController extends Controller
             ->where('paper_id', $paper->id)
             ->where('user_id', $reviewer->id)
             ->update($updateData);
+
+        $assignedBy = User::find($pivot->assigned_by);
+
+        if ($assignedBy && $assignedBy->email) {
+
+            $template = PreparedEmail::where('email_template', 'review_completed')->first();
+
+            if ($template) {
+                $body = $template->body;
+                $body = str_replace('{{assignedBy}}', $assignedBy->full_name, $body);
+                $body = str_replace('{{articleTitle}}', $paper->judul, $body);
+                $body = str_replace('{{reviewerName}}', $reviewer->full_name, $body);
+
+                // Konversi newline agar HTML rapi
+                $bodyHtml = nl2br(e($body));
+
+                // Kirim email
+                Mail::to($assignedBy->email)->send(
+                    new ReviewerResponseMail(
+                        $template->subject,
+                        $bodyHtml
+                    )
+                );
+            }
+        }
 
         return redirect()->route('reviewer.index')->with('success', 'Review submitted successfully.');
     }

@@ -95,20 +95,20 @@ Route::get('/review-invitation-preview', function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/conference-manager', [ConferenceController::class, 'index'])->name('conference_manager.index');
+
+    // Editor Routes
     Route::get('/editor', [EditorController::class, 'index'])->name('editor.index');
     Route::get('/editor/detail/{id}', [EditorController::class, 'detail'])->name('editor.detail');
     Route::post('/editor/paper/{paper}/assign-reviewers', [EditorController::class, 'assignReviewers'])->name('editor.assignReviewers');
     Route::post('/editor/{paperId}/send-reminder', [EditorController::class, 'sendReminder'])->name('editor.sendReminder');
     Route::post('/editor/{paper}/unassign-reviewer', [EditorController::class, 'unassignReviewer'])->name('editor.unassignReviewer');
     Route::post( '/editor/{id}/assign-section-editor',[EditorController::class, 'assignSectionEditorWithEmail'])->name('editor.assignSectionEditor');
+    Route::post('/editor/{paper}/send-appreciation-mail', [EditorController::class, 'sendAppreciationMail'])->name('editor.sendAppreciationMail');
     
     Route::post('/editor/{paper}/unassign-section-editor', [EditorController::class, 'unassignSectionEditor'])->name('editor.unassignSectionEditor');
     Route::patch('/editor/paper/{id}/status', [EditorController::class, 'updateStatus'])->name('editor.updateStatus');
     Route::patch('/editor/paper/{id}/update-status-editor', [EditorController::class, 'updateStatusEditor'])->name('editor.updateStatusEditor');
-
-    
-
-    
+    // Reviewer Routes
     Route::get('/reviewer', [ReviewerController::class, 'index'])->name('reviewer.index');
     Route::post('/reviewer/{paper}/accept', [ReviewerController::class, 'acceptReview'])->name('reviewer.accept');
     Route::post('/reviewer/{paper}/decline', [ReviewerController::class, 'declineReview'])->name('reviewer.decline');
@@ -137,8 +137,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/author/sendArticle', [AuthorController::class, 'store'])->name('author.store');
     Route::post('/author/{paper}/revision', [AuthorController::class, 'storeRevision'])->name('author.revision.store');
 
-
-
     // Section Editor Routes
     Route::get('/section-editor', [SectionEditorController::class, 'index'])->name('section_editor.index');
     Route::get('/section-editor/detail/{id}', [SectionEditorController::class, 'detail'])->name('section_editor.detail');
@@ -155,7 +153,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/prepared-emails/{emailTemplate }', [PreparedEmailController::class, 'destroy'])->name('prepared_email.destroy');
     Route::get('/prepared-email/{code}', [PreparedEmailController::class, 'getTemplate']);
 
-    
     Route::post('/notifications/read-all', function () {
         Notification::where('user_id', auth()->id())
             ->where('is_read', false)

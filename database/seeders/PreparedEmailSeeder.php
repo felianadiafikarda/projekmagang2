@@ -19,6 +19,14 @@ class PreparedEmailSeeder extends Seeder
             ],
 
             [
+                'email_template' => 'thank_you_for_review',
+                'sender' => 'editor',
+                'recipient' => 'reviewer',
+                'subject' => 'Thank You for Completing the Review',
+                'body' => "Dear {{reviewerName}},\n\nThank you for completing the review of the manuscript entitled\n\"{{articleTitle}}\".\n\nWe sincerely appreciate the time, effort, and expertise you have devoted\nto evaluating this submission. Your valuable comments and recommendations\nare essential in maintaining the quality and integrity of our journal.\n\nShould we require further clarification or additional review in the future,\nwe will be pleased to contact you again.\n\nThank you for your contribution and continued support.\n\nBest regards,\n{{assignedBy}}",
+            ],
+
+            [
                 'email_template' => 'invite_to_review',
                 'sender' => 'editor',
                 'recipient' => 'reviewer',
