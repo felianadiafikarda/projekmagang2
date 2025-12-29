@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\Role;
 
 class AuthController extends Controller
 {
@@ -66,5 +67,32 @@ class AuthController extends Controller
     {
         Auth::logout();
         return redirect('/login');
+    }
+
+    public function registration(Request $request)
+    {
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name'  => ['required', 'string', 'max:100'],
+            'username'   => ['required', 'string', 'max:50', 'unique:users,username'],
+            'email'      => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password'   => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = User::create([
+            'first_name' => $validated['first_name'],
+            'last_name'  => $validated['last_name'],
+            'username'   => $validated['username'],
+            'email'      => $validated['email'],
+            'password'   => Hash::make($validated['password']),
+        ]);
+
+        $authorRole = Role::where('name', 'author')->first();
+
+        $user->roles()->attach($authorRole->id);
+
+        return redirect()
+            ->route('login')
+            ->with('success', 'Registration successful. Please login.');
     }
 }

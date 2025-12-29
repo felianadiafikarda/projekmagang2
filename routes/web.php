@@ -44,14 +44,14 @@ Route::get('/', function () {
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
     
     // Registration Routes
     Route::get('/registrasi', function () {
         return view('registrasi');
     })->name('register.author');
     
-    Route::post('/registrasi', [AuthController::class, 'register'])->name('register.author.post');
+    Route::post('/registration', [AuthController::class, 'registration'])->name('registration.post');
     
     // Forgot Password & OTP Routes
     Route::get('/forgot-password', function () {
