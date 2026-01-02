@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
+use App\Mail\ReviewerResponseMail;
+use App\Models\PreparedEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -66,5 +70,53 @@ class AuthController extends Controller
     {
         Auth::logout();
         return redirect('/login');
+    }
+
+    public function registration(Request $request)
+    {
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name'  => ['required', 'string', 'max:100'],
+            'username'   => ['required', 'string', 'max:50', 'unique:users,username'],
+            'email'      => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password'   => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = User::create([
+            'first_name' => $validated['first_name'],
+            'last_name'  => $validated['last_name'],
+            'username'   => $validated['username'],
+            'email'      => $validated['email'],
+            'password'   => Hash::make($validated['password']),
+        ]);
+
+        $authorRole = Role::where('name', 'author')->first();
+        $user->roles()->attach($authorRole->id);
+
+        $template = PreparedEmail::where(
+            'email_template',
+            'new_notification_registration'
+        )->first();
+
+        if ($template && $user->email) {
+
+            $body = $template->body;
+            $body = str_replace('{{fullName}}', $user->full_name, $body);
+            $body = str_replace('{{email}}', $user->email, $body);
+
+            // ubah newline ke HTML <br>
+            $bodyHtml = nl2br(e($body));
+
+            Mail::to($user->email)->send(
+                new ReviewerResponseMail(
+                    $template->subject,
+                    $bodyHtml
+                )
+            );
+        }
+
+        return redirect()
+            ->route('login')
+            ->with('success', 'Registration successful. Please login.');
     }
 }

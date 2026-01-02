@@ -11,11 +11,19 @@ class PreparedEmailSeeder extends Seeder
     {
         $templates = [
             [
+                'email_template' => 'new_notification_registration',
+                'sender' => 'system',
+                'recipient' => 'user',
+                'subject' => 'New Account Registration Successful',
+                'body' => "Dear {{authorName}},\n\nYour account has been successfully created in our system.\n\nYou can now log in using your registered email address:\nEmail: {{email}}\n\nIf you did not create this account, please ignore this email.\n\nThank you for registering and welcome to our platform.\n\nBest regards,\nEditorial Team",
+            ],
+
+            [
                 'email_template' => 'new_registration_notification',
                 'sender' => 'system',
                 'recipient' => 'author',
                 'subject' => 'New Notification of Registration',
-                'body' => "Dear {{authorName}},\n\nThank you for registering at {{journalName}}.\n\nLogin URL:\n{{loginUrl}}\n\nBest regards,\nEditorial Team",
+                'body' => "Dear {{fullName}},\n\nThank you for registering at {{journalName}}.\n\nLogin URL:\n{{loginUrl}}\n\nBest regards,\nEditorial Team",
             ],
 
             [
