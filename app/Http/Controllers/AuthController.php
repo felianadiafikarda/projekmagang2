@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
+use App\Mail\ReviewerResponseMail;
+use App\Models\PreparedEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use App\Models\Role;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -88,8 +91,29 @@ class AuthController extends Controller
         ]);
 
         $authorRole = Role::where('name', 'author')->first();
-
         $user->roles()->attach($authorRole->id);
+
+        $template = PreparedEmail::where(
+            'email_template',
+            'new_notification_registration'
+        )->first();
+
+        if ($template && $user->email) {
+
+            $body = $template->body;
+            $body = str_replace('{{fullName}}', $user->full_name, $body);
+            $body = str_replace('{{email}}', $user->email, $body);
+
+            // ubah newline ke HTML <br>
+            $bodyHtml = nl2br(e($body));
+
+            Mail::to($user->email)->send(
+                new ReviewerResponseMail(
+                    $template->subject,
+                    $bodyHtml
+                )
+            );
+        }
 
         return redirect()
             ->route('login')
